@@ -15,6 +15,10 @@
     ctx.canvas.width  = window.innerWidth-20;
     ctx.canvas.height = window.innerHeight-20;
     init();
-    draw_all(ctx);
+    setInterval(function(){
+      update_constraints();
+      ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
+      draw_all(ctx);
+    }, 10); // executes every 1000ms (1s)
 </script>
 </html>
