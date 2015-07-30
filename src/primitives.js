@@ -1,11 +1,11 @@
 // Primitive: ClosedLine
-function ClosedLine (points, fill) {
+function ClosedLine (points, fillStyle) {
   return {
     draw: function(ctx) {
       var len = points.length;
       if (len <= 0) { return }
       if (len%2 != 0) { return }
-      ctx.fillStyle = fill;
+      ctx.fillStyle = fillStyle;
       ctx.beginPath();
       ctx.moveTo(points[0],points[1]);
       for (i = 2; i < len; i += 2) {
@@ -17,13 +17,13 @@ function ClosedLine (points, fill) {
   }
 }
 
-function Line (points, fill) {
+function Line (points, strokeStyle) {
   return {
     draw: function(ctx) {
       var len = points.length;
       if (len <= 0) { return }
       if (len%2 != 0) { return }
-      ctx.fillStyle = fill;
+      ctx.strokeStyle = strokeStyle;
       ctx.beginPath();
       ctx.moveTo(points[0],points[1]);
       for (i = 2; i < len; i += 2) {
@@ -70,3 +70,7 @@ function Timer (freq, work) {
     }
   }
 }
+
+function InteractionPoint (x,y) {
+  return { x: x, y: y}
+} 

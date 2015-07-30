@@ -14,18 +14,18 @@ function Rectangle (x1, y1, x2, y2,fill) {
   }
 }
 
-// Draws an arrow from (x1,y1) to (x2,y2).
+// Draws an arrow at location (x,y) with direction (dx, dy).
 // TODO: fix up the head of the arrow
-function Arrow(x1, y1, x2, y2, fill) {
+function Arrow(x, y, dx, dy, fill) {
 	return {
-		x1: x1,
-		y1: y1,
-		x2: x2,
-		y2: y2,
+		x: x,
+		y: y,
+		dx: dx,
+		dy: dy,
 		fill: fill,
 		draw: function (ctx) {
   		with (this) {
-  			Line([x1,y1,x2,y2], fill).draw(ctx);
+  			Line([x,y,x+dx,y+dy], fill).draw(ctx);
   			// tx1 = ...
   			// ty1 = ...
   			// tx2 = ...
