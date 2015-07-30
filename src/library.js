@@ -38,4 +38,21 @@ function Arrow(x, y, dx, dy, fill) {
   }
 }
 
+// x, y, and r control circle, dx, dy control offset of text.
+// TODO: algorithm to center circle around text (i.e. calculate r, dx, dy as a
+// function of text)
+function TextCircle (x, y, r, dx, dy, text, fill) {
+  return {
+    x: x,
+    y: y,
+    r: r,
+    text: text,
+    fill: fill,
+    draw: function(ctx) {
+      Circle(x,y,r, "white", fill).draw(ctx);
+      Text(x+dx, y+dy, text, "18pt Comic sans MS").draw(ctx);
+    }
+  }
+}
+
 // TODO: TextBox, TextCircle, Triangle

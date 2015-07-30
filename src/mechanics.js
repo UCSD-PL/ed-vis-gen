@@ -19,10 +19,13 @@ function init() {
   I3 = InteractionPoint (Initial.x, Initial.y+150);
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
-  Start = Circle(400, 100, 50, "white", "black");
+  Start = TextCircle(400, 100, 40, -15, 10, "Go", "black");
+  SI = InteractionPoint(400, 100);
+  Reset = TextCircle(400, 200, 40, -30, 10, "Reset", "black");
+  RI = InteractionPoint(400, 200);
 
-  push(all_objects, V1, V2, V3, Title, Start);
-  push(interaction_points, I1, I2, I3);
+  push(all_objects, V1, V2, V3, Title, Start, Reset);
+  push(interaction_points, I1, I2, I3, SI, RI);
   dragged_obj = null;
 }
 
