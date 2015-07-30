@@ -17,7 +17,10 @@ function init() {
   I2 = InteractionPoint (Initial.x+50, Initial.y-50);
   V3 = Arrow (Initial.x, Initial.y, 0, +150, red);
   I3 = InteractionPoint (Initial.x, Initial.y+150);
-  push(all_objects, V1, V2, V3);
+
+  Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
+
+  push(all_objects, V1, V2, V3, Title);
   push(interaction_points, I1, I2, I3);
   dragged_obj = null;
 }

@@ -33,6 +33,20 @@ function Line (points, strokeStyle) {
     }
   }
 }
+
+function Text(x, y, text, font) { // font is an optional parameter
+  font = font || "24pt Comic sans MS"
+  return {
+    x: x,
+    y: y,
+    font: font,
+    draw: function (ctx) {
+      ctx.font = font;
+      ctx.fillText(text, x, y);
+    }
+  }
+}
+
 // Image primitive. Needs a corresponding img tag in the html source.
 // TODO
 function Image (x, y, h, w, name) {
@@ -73,4 +87,4 @@ function Timer (freq, work) {
 
 function InteractionPoint (x,y) {
   return { x: x, y: y}
-} 
+}
