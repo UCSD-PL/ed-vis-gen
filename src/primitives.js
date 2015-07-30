@@ -34,6 +34,7 @@ function Line (points, fill) {
   }
 }
 // Image primitive. Needs a corresponding img tag in the html source.
+// TODO
 function Image (x, y, h, w, name) {
   var i = document.getElementById(name);
   return {
@@ -43,6 +44,29 @@ function Image (x, y, h, w, name) {
     w: w,
     draw: function(ctx) {
       ctx.drawImage(i, x, y, h, w);
+    }
+  }
+}
+
+// Timer primitive. Takes a frequency and body as arguments. Can be started,
+// stopped, and reset. Assumes work takes a single (numeric) argument representing
+// the current time.
+function Timer (freq, work) {
+  return {
+    t: 0,
+    freq: freq,
+    inner: 0,
+    work: work,
+    start: function () {
+      this.inner = setInterval(function(me){
+        me.work(me.t);
+        me.t++;
+      }, this.freq, this);
+    },
+    stop: function() { clearInterval(this.inner); },
+    reset: function() {
+      clearInterval(this.inner);
+      this.t=0;
     }
   }
 }

@@ -23,15 +23,20 @@
       ctx.canvas.width  = window.innerWidth-20;
       ctx.canvas.height = window.innerHeight-20;
       init();
-      var tau = setInterval(function(){
-        update_constraints();
+      draw_all(ctx);
+      var tau = Timer(100, function(t){
+        update_constraints(t);
         ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
         draw_all(ctx);
-      }, 100); // executes every 100ms (1s)
+      }); // executes every 100ms (.1s)
+      tau.start();
 
-      //setTimeout(function() {clearInterval(tau); }, 2000); // stops after 2s
-
-    //}
+      // loop animation
+      setInterval(function() {
+        tau.stop();
+        tau.reset();
+        tau.start();
+      }, 2000);
 
 </script>
 </html>
