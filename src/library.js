@@ -38,4 +38,4 @@ function Arrow(x, y, dx, dy, fill) {
   }
 }
 
-// TODO: Circle, Text, TextBox, TextCircle, Triangle
+// TODO: TextBox, TextCircle, Triangle

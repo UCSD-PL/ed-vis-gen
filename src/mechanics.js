@@ -19,8 +19,9 @@ function init() {
   I3 = InteractionPoint (Initial.x, Initial.y+150);
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
+  Start = Circle(400, 100, 50, "white", "black");
 
-  push(all_objects, V1, V2, V3, Title);
+  push(all_objects, V1, V2, V3, Title, Start);
   push(interaction_points, I1, I2, I3);
   dragged_obj = null;
 }
@@ -75,22 +76,12 @@ function interactivity_update() {
 }
 
 function update_constraints(tau) {
-  // differential equations, implicit time version
-  // update the pig's position
-  // dx = v * dt, v is saved as a variable
-  // Pig.x = Pig.x + PigVelocity.x;
-  // Pig.y = Pig.y + PigVelocity.y;
-
-  // update the pig's velocity
-  // dv = a*dt, a = ∑ vectors / m
-  // PigVelocity.x = PigVelocity.x + (V1.x2 + V2.x2 + V3.x2 - 3*Pig.x) / PigMass;
-  // PigVelocity.y = PigVelocity.y + (V1.y2 + V2.y2 + V3.y2 - 3*Pig.y) / PigMass;
-
-  // explicit time version
+  // differential equations, explicit time version
   // x(t) = at^2/2 + v0t + x0, for constant acceleration.
   // time is dampened by 1/100 for display purposes.
-  Pig.x = Initial.x + Initial.v.x * tau * (1/100) + (V1.dx + V2.dx + V3.dx) * tau * tau/2 * (1/100);
-  Pig.y = Initial.y + Initial.v.x * tau * (1/100) + (V1.dy + V2.dy + V3.dy) * tau * tau/2 * (1/100);
+  tau = tau/10;
+  Pig.x = Initial.x + Initial.v.x * tau + (V1.dx + V2.dx + V3.dx) * tau * tau/2;
+  Pig.y = Initial.y + Initial.v.x * tau + (V1.dy + V2.dy + V3.dy) * tau * tau/2;
 
   // update the vector positions
   V1.x = Pig.x;
