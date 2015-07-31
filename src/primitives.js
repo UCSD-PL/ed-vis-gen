@@ -35,6 +35,37 @@ function Line (points, strokeStyle) {
   }
 }
 
+function Spring (x, y, dx, dy, fill) {
+  return {
+    x: x,
+    y: y,
+    dx: dx,
+    dy: dy,
+    draw: function (ctx) {
+      // draw a sinusoid centered on the line between
+      // (x,y) -> (x+dx, y+dy)
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.moveTo(0,0);
+      ctx.rotate(Math.atan2(dy,dx));
+      ctx.strokeStyle = fill;
+      ctx.beginPath();
+
+      var A = 10;
+      var tau = Math.PI/50;
+
+      for (var i = 0; i < 1000; ++i) {
+        var p = i * dx/1000;
+        var q = A*Math.sin(tau*i);
+        ctx.lineTo(p,q);
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
 function Text(x, y, text, font) { // font is an optional parameter
   font = font || "24pt Comic sans MS"
   return {
