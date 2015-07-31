@@ -1,5 +1,5 @@
 // Draws a rectangle with top left at (x1,y1) to bottom right at (x2,y2).
-function Rectangle (x1, y1, x2, y2,fill) {
+function Rectangle (x1, y1, x2, y2, stroke, fill) {
 	return {
 		x1: x1,
 		y1: y1,
@@ -8,25 +8,26 @@ function Rectangle (x1, y1, x2, y2,fill) {
 		fill: fill,
 		draw: function (ctx) {
 			with (this) {
-				ClosedLine([x1,y1, x2,y1, x2,y2, x1,y2, x1,y1], fill).draw(ctx);
+				ClosedLine([x1,y1, x2,y1, x2,y2, x1,y2, x1,y1], stroke, fill).draw(ctx);
 			}
 		}
   }
 }
 
 // Draws a triangle at input three points.
-function Triangle (x1, y1, x2, y2, x3, y3, fill) {
+function Triangle (x1, y1, x2, y2, x3, y3, stroke, fill) {
 	return {
 		x1: x1,
 		y1: y1,
-		x2: x2,
-		y2: y2,
+    x2: x2,
+    y2: y2,
     x3: x3,
     y3: y3,
-		fill: fill,
+    stroke: stroke,
+    fill: fill,
 		draw: function (ctx) {
 			with (this) {
-				ClosedLine([x1,y1, x2,y2, x3,y3, x1,y1], fill).draw(ctx);
+				ClosedLine([x1,y1, x2,y2, x3,y3, x1,y1], stroke, fill).draw(ctx);
 			}
 		}
   }
@@ -34,16 +35,16 @@ function Triangle (x1, y1, x2, y2, x3, y3, fill) {
 
 // Draws an arrow at location (x,y) with direction (dx, dy).
 // TODO: add arrowhead parameters to arrow
-function Arrow(x, y, dx, dy, fill) {
+function Arrow(x, y, dx, dy, color) {
 	return {
 		x: x,
 		y: y,
 		dx: dx,
 		dy: dy,
-		fill: fill,
+		color: color,
 		draw: function (ctx) {
   		with (this) {
-  			Line([x,y,x+dx,y+dy], fill).draw(ctx);
+  			Line([x,y,x+dx,y+dy], color).draw(ctx);
 
         // arrows are hard, adapted from here:
         // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
@@ -65,7 +66,7 @@ function Arrow(x, y, dx, dy, fill) {
         var botx=x+dx+Math.cos(angle2)*h;
         var boty=y+dy+Math.sin(angle2)*h;
 
-  			Triangle(x+dx, y+dy, topx, topy, botx, boty, fill).draw(ctx);
+  			Triangle(x+dx, y+dy, topx, topy, botx, boty, color, color).draw(ctx);
   		}
   	}
   }

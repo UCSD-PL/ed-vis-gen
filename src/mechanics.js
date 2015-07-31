@@ -10,15 +10,18 @@ function init() {
   //Pig = {x:Initial.x, y:Initial.y}
   //all_objects.push(Pig);
 
-  Ramp = Triangle (Initial.x-75, Initial.y-75, Initial.x-75, Initial.y+75, Initial.x+75, Initial.y+75, "rgba(0,0,0,0)");
-  red = "red";
-  V1 = Arrow (Initial.x, Initial.y, -50, -50, red);
+  Ramp = Triangle (
+    Initial.x-75, Initial.y-75,
+    Initial.x-75, Initial.y+75,
+    Initial.x+75, Initial.y+75,
+    "black", "rgba(0,0,0,0)");
+  V1 = Arrow (Initial.x, Initial.y, -50, -50, "red");
   I1 = InteractionPoint (Initial.x-50, Initial.y-50);
   I1.magnitude = Math.sqrt(V1.dx*V1.dx + V1.dy*V1.dy); // magnitude constraint variable
-  V2 = Arrow (Initial.x, Initial.y, 50, -50, red);
+  V2 = Arrow (Initial.x, Initial.y, 50, -50, "red");
   I2 = InteractionPoint (Initial.x+50, Initial.y-50);
   I2.magnitude = Math.sqrt(V2.dx*V2.dx + V2.dy*V2.dy);
-  V3 = Arrow (Initial.x, Initial.y, 0, +150, red);
+  V3 = Arrow (Initial.x, Initial.y, 0, +150, "red");
   I3 = InteractionPoint (Initial.x, Initial.y+150);
   I3.magnitude = Math.sqrt(V3.dx*V3.dx + V3.dy*V3.dy);
 
@@ -33,78 +36,20 @@ function init() {
 
   T = 0;
 
+  tau = Timer(10, function(t){
+    T = t/100;
+    update_constraints();
+    global_redraw();
+  }, function() {
+    T = 0;
+    update_constraints();
+    global_redraw();
+  }); // executes every 10ms (.01s)
+
   push(all_objects, V1, V2, V3, Title, Pig, Ramp /*,Start, Reset*/);
   push(drag_points, I1, I2, I3 /*,SI, RI*/);
   push(rightClick_points, I1, I2, I3);
-  dragged_obj = null;
-}
 
-function doMouseDown(event) {
-  switch (event.button) {
-    case 0: // left click
-      doLeftClick(event);
-      break;
-    case 2: // right click
-      doRightClick(event);
-      break;
-    default:
-      alert(event.button);
-  }
-}
-
-function doLeftClick(event) {
-  dragged_obj = null;
-  var x = event.layerX;
-  var y = event.layerY;
-  for (var i = 0; i < drag_points.length; i++) {
-    if (x <= drag_points[i].x + 20 && x >= drag_points[i].x - 20 &&
-        y <= drag_points[i].y + 20 && y >= drag_points[i].y - 20) {
-      dragged_obj = drag_points[i];
-      break;
-    }
-  }
-}
-
-function doRightClick(event) {
-  // if we clicked on a vector, prompt for the vector's magnitude
-  var x = event.layerX;
-  var y = event.layerY;
-  for (var i = 0; i < rightClick_points.length; ++i) {
-    if (x <= rightClick_points[i].x + 20 && x >= rightClick_points[i].x - 20 &&
-        y <= rightClick_points[i].y + 20 && y >= rightClick_points[i].y - 20) {
-      var m = parseInt(prompt("What should the magnitude be?"));
-      rightClick_points[i].magnitude = m;
-      rightClick_update();
-      global_redraw();
-      break;
-    }
-  }
-}
-
-function doMouseUp(event) {
-  dragged_obj = null;
-}
-
-function doMouseMove(event) {
-  if (dragged_obj != null) {
-    dragged_obj.x = event.layerX;
-    dragged_obj.y = event.layerY;
-    drag_update();
-    //update_constraints();
-    global_redraw();
-  }
-}
-
-function global_redraw() {
-  var ctx = global_ctx;
-  ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
-  draw_all(ctx);
-}
-
-function draw_all(ctx) {
-  for (var i = 0; i < all_objects.length; i++) {
-    all_objects[i].draw(ctx);
-  }
 }
 
 function drag_update() {
@@ -159,5 +104,14 @@ function update_constraints() {
   I1.magnitude = Math.sqrt(V1.dx*V1.dx + V1.dy*V1.dy);
   I2.magnitude = Math.sqrt(V2.dx*V2.dx + V2.dy*V2.dy);
   I3.magnitude = Math.sqrt(V3.dx*V3.dx + V3.dy*V3.dy);
+}
 
+function start() {
+  tau.start();
+}
+function stop() {
+  tau.stop();
+}
+function reset() {
+  tau.reset();
 }

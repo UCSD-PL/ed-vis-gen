@@ -1,0 +1,29 @@
+<html>
+<head>
+    <title>Vis Gen DSL</title>
+
+    <button onclick="start()">Start</button>
+    <button onclick="stop()">Stop</button>
+    <button onclick="reset()">Reset</button>
+    <img id="pig" src="resources/pig.png" height="200" width="200" style="display:none"
+     onload="main();">
+    <script src="src/helpers.js"> </script>
+    <script src="src/primitives.js"></script>
+    <script src="src/library.js"></script>
+    <script src="src/common.js"></script>
+    <script src="src/mechanics.js"></script>
+</head>
+
+<body oncontextmenu="return false">
+<canvas id="mainCanvas" width="100%" height="100%">
+</canvas>
+
+</body>
+<script>
+  function main() {
+    common_init();
+    init();
+    global_redraw();
+  }
+</script>
+</html>
