@@ -1,12 +1,12 @@
 // Primitive: ClosedLine
-function ClosedLine (points, fillStyle) {
+function ClosedLine (points, stroke, fill) {
   return {
     draw: function(ctx) {
       var len = points.length;
       if (len <= 0) { return }
       if (len%2 != 0) { return }
-      ctx.fillStyle = fillStyle;
-      ctx.strokeStyle = "black";
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = stroke;
       ctx.beginPath();
       ctx.moveTo(points[0],points[1]);
       for (i = 2; i < len; i += 2) {
@@ -18,19 +18,52 @@ function ClosedLine (points, fillStyle) {
   }
 }
 
-function Line (points, strokeStyle) {
+function Line (points, stroke) {
   return {
     draw: function(ctx) {
       var len = points.length;
       if (len <= 0) { return }
       if (len%2 != 0) { return }
-      ctx.strokeStyle = strokeStyle;
+      ctx.strokeStyle = stroke;
       ctx.beginPath();
       ctx.moveTo(points[0],points[1]);
       for (i = 2; i < len; i += 2) {
         ctx.lineTo(points[i],points[i+1]);
       }
       ctx.stroke();
+    }
+  }
+}
+
+function Spring (x, y, dx, dy, stroke) {
+  return {
+    x: x,
+    y: y,
+    dx: dx,
+    dy: dy,
+    draw: function (ctx) {
+      with (this) {
+        // draw a sinusoid centered on the line between
+        // (x,y) -> (x+dx, y+dy)
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.moveTo(0,0);
+        ctx.rotate(Math.atan2(dy,dx));
+        ctx.strokeStyle = stroke;
+        ctx.beginPath();
+
+        var A = 10;
+        var tau = Math.PI/50;
+
+        for (var i = 0; i < 1000; ++i) {
+          var p = i * dx/1000;
+          var q = A*Math.sin(tau*i);
+          ctx.lineTo(p,q);
+        }
+
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 }
@@ -59,19 +92,20 @@ function Circle (x, y, r, fill, stroke) {
     fill: fill,
     stroke: stroke,
     draw: function (ctx) {
-      ctx.beginPath();
-      ctx.fillStyle = fill;
-      ctx.strokeStyle = stroke;
-      ctx.arc(x,y,r, 0, 2*Math.PI);
-      ctx.fill();
-      ctx.stroke();
+      with (this) {
+        ctx.beginPath();
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.arc(x,y,r, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.stroke();
+      }
     }
   }
 }
 // Image primitive. Needs a corresponding img tag in the html source.
 // TODO
 function Image (x, y, h, w, name) {
-
   return {
     x: x,
     y: y,
@@ -91,13 +125,13 @@ function Image (x, y, h, w, name) {
 // Timer primitive. Takes a frequency and body as arguments. Can be started,
 // stopped, and reset. Assumes work takes a single (numeric) argument representing
 // the current time.
-function Timer (freq, work, whenDone) {
+function Timer (freq, work, done) {
   return {
     t: 0,
     freq: freq,
     inner: 0,
     work: work,
-    donek: whenDone,
+    done: done,
     start: function () {
       this.inner = setInterval(function(me){
         me.work(me.t);
@@ -108,7 +142,7 @@ function Timer (freq, work, whenDone) {
     reset: function() {
       clearInterval(this.inner);
       this.t=0;
-      this.donek();
+      this.done();
     }
   }
 }
