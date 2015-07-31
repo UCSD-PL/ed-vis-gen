@@ -56,7 +56,7 @@ function doMouseMove(event) {
     dragged_obj.x = event.layerX;
     dragged_obj.y = event.layerY;
     interactivity_update();
-    update_constraints();
+    //update_constraints();
     global_redraw();
   }
 }
