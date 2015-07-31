@@ -5,8 +5,8 @@ function init() {
   PigMass = 75;
   PigVelocity = {x:0, y:0};
   Initial = {x:150, y:150, v:{x:0, y:0} };
-  //Pig = Image(Initial.x, Initial.y, 50, 50, "pig");
-  Pig = {x:Initial.x, y:Initial.y}
+  Pig = Image(Initial.x, Initial.y, 50, 50, "pig");
+  //Pig = {x:Initial.x, y:Initial.y}
   //all_objects.push(Pig);
 
 //Ramp = Triangle (20, 150, 20, 400, 250, 400, none);
@@ -29,7 +29,7 @@ function init() {
 
   T = 0;
 
-  push(all_objects, V1, V2, V3, Title /*,Start, Reset*/);
+  push(all_objects, V1, V2, V3, Title, Pig /*,Start, Reset*/);
   push(interaction_points, I1, I2, I3 /*,SI, RI*/);
   dragged_obj = null;
 }

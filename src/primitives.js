@@ -70,14 +70,19 @@ function Circle (x, y, r, fill, stroke) {
 // Image primitive. Needs a corresponding img tag in the html source.
 // TODO
 function Image (x, y, h, w, name) {
-  var i = document.getElementById(name);
+
   return {
     x: x,
     y: y,
     h: h,
     w: w,
+    name: name,
     draw: function(ctx) {
-      ctx.drawImage(i, x, y, h, w);
+      with (this) {
+        var i = document.getElementById(name);
+        //i.style.display="initial";
+        ctx.drawImage(i, x-w/2, y-h/2, h, w);
+      }
     }
   }
 }
