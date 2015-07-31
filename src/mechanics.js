@@ -9,7 +9,7 @@ function init() {
   //Pig = {x:Initial.x, y:Initial.y}
   //all_objects.push(Pig);
 
-//Ramp = Triangle (20, 150, 20, 400, 250, 400, none);
+  Ramp = Triangle (Initial.x-75, Initial.y-75, Initial.x-75, Initial.y+75, Initial.x+75, Initial.y+75, "rgba(0,0,0,0)");
   red = "red";
   V1 = Arrow (Initial.x, Initial.y, -50, -50, red);
   I1 = InteractionPoint (Initial.x-50, Initial.y-50);
@@ -29,7 +29,7 @@ function init() {
 
   T = 0;
 
-  push(all_objects, V1, V2, V3, Title, Pig /*,Start, Reset*/);
+  push(all_objects, V1, V2, V3, Title, Pig, Ramp /*,Start, Reset*/);
   push(interaction_points, I1, I2, I3 /*,SI, RI*/);
   dragged_obj = null;
 }

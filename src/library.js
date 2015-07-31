@@ -26,7 +26,7 @@ function Triangle (x1, y1, x2, y2, x3, y3, fill) {
 		fill: fill,
 		draw: function (ctx) {
 			with (this) {
-				ClosedLine([x1,y1, x2,y2, x3,y3], fill).draw(ctx);
+				ClosedLine([x1,y1, x2,y2, x3,y3, x1,y1], fill).draw(ctx);
 			}
 		}
   }

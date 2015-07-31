@@ -6,6 +6,7 @@ function ClosedLine (points, fillStyle) {
       if (len <= 0) { return }
       if (len%2 != 0) { return }
       ctx.fillStyle = fillStyle;
+      ctx.strokeStyle = "black";
       ctx.beginPath();
       ctx.moveTo(points[0],points[1]);
       for (i = 2; i < len; i += 2) {
