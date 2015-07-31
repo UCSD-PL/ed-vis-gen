@@ -11,21 +11,26 @@ function init() {
 
 //Ramp = Triangle (20, 150, 20, 400, 250, 400, none);
   red = "red";
-  V1 = Arrow (Initial.x, Initial.y, -50, -50, red);
+  V1 = Arrow (Initial.x, Initial.y, -50, -50, 20, 20, red);
   I1 = InteractionPoint (Initial.x-50, Initial.y-50);
-  V2 = Arrow (Initial.x, Initial.y, 50, -50, red);
+  V2 = Arrow (Initial.x, Initial.y, 50, -50, 20, 20, red);
   I2 = InteractionPoint (Initial.x+50, Initial.y-50);
-  V3 = Arrow (Initial.x, Initial.y, 0, +150, red);
+  V3 = Arrow (Initial.x, Initial.y, 0, +150, 20, 20, red);
   I3 = InteractionPoint (Initial.x, Initial.y+150);
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
-  Start = TextCircle(400, 100, 40, -15, 10, "Go", "black");
-  SI = InteractionPoint(400, 100);
-  Reset = TextCircle(400, 200, 40, -30, 10, "Reset", "black");
-  RI = InteractionPoint(400, 200);
 
-  push(all_objects, V1, V2, V3, Title, Start, Reset);
-  push(interaction_points, I1, I2, I3, SI, RI);
+  // right now, start/stop/reset are handled as html buttons
+  // TODO: implement these
+  //Start = TextCircle(400, 100, 40, -15, 10, "Go", "black");
+  //SI = InteractionPoint(400, 100);
+  //Reset = TextCircle(400, 200, 40, -30, 10, "Reset", "black");
+  //RI = InteractionPoint(400, 200);
+
+  T = 0;
+
+  push(all_objects, V1, V2, V3, Title /*,Start, Reset*/);
+  push(interaction_points, I1, I2, I3 /*,SI, RI*/);
   dragged_obj = null;
 }
 
@@ -51,7 +56,7 @@ function doMouseMove(event) {
     dragged_obj.x = event.layerX;
     dragged_obj.y = event.layerY;
     interactivity_update();
-    update_constraints(0);
+    update_constraints();
     global_redraw();
   }
 }
@@ -78,13 +83,12 @@ function interactivity_update() {
   V3.dy = I3.y - V3.y;
 }
 
-function update_constraints(tau) {
+function update_constraints() {
   // differential equations, explicit time version
   // x(t) = at^2/2 + v0t + x0, for constant acceleration.
   // time is dampened by 1/100 for display purposes.
-  tau = tau/10;
-  Pig.x = Initial.x + Initial.v.x * tau + (V1.dx + V2.dx + V3.dx) * tau * tau/2;
-  Pig.y = Initial.y + Initial.v.x * tau + (V1.dy + V2.dy + V3.dy) * tau * tau/2;
+  Pig.x = Initial.x + Initial.v.x * T + (V1.dx + V2.dx + V3.dx) * T * T;
+  Pig.y = Initial.y + Initial.v.x * T + (V1.dy + V2.dy + V3.dy) * T * T;
 
   // update the vector positions
   V1.x = Pig.x;

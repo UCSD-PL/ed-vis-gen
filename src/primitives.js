@@ -85,12 +85,13 @@ function Image (x, y, h, w, name) {
 // Timer primitive. Takes a frequency and body as arguments. Can be started,
 // stopped, and reset. Assumes work takes a single (numeric) argument representing
 // the current time.
-function Timer (freq, work) {
+function Timer (freq, work, whenDone) {
   return {
     t: 0,
     freq: freq,
     inner: 0,
     work: work,
+    donek: whenDone,
     start: function () {
       this.inner = setInterval(function(me){
         me.work(me.t);
@@ -101,6 +102,7 @@ function Timer (freq, work) {
     reset: function() {
       clearInterval(this.inner);
       this.t=0;
+      this.donek();
     }
   }
 }

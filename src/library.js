@@ -14,18 +14,55 @@ function Rectangle (x1, y1, x2, y2,fill) {
   }
 }
 
-// Draws an arrow at location (x,y) with direction (dx, dy).
+// Draws a triangle at input three points.
+function Triangle (x1, y1, x2, y2, x3, y3, fill) {
+	return {
+		x1: x1,
+		y1: y1,
+		x2: x2,
+		y2: y2,
+    x3: x3,
+    y3: y3,
+		fill: fill,
+		draw: function (ctx) {
+			with (this) {
+				ClosedLine([x1,y1, x2,y2, x3,y3], fill).draw(ctx);
+			}
+		}
+  }
+}
+
+// Draws an arrow at location (x,y) with direction (dx, dy) and
+// arrowhead width dx2 and height dy2.
 // TODO: fix up the head of the arrow
-function Arrow(x, y, dx, dy, fill) {
+function Arrow(x, y, dx, dy, dx2, dy2, fill) {
 	return {
 		x: x,
 		y: y,
 		dx: dx,
 		dy: dy,
+    dx2: dx2,
+    dy2: dy2,
 		fill: fill,
 		draw: function (ctx) {
   		with (this) {
   			Line([x,y,x+dx,y+dy], fill).draw(ctx);
+
+        // calculate the angle of the line
+        // var theta=Math.atan2(y2-y1,x2-x1);
+        // // h is the line length of a side of the arrow head
+        // var h=Math.abs(d/Math.cos(angle));
+        //
+        // ctx.rotate(theta);
+        // ctx.translate(x+dx, y+dy);
+        // ctx.beginPath();
+        // ctx.moveTo(0,0);
+        // ctx.lineTo(-dx2,dy2);
+        // ctx.lineTo(-dx2, -dy2);
+        // ctx.closePath();
+        // ctx.fill();
+        // ctx.stroke();
+        // ctx.restore();
   			// tx1 = ...
   			// ty1 = ...
   			// tx2 = ...
@@ -55,4 +92,4 @@ function TextCircle (x, y, r, dx, dy, text, fill) {
   }
 }
 
-// TODO: TextBox, TextCircle, Triangle
+// TODO: TextBox, Triangle

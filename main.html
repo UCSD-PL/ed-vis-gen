@@ -2,6 +2,9 @@
 <head>
     <title>Vis Gen DSL</title>
 
+    <button onclick="start()">Start</button>
+    <button onclick="stop()">Stop</button>
+    <button onclick="reset()">Reset</button>
     <script src="src/helpers.js" type="text/javascript"> </script>
     <script src="src/primitives.js" type="text/javascript"></script>
     <script src="src/library.js" type="text/javascript"></script>
@@ -29,18 +32,33 @@
       c.addEventListener("mousemove", doMouseMove);
 
       draw_all(ctx);
-      var tau = Timer(100, function(t){
-        update_constraints(t);
+      var tau = Timer(10, function(t){
+        T = t/100;
+        update_constraints();
         global_redraw();
-      }); // executes every 100ms (.1s)
-      tau.start();
-      
+      }, function() {
+        T = 0;
+        update_constraints();
+        global_redraw();
+      }); // executes every 10ms (.01s)
+      //tau.start();
+
       // loop animation
-      setInterval(function() {
-        tau.stop();
-        tau.reset();
+      // setInterval(function() {
+      //   tau.stop();
+      //   tau.reset();
+      //   tau.start();
+      // }, 2000);
+
+      function start() {
         tau.start();
-      }, 2000);
+      }
+      function stop() {
+        tau.stop();
+      }
+      function reset() {
+        tau.reset();
+      }
 
 </script>
 </html>
