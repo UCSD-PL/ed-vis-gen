@@ -11,11 +11,11 @@ function init() {
 
 //Ramp = Triangle (20, 150, 20, 400, 250, 400, none);
   red = "red";
-  V1 = Arrow (Initial.x, Initial.y, -50, -50, 20, 20, red);
+  V1 = Arrow (Initial.x, Initial.y, -50, -50, red);
   I1 = InteractionPoint (Initial.x-50, Initial.y-50);
-  V2 = Arrow (Initial.x, Initial.y, 50, -50, 20, 20, red);
+  V2 = Arrow (Initial.x, Initial.y, 50, -50, red);
   I2 = InteractionPoint (Initial.x+50, Initial.y-50);
-  V3 = Arrow (Initial.x, Initial.y, 0, +150, 20, 20, red);
+  V3 = Arrow (Initial.x, Initial.y, 0, +150, red);
   I3 = InteractionPoint (Initial.x, Initial.y+150);
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
