@@ -43,7 +43,7 @@ function doRightClick(event) {
   for (var i = 0; i < rightClick_points.length; ++i) {
     if (x <= rightClick_points[i].x + 20 && x >= rightClick_points[i].x - 20 &&
         y <= rightClick_points[i].y + 20 && y >= rightClick_points[i].y - 20) {
-      var m = parseInt(prompt("What should the magnitude be?"));
+      var m = parseInt(prompt("What should the magnitude be?", "50"));
       rightClick_points[i].magnitude = m;
       rightClick_update();
       global_redraw();
@@ -60,9 +60,12 @@ function doMouseMove(event) {
   if (dragged_obj != null) {
     dragged_obj.x = event.layerX;
     dragged_obj.y = event.layerY;
+    // console.log("(" + event.layerX +"," + event.layerY + ")");
+    // console.log("(" + dragged_obj.x +"," + dragged_obj.y + ")");
+    // console.log("-");
     drag_update();
     // confused why this is commented out: don't we need to update the constraints too here?
-    //update_constraints();
+    update_constraints();
     global_redraw();
   }
 }

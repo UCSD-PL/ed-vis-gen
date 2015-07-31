@@ -3,7 +3,7 @@ function init() {
   drag_points = [];
   rightClick_points = [];
 
-  PigMass = 75;
+  PigMass = 7500;
   PigVelocity = {x:0, y:0};
   Initial = {x:150, y:150, v:{x:0, y:0} };
   Pig = Image(Initial.x, Initial.y, 50, 50, "pig");
@@ -42,6 +42,10 @@ function init() {
     global_redraw();
   }, function() {
     T = 0;
+    Pig.x = Initial.x;
+    Pig.y = Initial.y;
+    PigVelocity.x = Initial.v.x;
+    PigVelocity.y = Initial.v.y;
     update_constraints();
     global_redraw();
   }); // executes every 10ms (.01s)
@@ -76,11 +80,13 @@ function rightClick_update() {
 }
 
 function update_constraints() {
-  // differential equations, explicit time version
-  // x(t) = at^2/2 + v0t + x0, for constant acceleration.
-  // time is dampened by 1/100 for display purposes.
-  Pig.x = Initial.x + Initial.v.x * T + (V1.dx + V2.dx + V3.dx) * T * T;
-  Pig.y = Initial.y + Initial.v.x * T + (V1.dy + V2.dy + V3.dy) * T * T;
+  // differential equations, implicit time version (i.e. dt = 1)
+  // a = dv/dt = ∑ F/m => dv = ∑ F/m
+  PigVelocity.x = PigVelocity.x + (V1.dx + V2.dx + V3.dx) / PigMass;
+  PigVelocity.y = PigVelocity.y + (V1.dy + V2.dy + V3.dy) / PigMass;
+  // v = dx/dt => dx = v
+  Pig.x = Pig.x + PigVelocity.x;
+  Pig.y = Pig.y + PigVelocity.y;
 
   // update the vector positions
   V1.x = Pig.x;
