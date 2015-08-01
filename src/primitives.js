@@ -104,7 +104,6 @@ function Circle (x, y, r, fill, stroke) {
   }
 }
 // Image primitive. Needs a corresponding img tag in the html source.
-// TODO
 function Image (x, y, h, w, name) {
   return {
     x: x,
@@ -148,5 +147,16 @@ function Timer (freq, work, done) {
 }
 
 function InteractionPoint (x,y) {
-  return { x: x, y: y}
+  return {
+    x: x,
+    y: y,
+    cr: 2,
+    r: 20,
+    fill: "black",
+    draw: function(ctx) {
+      with (this) {
+        Circle(x, y, cr, fill).draw(ctx);
+      }
+    }
+  }
 }

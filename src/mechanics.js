@@ -50,7 +50,7 @@ function init() {
     global_redraw();
   }); // executes every 10ms (.01s)
 
-  push(all_objects, V1, V2, V3, Title, Pig, Ramp /*,Start, Reset*/);
+  push(all_objects, V1, V2, V3, Title, Pig, Ramp, I1, I2, I3 /*,Start, Reset*/);
   push(drag_points, I1, I2, I3 /*,SI, RI*/);
   push(rightClick_points, I1, I2, I3);
 

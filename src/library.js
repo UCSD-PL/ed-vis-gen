@@ -50,7 +50,7 @@ function Arrow(x, y, dx, dy, color) {
         // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
         // x1 = x, y1 = y, x2 = x+dx, y2 = y+dy
         var angle = Math.PI/8; // angle arrowhead makes with line
-        var d = 10; // length of arrowhead hypotenuses
+        var d = 20; // length of arrowhead hypotenuses
 
         // calculate the angle of the line
         var theta=Math.atan2(dy,dx);

@@ -28,8 +28,7 @@ function doLeftClick(event) {
   var x = event.layerX;
   var y = event.layerY;
   for (var i = 0; i < drag_points.length; i++) {
-    if (x <= drag_points[i].x + 20 && x >= drag_points[i].x - 20 &&
-        y <= drag_points[i].y + 20 && y >= drag_points[i].y - 20) {
+    if (withinRadius(x, y, drag_points[i])) {
       dragged_obj = drag_points[i];
       break;
     }
@@ -41,8 +40,7 @@ function doRightClick(event) {
   var x = event.layerX;
   var y = event.layerY;
   for (var i = 0; i < rightClick_points.length; ++i) {
-    if (x <= rightClick_points[i].x + 20 && x >= rightClick_points[i].x - 20 &&
-        y <= rightClick_points[i].y + 20 && y >= rightClick_points[i].y - 20) {
+    if (withinRadius(x,y, rightClick_points[i])) {
       var m = parseInt(prompt("What should the magnitude be?", "50"));
       rightClick_points[i].magnitude = m;
       rightClick_update();
@@ -65,7 +63,9 @@ function doMouseMove(event) {
     // console.log("-");
     drag_update();
     // confused why this is commented out: don't we need to update the constraints too here?
-    update_constraints();
+    // with implicit time, updating constraints corresponds to a clock tick, which
+    //  
+    //update_constraints();
     global_redraw();
   }
 }
