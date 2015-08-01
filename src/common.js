@@ -1,3 +1,5 @@
+//
+
 function common_init() {
   var c = document.getElementById("mainCanvas");
   var ctx = c.getContext("2d");
@@ -63,8 +65,8 @@ function doMouseMove(event) {
     // console.log("-");
     drag_update();
     // confused why this is commented out: don't we need to update the constraints too here?
-    // with implicit time, updating constraints corresponds to a clock tick, which
-    //  
+    // with implicit time, calling "update_constraints" corresponds to a clock tick.
+    
     //update_constraints();
     global_redraw();
   }
