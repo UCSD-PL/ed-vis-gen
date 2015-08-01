@@ -2,13 +2,13 @@ function init() {
   all_objects = [];
   drag_points = [];
 
-  S1 = Spring(100, 100, 200, 200, "black");
-  I1 = InteractionPoint (100, 100);
-  I2 = InteractionPoint (200, 200);
+  S1 = Spring(200, 200, 0, -100, "black");
+  I1 = InteractionPoint (200, 200);
+  I2 = InteractionPoint (200, 100);
 
   T = 0;
 
-  push(all_objects, S1);
+  push(all_objects, S1, I1, I2);
   push(drag_points, I1, I2);
 }
 

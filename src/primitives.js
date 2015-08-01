@@ -45,24 +45,36 @@ function Spring (x, y, dx, dy, stroke) {
       with (this) {
         // draw a sinusoid centered on the line between
         // (x,y) -> (x+dx, y+dy)
-        ctx.save();
-        ctx.translate(x,y);
-        ctx.moveTo(0,0);
-        ctx.rotate(Math.atan2(dy,dx));
+        //ctx.save();
+        //ctx.translate(x,y);
+        //ctx.moveTo(0,0);
+        //ctx.rotate(Math.atan2(dy,dx));
         ctx.strokeStyle = stroke;
         ctx.beginPath();
 
         var A = 10;
         var tau = Math.PI/50;
+        var deltay = - A*Math.cos(0);
+        var offset = 0;
+        var IMAX = 1000;
 
-        for (var i = 0; i < 1000; ++i) {
-          var p = i * dx/1000;
-          var q = A*Math.sin(tau*i);
-          ctx.lineTo(p,q);
+        var dist = 10;
+        var theta = Math.atan2(dy,dx);
+        var dx2 = dist*Math.cos(theta);
+        var dy2 = dist*Math.sin(theta);
+        ctx.lineTo(x,y);
+        ctx.lineTo(x + dx2, y + dy2);
+
+        for (var i = 100; i < IMAX-100; ++i) {
+          var p = x + i * (dx-dx2)/IMAX + A*Math.sin(tau*i+offset);
+          var q = y + i * (dy-dy2)/IMAX + A*Math.cos(tau*i+offset);
+          ctx.lineTo(p,q + deltay );
         }
 
+        ctx.lineTo(x + dx, y + dy);
+
         ctx.stroke();
-        ctx.restore();
+        //ctx.restore();
       }
     }
   }

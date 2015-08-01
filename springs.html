@@ -1,4 +1,16 @@
 <html>
+<script>
+  function main() {
+    common_init();
+    init();
+    global_redraw();
+  }
+</script>
+<script src="src/helpers.js"> </script>
+<script src="src/primitives.js"></script>
+<script src="src/library.js"></script>
+<script src="src/common.js"></script>
+<script src="src/springs.js"></script>
 <head>
     <title>Vis Gen DSL</title>
 
@@ -7,11 +19,7 @@
     <button onclick="reset()">Reset</button>
     <img id="pig" src="resources/pig.png" height="200" width="200" style="display:none"
      onload="main();">
-    <script src="src/helpers.js"> </script>
-    <script src="src/primitives.js"></script>
-    <script src="src/library.js"></script>
-    <script src="src/common.js"></script>
-    <script src="src/springs.js"></script>
+
 </head>
 
 <body oncontextmenu="return false">
