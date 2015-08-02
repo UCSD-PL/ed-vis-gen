@@ -58,15 +58,21 @@ function doMouseUp(event) {
 
 function doMouseMove(event) {
   if (dragged_obj != null) {
+    var dx = event.layerX - dragged_obj.x;
+    var dy = event.layerY - dragged_obj.y;
     dragged_obj.x = event.layerX;
     dragged_obj.y = event.layerY;
+
+    for (var i = 0; i < dragged_obj.links.length; ++i) {
+      dragged_obj.links[i].translate(dx,dy);
+    }
     // console.log("(" + event.layerX +"," + event.layerY + ")");
     // console.log("(" + dragged_obj.x +"," + dragged_obj.y + ")");
     // console.log("-");
     drag_update();
     // confused why this is commented out: don't we need to update the constraints too here?
     // with implicit time, calling "update_constraints" corresponds to a clock tick.
-    
+
     //update_constraints();
     global_redraw();
   }

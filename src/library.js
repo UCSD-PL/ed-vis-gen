@@ -6,6 +6,14 @@ function Rectangle (x1, y1, x2, y2, stroke, fill) {
 		x2: x2,
 		y2: y2,
 		fill: fill,
+		translate: function(dx, dy) {
+			with (this) {
+				x1 += dx;
+				x2 += dx;
+				y1 += dy;
+				y2 += dy;
+			}
+		},
 		draw: function (ctx) {
 			with (this) {
 				ClosedLine([x1,y1, x2,y1, x2,y2, x1,y2, x1,y1], stroke, fill).draw(ctx);
@@ -25,6 +33,16 @@ function Triangle (x1, y1, x2, y2, x3, y3, stroke, fill) {
     y3: y3,
     stroke: stroke,
     fill: fill,
+		translate: function(dx, dy) {
+			with (this) {
+				x1 += dx;
+				x2 += dx;
+				x3 += dx;
+				y1 += dy;
+				y2 += dy;
+				y3 += dy;
+			}
+		},
 		draw: function (ctx) {
 			with (this) {
 				ClosedLine([x1,y1, x2,y2, x3,y3, x1,y1], stroke, fill).draw(ctx);
@@ -42,6 +60,12 @@ function Arrow(x, y, dx, dy, color) {
 		dx: dx,
 		dy: dy,
 		color: color,
+		translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				x += dx;
+			}
+		},
 		draw: function (ctx) {
   		with (this) {
   			Line([x,y,x+dx,y+dy], color).draw(ctx);
@@ -82,6 +106,12 @@ function TextCircle (x, y, r, dx, dy, text, fill) {
     r: r,
     text: text,
     fill: fill,
+		translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				y += dy;
+			}
+		},
     draw: function(ctx) {
       Circle(x,y,r, "white", fill).draw(ctx);
       Text(x+dx, y+dy, text, "18pt Comic sans MS").draw(ctx);

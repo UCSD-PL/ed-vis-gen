@@ -41,6 +41,12 @@ function Spring (x, y, dx, dy, stroke) {
     y: y,
     dx: dx,
     dy: dy,
+    translate: function(deltax, deltay) {
+			with (this) {
+				x += deltax;
+				y += deltay;
+			}
+		},
     draw: function (ctx) {
       with (this) {
         // draw a sinusoid centered on the line between
@@ -86,6 +92,12 @@ function Text(x, y, text, font) { // font is an optional parameter
     x: x,
     y: y,
     font: font,
+    translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				y += dy;
+			}
+		},
     draw: function (ctx) {
       ctx.font = font;
       ctx.fillStyle = "black";
@@ -103,6 +115,12 @@ function Circle (x, y, r, fill, stroke) {
     r: r,
     fill: fill,
     stroke: stroke,
+    translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				y += dy;
+			}
+		},
     draw: function (ctx) {
       with (this) {
         ctx.beginPath();
@@ -123,6 +141,12 @@ function Image (x, y, h, w, name) {
     h: h,
     w: w,
     name: name,
+    translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				y += dy;
+			}
+		},
     draw: function(ctx) {
       with (this) {
         var i = document.getElementById(name);
@@ -165,6 +189,13 @@ function InteractionPoint (x,y) {
     cr: 2,
     r: 20,
     fill: "black",
+    links: [], // linked objects for translations
+    translate: function(dx, dy) {
+			with (this) {
+				x += dx;
+				y += dy;
+			}
+		},
     draw: function(ctx) {
       with (this) {
         Circle(x, y, cr, fill).draw(ctx);
