@@ -30,3 +30,11 @@ function restore(outdated, original) {
     }
   }
 }
+
+// Restore a bunch of objects. Input is an array of outdated,original objects
+// "pairs". E.g. restoreAll([old,new,old2,new2]) restores old to new and old2 to new2.
+function restoreAll(pairs) {
+  for (var i = 0; i < pairs.length; i+=2) {
+    restore(pairs[i], pairs[i+1]);
+  }
+}
