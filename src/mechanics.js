@@ -42,10 +42,8 @@ function init() {
     global_redraw();
   }, function() {
     T = 0;
-    Pig.x = Initial.x;
-    Pig.y = Initial.y;
-    PigVelocity.x = Initial.v.x;
-    PigVelocity.y = Initial.v.y;
+    restore(Pig, Initial);
+    restore(PigVelocity, Initial.v);
     update_constraints();
     global_redraw();
   }); // executes every 10ms (.01s)
