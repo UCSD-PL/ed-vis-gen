@@ -17,3 +17,16 @@ function withinRadius(x, y, iPoint) {
   var dy = y - iPoint.y;
   return (dx <= r && dx >= -r && dy <= r && dy >= -r);
 }
+
+// Copy shared fields between two objects.
+function restore(outdated, original) {
+  //alert(original);
+  for (var f in original) {
+    //alert(f);
+    //console.log(original + "[" + f + "]");
+    if (f in outdated) {
+      //console.log(outdated + "[" + f + "] = " +  outdated[f]);
+      outdated[f] = original[f];
+    }
+  }
+}
