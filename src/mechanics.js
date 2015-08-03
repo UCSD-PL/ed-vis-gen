@@ -44,6 +44,13 @@ function init() {
     T = 0;
     restore(Pig, Initial);
     restore(PigVelocity, Initial.v);
+
+    V1.dx = -50;
+    V1.dy = -50;
+    V2.dx = 50;
+    V2.dy = -50;
+    V3.dx = 0;
+    V3.dy = 150;
     update_constraints();
     global_redraw();
   }); // executes every 10ms (.01s)
