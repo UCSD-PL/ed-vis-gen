@@ -23,16 +23,19 @@ function init() {
   I1 = InteractionPoint(Weight.x, Weight.y);
   I1.links.push(Weight);
 
-  TX = Plot(Anc.x, Anc.y + Current.l + 50, 400, 2*Current.l, "red", 1000);
-  TY = Plot(50, Initials.w.y + 100, 400, 400, "blue", 1000);
+  TX = Plot(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
+  TY = Plot(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
   G = .0098;
 
   XTrace = Line([], "red", true);
   YTrace = Line([], "blue", true);
 
+  I2 = InteractionPoint(Anc.x, Anc.y); // translation point for whole system
+  push(I2.links, Anc, Lever, Weight, I1, TX, TY, XTrace, YTrace);
+
   push(all_objects, Anc, Lever, Weight, TX, TY, XTrace, YTrace);
-  push(all_objects, I1);
-  push(drag_points, I1);
+  push(all_objects, I1, I2);
+  push(drag_points, I1, I2);
 
   // initialize timer
 
@@ -43,14 +46,19 @@ function init() {
     restoreAll([
       Weight, Initials.w,
       I1, Initials.w,
-      Current, Initials
+      Current, Initials,
+      Anc, Initials.anchor,
+      I2, Initials.anchor
     ]
     );
     Lever.points = [Initials.anchor.x, Initials.anchor.y,
                  Initials.anchor.x + Initials.l * Math.sin(Initials.theta),
                  Initials.anchor.y + Initials.l * Math.cos(Initials.theta)];
 
-
+    TX.x = Anc.x;
+    TX.y = Anc.y + Current.l + 50;
+    TY.x = Anc.x + Current.l + 50;
+    TY.y = Anc.y;
     TX.vals = [];
     TY.vals = [];
     XTrace.points = [];
@@ -70,10 +78,10 @@ function drag_update() {
   Current.omega = 0;
 
   TX.y = Anc.y + Current.l + 50;
-  TY.y = TX.y;
+  TY.x = Anc.x + Current.l + 50;
 
-  TX.record(Weight.x - Anc.x);
-  TY.record(Weight.y - Anc.y);
+  //TX.record(Weight.x - Anc.x);
+  //TY.record(Weight.y - Anc.y);
 
   XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
   YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
@@ -99,6 +107,7 @@ function update_constraints() {
   I1.y = Weight.y;
 
   TX.y = Anc.y + Current.l + 50;
+  TY.x = Anc.x + Current.l + 50;
   TX.record(Weight.x - Anc.x);
   TY.record(Weight.y - Anc.y);
 

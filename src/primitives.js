@@ -26,6 +26,12 @@ function Line (points, stroke, dash) {
     points : points,
     stroke: stroke,
     dash: dash,
+    translate: function (dx, dy) {
+      for (var i = 0; i < points.length; i += 2) {
+        points[i] += dx;
+        points[i+1] += dy;
+      }
+    },
     draw: function(ctx) {
       with (this) {
         var len = points.length;
@@ -36,7 +42,7 @@ function Line (points, stroke, dash) {
         ctx.strokeStyle = stroke;
         ctx.beginPath();
         ctx.moveTo(points[0],points[1]);
-        for (i = 2; i < len; i += 2) {
+        for (var i = 2; i < len; i += 2) {
           ctx.lineTo(points[i],points[i+1]);
         }
         ctx.stroke();
@@ -216,9 +222,13 @@ function InteractionPoint (x,y) {
 }
 
 // Plots values over time. Time is displayed either on the x-axis or on the y-axis.
-// x and y are position, h and w are height/width, and resolution is the number
-// of values to record. A new value is added to a plot by calling plot.record(val).
-function Plot (x, y, h, w, stroke, resolution) {
+// x and y are position, h and w are height/width, resolution is the number
+// of values to record, and orientation controls whether time goes top-down or
+// left-to-right. A new value is added to a plot by calling plot.record(val).
+
+// For best results, place x and y to the center of the thing being plotted and
+// record offsets from the center.
+function Plot (x, y, h, w, stroke, resolution, orientation) {
   return {
     x: x,
     y: y,
@@ -228,32 +238,42 @@ function Plot (x, y, h, w, stroke, resolution) {
     yStart: 0,
     res: resolution,
     stroke: stroke,
+    u2d: orientation, // up-to-down if true, left-to-right otherwise
     vals: [],
     record: function (v) { with (this) {
       vals.push(v);
       if (vals.length >= res) {
         vals.shift();
       }
-      xStart = x + v;
-      yStart = y;
+      if (u2d) {
+        xStart = x + v;
+        yStart = y;
+      } else {
+        xStart = x;
+        yStart = y + v;
+      }
+    }},
+    // assumes traced object is translated as well
+    translate: function (dx, dy) { with (this) {
+      x += dx;
+      xStart += dx;
+      y += dy;
+      yStart += dy;
+
     }},
     draw: function (ctx) { with (this) {
       ctx.save();
       ctx.strokeStyle = stroke;
       ctx.beginPath();
 
-      // scale by max and min values
-      //console.log("(" + (mx) + "," + (mn) + ")");
       // @OPT: iterate through vals in reverse instead of making a new array
       var vls = vals.slice();
       vls.reverse();
-      // map y0 -> y, yend -> y + h
-      ctx.moveTo(x + vls[0],y);
+      u2d ? ctx.moveTo(x + vls[0],y) : ctx.moveTo(x, y + vls[0]);
       for (var e = 0; e < vls.length; ++e) {
-        // map y0 -> y, yend -> y + h
-        var dy = h*(e)/(res);
-        ctx.lineTo(x + vls[e], y + dy);
-
+        var dx = u2d ? vls[e] : w*e/res;
+        var dy = u2d ? h*(e)/(res) : vls[e];
+        ctx.lineTo(x + dx, y + dy);
       }
       ctx.stroke();
       ctx.restore();
