@@ -18,15 +18,21 @@ function ClosedLine (points, stroke, fill) {
   }
 }
 
-function Line (points, stroke) {
+// Line primitive. Points is an array of (x,y) pairs, stroke specifies the
+// color of the line stroke, and dash specifies whether to use a dashed line
+// or not.
+function Line (points, stroke, dash) {
   return {
     points : points,
     stroke: stroke,
+    dash: dash,
     draw: function(ctx) {
       with (this) {
         var len = points.length;
         if (len <= 0) { return }
         if (len%2 != 0) { return }
+        ctx.save();
+        if (dash) {ctx.setLineDash([2,2]);}
         ctx.strokeStyle = stroke;
         ctx.beginPath();
         ctx.moveTo(points[0],points[1]);
@@ -34,6 +40,7 @@ function Line (points, stroke) {
           ctx.lineTo(points[i],points[i+1]);
         }
         ctx.stroke();
+        ctx.restore();
       }
     }
   }
@@ -217,6 +224,8 @@ function Plot (x, y, h, w, stroke, resolution) {
     y: y,
     h: h,
     w: w,
+    xStart: 0, // coordinates of first value in plot
+    yStart: 0,
     res: resolution,
     stroke: stroke,
     vals: [],
@@ -225,6 +234,12 @@ function Plot (x, y, h, w, stroke, resolution) {
       if (vals.length >= res) {
         vals.shift();
       }
+
+      var mx = Math.max.apply(null, vals);
+      var mn = Math.min.apply(null, vals);
+      var dx = w * (v - mn)/(mx - mn)
+      xStart = x + dx;
+      yStart = y;
     }},
     draw: function (ctx) { with (this) {
       ctx.save();
@@ -234,15 +249,15 @@ function Plot (x, y, h, w, stroke, resolution) {
       // scale by max and min values
       var mx = Math.max.apply(null, vals);
       var mn = Math.min.apply(null, vals);
-      console.log("(" + (mx) + "," + (mn) + ")");
+      //console.log("(" + (mx) + "," + (mn) + ")");
       var vls = vals.slice();
       vls.reverse();
-      var dx = w * (vls[0] - mn)/(mx - mn);
+      var dx = w * (vls[0] - mn)/(mx - mn)
       // map y0 -> y, yend -> y + h
       ctx.moveTo(x + dx,y);
       for (var e = 0; e < vls.length; ++e) {
         // map mn -> x, mx -> x + w on a linear scale
-        var dx = w * (vls[e] - mn)/(mx - mn);
+        dx = w * (vls[e] - mn)/(mx - mn);
         // map y0 -> y, yend -> y + h
         var dy = h*(e)/(res);
         ctx.lineTo(x + dx, y + dy);

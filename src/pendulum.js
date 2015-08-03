@@ -25,9 +25,12 @@ function init() {
 
   TX = Plot(50, Initials.w.y + 100, 400, 400, "red", 1000);
   TY = Plot(50, Initials.w.y + 100, 400, 400, "blue", 1000);
-  G = .098;
+  G = .0098;
 
-  push(all_objects, Anc, Lever, Weight, TX, TY);
+  XTrace = Line([], "red", true);
+  YTrace = Line([], "blue", true);
+
+  push(all_objects, Anc, Lever, Weight, TX, TY, XTrace, YTrace);
   push(all_objects, I1);
   push(drag_points, I1);
 
@@ -84,8 +87,11 @@ function update_constraints() {
   I1.x = Weight.x;
   I1.y = Weight.y;
 
-  TX.record(Anc.x - Weight.x);
-  TY.record(Anc.y - Weight.y);
+  TX.record(Weight.x - Anc.x);
+  TY.record(Weight.y - Anc.y);
+
+  XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
+  YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
 
 }
 
