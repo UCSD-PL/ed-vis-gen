@@ -38,3 +38,14 @@ function restoreAll(pairs) {
     restore(pairs[i], pairs[i+1]);
   }
 }
+
+// Apparently JS doesn't provide a built-in shallow copy constructor. Returns
+// a shallow copy of input object.
+function copy(src) {
+  res = {};
+  for (var f in src) {
+    res[f] = src[f];
+  }
+
+  return res;
+}

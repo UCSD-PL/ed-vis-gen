@@ -1,6 +1,7 @@
 function init() {
   all_objects = [];
   drag_points = [];
+  rightClick_points = [];
 
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
@@ -27,32 +28,40 @@ function init() {
   I1 = InteractionPoint (Initials.i1.x, Initials.i1.y);
   I2 = InteractionPoint (Initials.i2.x, Initials.i2.y);
   W1 = Image(Initials.w1.x, Initials.w1.y, Initials.w1.h, Initials.w1.w, "iron");
-  push(I1.links, S1, I2, W1);
-  I2.links.push(W1);
+  push(I1.links, S1, I2, W1)
 
   S2 = Spring(Initials.s2.x, Initials.s2.y, Initials.s2.dx, Initials.s2.dy, "black");
   I3 = InteractionPoint (S2.x, S2.y);
   I4 = InteractionPoint (S2.x, S2.y+S2.dy);
   W2 = Image(Initials.w2.x, Initials.w2.y, Initials.w2.h, Initials.w2.w, "iron");
   push(I3.links, S2, I4, W2);
-  I4.links.push(W2);
 
   S3 = Spring(Initials.s3.x, Initials.s3.y, Initials.s3.dx, Initials.s3.dy, "black");
   I5 = InteractionPoint (S3.x, S3.y);
   I6 = InteractionPoint (S3.x, S3.y+S3.dy);
   W3 = Image(Initials.w3.x, Initials.w3.y, Initials.w3.h, Initials.w3.w, "iron");
   push(I5.links, S3, I6, W3);
-  I6.links.push(W3);
 
-  // TODO: if one interaction is "add masses to platforms", rest length needs a
-  // constraint of the form
-  // RL = intrinsicRL + ∑ m*g/k
+  // right click points for the weights
+  I7 = InteractionPoint(Initials.w1.x, Initials.w1.y);
+  I8 = InteractionPoint(Initials.w2.x, Initials.w2.y);
+  I9 = InteractionPoint(Initials.w3.x, Initials.w3.y);
+  push(rightClick_points, I7, I8, I9);
+
+
   // (http://www.ux1.eiu.edu/~cfadd/1150/15Period/Vert.html)
-  RestLengths = {s1: 125, s2: 125, s3: 125};
+  InitRestLengths = {s1: 125, s2: 125, s3: 125};
+  CurrRestLengths = copy(InitRestLengths);
   G = 9.8; // currently not used, might be needed for restlengths (see above)
-  Ks = {s1: 5, s2: 5, s3: 5};
-  Masses = {s1: 500, s2: 1000, s3: 1500};
-  Dampers = {s1: 5, s2: 5, s3: 5};
+  Ks = {s1: .5, s2: .5, s3: .5};
+  InitMasses = {s1: 1, s2: 2, s3: 3};
+  CurrMasses = copy(InitMasses);
+
+  I7.magnitude = InitMasses.s1;
+  I8.magnitude = InitMasses.s2;
+  I9.magnitude = InitMasses.s3;
+
+  Dampers = {s1: .1, s2: .1, s3: .1};
 
   CurrentVs = {s1: 0, s2: 0, s3: 0};
 
@@ -63,12 +72,10 @@ function init() {
   Plat3 = Rectangle(Initials.p3.x1, Initials.p3.y1, Initials.p3.x2, Initials.p3.y2, "black", "rgba(0,0,0,0)");
 
   // link up ipoints
-  I1.links.push(Plat1);
-  I2.links.push(Plat1);
-  I3.links.push(Plat2);
-  I4.links.push(Plat2);
-  I5.links.push(Plat3);
-  I6.links.push(Plat3);
+  push(I1.links, Plat1);
+  push(I3.links, Plat2);
+  push(I5.links, Plat3);
+
 
   push(all_objects, S1, S2, S3, W1, W2, W3, Base, Plat1, Plat2, Plat3);
   push(all_objects, I1, I2, I3, I4, I5, I6);
@@ -76,7 +83,7 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(10, function(t) {
+  tau = Timer(25, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
@@ -89,41 +96,30 @@ function init() {
       // platforms
       Plat1, Initials.p1, Plat2, Initials.p2, Plat3, Initials.p3,
       // weights
-      W1, Initials.w1, W2, Initials.w2, W3, Initials.w3
+      W1, Initials.w1, W2, Initials.w2, W3, Initials.w3,
+      // masses and RLs
+      CurrMasses, InitMasses, CurrRestLengths, InitRestLengths
     ]
     );
-
     // velocities
     restore(CurrentVs, {s1: Initials.s1.v, s2: Initials.s2.v, s3: Initials.s3.v});
+    // magnitudes
+    I7.magnitude = InitMasses.s1;
+    I8.magnitude = InitMasses.s2;
+    I9.magnitude = InitMasses.s3;
+
     global_redraw();
   });
 }
 
 function drag_update() {
-  S1.dx = (I2.x - S1.x);
+  I2.x = S1.x + S1.dx;
+  I4.x = S2.x + S2.dx;
+  I6.x = S3.x + S3.dx;
+
   S1.dy = (I2.y - S1.y);
-
-  S2.dx = (I4.x - S2.x);
   S2.dy = (I4.y - S2.y);
-
-  S3.dx = (I6.x - S3.x);
   S3.dy = (I6.y - S3.y);
-
-}
-
-function update_constraints() {
-  // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
-  CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + RestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ Masses.s1;
-  CurrentVs.s2 = CurrentVs.s2 + (Ks.s2*(-1*(S2.dy + RestLengths.s2)) - Dampers.s2*CurrentVs.s2)/ Masses.s2;
-  CurrentVs.s3 = CurrentVs.s3 + (Ks.s3*(-1*(S3.dy + RestLengths.s3)) - Dampers.s3*CurrentVs.s3)/ Masses.s3;
-  // dx/dt = v => dx = v
-  S1.dy = S1.dy + CurrentVs.s1;
-  S2.dy = S2.dy + CurrentVs.s2;
-  S3.dy = S3.dy + CurrentVs.s3;
-
-  I2.y = S1.y + S1.dy;
-  I4.y = S2.y + S2.dy;
-  I6.y = S3.y + S3.dy;
 
   Plat1.y1 = I2.y - 8;
   Plat1.y2 = I2.y + 8;
@@ -135,6 +131,53 @@ function update_constraints() {
   W1.y = Plat1.y1 - W1.h/2;
   W2.y = Plat2.y1 - W2.h/2;
   W3.y = Plat3.y1 - W3.h/2;
+
+}
+
+function rightClick_update () {
+  CurrMasses.s1 = I7.magnitude;
+  CurrMasses.s2 = I8.magnitude;
+  CurrMasses.s3 = I9.magnitude;
+}
+
+function update_constraints() {
+  CurrRestLengths.s1 = InitRestLengths.s1 - CurrMasses.s1 * G / Ks.s1;
+  CurrRestLengths.s2 = InitRestLengths.s2 - CurrMasses.s2 * G / Ks.s2;
+  CurrRestLengths.s3 = InitRestLengths.s3 - CurrMasses.s3 * G / Ks.s3;
+  // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
+  CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
+  CurrentVs.s2 = CurrentVs.s2 + (Ks.s2*(-1*(S2.dy + CurrRestLengths.s2)) - Dampers.s2*CurrentVs.s2)/ CurrMasses.s2;
+  CurrentVs.s3 = CurrentVs.s3 + (Ks.s3*(-1*(S3.dy + CurrRestLengths.s3)) - Dampers.s3*CurrentVs.s3)/ CurrMasses.s3;
+  // dx/dt = v => dx = v
+  S1.dy = S1.dy + CurrentVs.s1;
+  S2.dy = S2.dy + CurrentVs.s2;
+  S3.dy = S3.dy + CurrentVs.s3;
+
+  I2.y = S1.y + S1.dy;
+  I2.x = S1.x + S1.dx;
+  I4.y = S2.y + S2.dy;
+  I4.x = S2.x + S2.dx;
+  I6.y = S3.y + S3.dy;
+  I6.x = S3.x + S3.dx;
+
+  Plat1.y1 = I2.y - 8;
+  Plat1.y2 = I2.y + 8;
+  Plat2.y2 = I4.y + 8;
+  Plat2.y1 = I4.y - 8;
+  Plat3.y1 = I6.y - 8;
+  Plat3.y2 = I6.y + 8;
+
+  W1.y = Plat1.y1 - W1.h/2;
+  W2.y = Plat2.y1 - W2.h/2;
+  W3.y = Plat3.y1 - W3.h/2;
+
+  I7.x = W1.x;
+  I7.y = W1.y;
+  I8.x = W2.x;
+  I8.y = W2.y;
+  I9.x = W3.x;
+  I9.y = W3.y;
+
 }
 
 function start() {

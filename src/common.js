@@ -43,7 +43,7 @@ function doRightClick(event) {
   var y = event.layerY;
   for (var i = 0; i < rightClick_points.length; ++i) {
     if (withinRadius(x,y, rightClick_points[i])) {
-      var m = parseInt(prompt("What should the magnitude be?", "50"));
+      var m = parseFloat(prompt("What should the magnitude be?", "50"));
       rightClick_points[i].magnitude = m;
       rightClick_update();
       global_redraw();
