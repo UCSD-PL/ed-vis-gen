@@ -5,11 +5,11 @@ function init() {
 
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
-  Initials = {anchor: {x: 150, y: 150, r: 5}, // pivot
+  Initials = {anchor: {x: 250, y: 250, r: 5}, // pivot
               l: 100,  // lever arm
               theta: -Math.PI/3, // angular displacement
               omega: 0, // angular velocity
-              w: {x: 63.3974596216, y: 200, r: 15 } // weight
+              w: {x: 163.3974596216, y: 300, r: 15 } // weight
 
             };
 
@@ -23,7 +23,7 @@ function init() {
   I1 = InteractionPoint(Weight.x, Weight.y);
   I1.links.push(Weight);
 
-  TX = Plot(50, Initials.w.y + 100, 400, 400, "red", 1000);
+  TX = Plot(Anc.x, Anc.y + Current.l + 50, 400, 2*Current.l, "red", 1000);
   TY = Plot(50, Initials.w.y + 100, 400, 400, "blue", 1000);
   G = .0098;
 
@@ -53,6 +53,8 @@ function init() {
 
     TX.vals = [];
     TY.vals = [];
+    XTrace.points = [];
+    YTrace.points = [];
 
     global_redraw();
   });
@@ -66,6 +68,15 @@ function drag_update() {
   Current.theta = 3*Math.PI/2 - alpha;
   Current.l = Math.sqrt(dy*dy + dx*dx);
   Current.omega = 0;
+
+  TX.y = Anc.y + Current.l + 50;
+  TY.y = TX.y;
+
+  TX.record(Weight.x - Anc.x);
+  TY.record(Weight.y - Anc.y);
+
+  XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
+  YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
 
 }
 
@@ -87,6 +98,7 @@ function update_constraints() {
   I1.x = Weight.x;
   I1.y = Weight.y;
 
+  TX.y = Anc.y + Current.l + 50;
   TX.record(Weight.x - Anc.x);
   TY.record(Weight.y - Anc.y);
 

@@ -234,11 +234,7 @@ function Plot (x, y, h, w, stroke, resolution) {
       if (vals.length >= res) {
         vals.shift();
       }
-
-      var mx = Math.max.apply(null, vals);
-      var mn = Math.min.apply(null, vals);
-      var dx = w * (v - mn)/(mx - mn)
-      xStart = x + dx;
+      xStart = x + v;
       yStart = y;
     }},
     draw: function (ctx) { with (this) {
@@ -247,20 +243,16 @@ function Plot (x, y, h, w, stroke, resolution) {
       ctx.beginPath();
 
       // scale by max and min values
-      var mx = Math.max.apply(null, vals);
-      var mn = Math.min.apply(null, vals);
       //console.log("(" + (mx) + "," + (mn) + ")");
+      // @OPT: iterate through vals in reverse instead of making a new array
       var vls = vals.slice();
       vls.reverse();
-      var dx = w * (vls[0] - mn)/(mx - mn)
       // map y0 -> y, yend -> y + h
-      ctx.moveTo(x + dx,y);
+      ctx.moveTo(x + vls[0],y);
       for (var e = 0; e < vls.length; ++e) {
-        // map mn -> x, mx -> x + w on a linear scale
-        dx = w * (vls[e] - mn)/(mx - mn);
         // map y0 -> y, yend -> y + h
         var dy = h*(e)/(res);
-        ctx.lineTo(x + dx, y + dy);
+        ctx.lineTo(x + vls[e], y + dy);
 
       }
       ctx.stroke();
