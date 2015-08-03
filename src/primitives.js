@@ -207,3 +207,49 @@ function InteractionPoint (x,y) {
     }
   }
 }
+
+// Plots values over time. Time is displayed either on the x-axis or on the y-axis.
+// x and y are position, h and w are height/width, and resolution is the number
+// of values to record. A new value is added to a plot by calling plot.record(val).
+function Plot (x, y, h, w, stroke, resolution) {
+  return {
+    x: x,
+    y: y,
+    h: h,
+    w: w,
+    res: resolution,
+    stroke: stroke,
+    vals: [],
+    record: function (v) { with (this) {
+      vals.push(v);
+      if (vals.length >= res) {
+        vals.shift();
+      }
+    }},
+    draw: function (ctx) { with (this) {
+      ctx.save();
+      ctx.strokeStyle = stroke;
+      ctx.beginPath();
+
+      // scale by max and min values
+      var mx = Math.max.apply(null, vals);
+      var mn = Math.min.apply(null, vals);
+      console.log("(" + (mx) + "," + (mn) + ")");
+      var vls = vals.slice();
+      vls.reverse();
+      var dx = w * (vls[0] - mn)/(mx - mn);
+      // map y0 -> y, yend -> y + h
+      ctx.moveTo(x + dx,y);
+      for (var e = 0; e < vls.length; ++e) {
+        // map mn -> x, mx -> x + w on a linear scale
+        var dx = w * (vls[e] - mn)/(mx - mn);
+        // map y0 -> y, yend -> y + h
+        var dy = h*(e)/(res);
+        ctx.lineTo(x + dx, y + dy);
+
+      }
+      ctx.stroke();
+      ctx.restore();
+    }}
+  }
+}
