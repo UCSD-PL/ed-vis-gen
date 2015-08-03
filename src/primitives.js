@@ -20,17 +20,21 @@ function ClosedLine (points, stroke, fill) {
 
 function Line (points, stroke) {
   return {
+    points : points,
+    stroke: stroke,
     draw: function(ctx) {
-      var len = points.length;
-      if (len <= 0) { return }
-      if (len%2 != 0) { return }
-      ctx.strokeStyle = stroke;
-      ctx.beginPath();
-      ctx.moveTo(points[0],points[1]);
-      for (i = 2; i < len; i += 2) {
-        ctx.lineTo(points[i],points[i+1]);
+      with (this) {
+        var len = points.length;
+        if (len <= 0) { return }
+        if (len%2 != 0) { return }
+        ctx.strokeStyle = stroke;
+        ctx.beginPath();
+        ctx.moveTo(points[0],points[1]);
+        for (i = 2; i < len; i += 2) {
+          ctx.lineTo(points[i],points[i+1]);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
     }
   }
 }
