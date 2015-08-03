@@ -82,6 +82,12 @@ function rightClick_update() {
   V2.dy = I2.magnitude * Math.sin(v2theta);
   V3.dx = I3.magnitude * Math.cos(v3theta);
   V3.dy = I3.magnitude * Math.sin(v3theta);
+  I1.x = V1.x + V1.dx;
+  I1.y = V1.y + V1.dy;
+  I2.x = V2.x + V2.dx;
+  I2.y = V2.y + V2.dy;
+  I3.x = V3.x + V3.dx;
+  I3.y = V3.y + V3.dy;
 }
 
 function update_constraints() {

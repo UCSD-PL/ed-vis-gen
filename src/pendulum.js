@@ -62,6 +62,7 @@ function drag_update() {
   var alpha = Math.atan2(dy, dx);
   Current.theta = 3*Math.PI/2 - alpha;
   Current.l = Math.sqrt(dy*dy + dx*dx);
+  Current.omega = 0;
 
 }
 
