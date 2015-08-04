@@ -25,8 +25,8 @@ function init() {
   I1.links.push(Weight);
 
 
-  TX = Plot(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
-  TY = Plot(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
+  TX = Trace(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
+  TY = Trace(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
   G = Initials.g.v;
   var GravPos = Initials.gOff;
   GravSlider = Slider(400, 400, 100, Initials.gOff,

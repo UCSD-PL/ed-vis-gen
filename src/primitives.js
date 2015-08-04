@@ -233,14 +233,14 @@ function InteractionPoint (x,y) {
   }
 }
 
-// Plots values over time. Time is displayed either on the x-axis or on the y-axis.
+// Traces values over time. Time is displayed either on the x-axis or on the y-axis.
 // x and y are position, h and w are height/width, resolution is the number
 // of values to record, and orientation controls whether time goes top-down or
 // left-to-right. A new value is added to a plot by calling plot.record(val).
 
 // For best results, place x and y to the center of the thing being plotted and
 // record offsets from the center.
-function Plot (x, y, h, w, stroke, resolution, orientation) {
+function Trace (x, y, h, w, stroke, resolution, orientation) {
   return {
     x: x,
     y: y,
@@ -284,6 +284,67 @@ function Plot (x, y, h, w, stroke, resolution, orientation) {
       u2d ? ctx.moveTo(x + vls[0],y) : ctx.moveTo(x, y + vls[0]);
       for (var e = 0; e < vls.length; ++e) {
         var dx = u2d ? vls[e] : w*e/res;
+        var dy = u2d ? h*(e)/(res) : vls[e];
+        ctx.lineTo(x + dx, y + dy);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }}
+  }
+}
+
+
+
+// e.g. record({t: 5, v: 7})
+// Plot(..., "t", "v", o, "red", 1000)
+// o = {t: {mn: 0, mx: 100},
+//      v: ...}
+function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
+  return {
+    x: x,
+    y: y,
+    h: h,
+    w: w,
+    xStart: 0, // coordinates of first value in plot
+    yStart: 0,
+    res: resolution,
+    stroke: stroke,
+    vals: [],
+    record: function (v) { with (this) {
+      vals.push(v);
+      if (vals.length >= res) {
+        vals.shift();
+      }
+
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+      xStart = x + w * (v[xFieldName] - xMn)/(xMx - xMn);
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      yStart = y + w * (v[yFieldName] - yMn)/(yMx - yMn);
+    }},
+    // assumes traced object is translated as well
+    translate: function (dx, dy) { with (this) {
+      x += dx;
+      y += dy;
+    }},
+    draw: function (ctx) { with (this) {
+      ctx.save();
+      ctx.strokeStyle = stroke;
+      ctx.beginPath();
+
+      // @OPT: iterate through vals in reverse instead of making a new array
+      var vls = vals.slice();
+      vls.reverse();
+
+      u2d ? ctx.moveTo(x + vls[0],y) : ctx.moveTo(x, y + vls[0]);
+      for (var e = 0; e < vls.length; ++e) {
+
+
+        var dx = w * (vls[e] - mn)/(mx - mn);
+
+
         var dy = u2d ? h*(e)/(res) : vls[e];
         ctx.lineTo(x + dx, y + dy);
       }

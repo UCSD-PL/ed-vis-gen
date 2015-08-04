@@ -16,8 +16,8 @@ function init() {
   Trc = Circle(Initials.tr.x, Initials.tr.y, Initials.tr.r, "black", "black");
   //I1 = InteractionPoint(Trc.x, Trc.y);
 
-  TCos = Plot(Crc.x + Crc.r + 50, Crc.y, 600, 600, "red", 1000, false);
-  TSin = Plot(Crc.x + Crc.r + 50, Crc.y, 600, 600, "blue", 1000, false);
+  TCos = Trace(Crc.x + Crc.r + 50, Crc.y, 600, 600, "red", 1000, false);
+  TSin = Trace(Crc.x + Crc.r + 50, Crc.y, 600, 600, "blue", 1000, false);
 
   XAxis = Line([Crc.x - Crc.r, Crc.y, Crc.x + Crc.r, Crc.y], "red", false);
   YAxis = Line([Crc.x, Crc.y - Crc.r, Crc.x, Crc.y + Crc.r], "blue", false);
