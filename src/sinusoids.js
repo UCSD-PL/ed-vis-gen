@@ -5,9 +5,9 @@ function init() {
 
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
-  Initials = {circ: {x: 100, y: 100, r: 50},
+  Initials = {circ: {x: 200, y: 200, r: 100},
               theta: 0, // angular displacement
-              tr: {x: 150, y: 100, r: 5} // tracer
+              tr: {x: 300, y: 200, r: 5} // tracer
             };
 
   Current = {theta: Initials.theta, tr: copy(Initials.tr)};

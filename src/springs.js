@@ -145,20 +145,32 @@ function update_constraints() {
   CurrRestLengths.s2 = InitRestLengths.s2 - CurrMasses.s2 * G / Ks.s2;
   CurrRestLengths.s3 = InitRestLengths.s3 - CurrMasses.s3 * G / Ks.s3;
   // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
-  CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
+  //CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
   CurrentVs.s2 = CurrentVs.s2 + (Ks.s2*(-1*(S2.dy + CurrRestLengths.s2)) - Dampers.s2*CurrentVs.s2)/ CurrMasses.s2;
   CurrentVs.s3 = CurrentVs.s3 + (Ks.s3*(-1*(S3.dy + CurrRestLengths.s3)) - Dampers.s3*CurrentVs.s3)/ CurrMasses.s3;
   // dx/dt = v => dx = v
-  S1.dy = S1.dy + CurrentVs.s1;
+  //S1.dy = S1.dy + CurrentVs.s1;
   S2.dy = S2.dy + CurrentVs.s2;
   S3.dy = S3.dy + CurrentVs.s3;
 
-  I2.y = S1.y + S1.dy;
-  I2.x = S1.x + S1.dx;
-  I4.y = S2.y + S2.dy;
-  I4.x = S2.x + S2.dx;
-  I6.y = S3.y + S3.dy;
-  I6.x = S3.x + S3.dx;
+  if (dragged_obj !== I2) {
+    CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
+    S1.dy = S1.dy + CurrentVs.s1;
+
+    I2.y = S1.y + S1.dy;
+    I2.x = S1.x + S1.dx;
+  } else {
+    S1.dy = I2.y - S1.y;
+    I2.x = S1.x + S1.dx;
+  }
+  if (dragged_obj !== I4) {
+    I4.y = S2.y + S2.dy;
+    I4.x = S2.x + S2.dx;
+  }
+  if (dragged_obj !== I6) {
+    I6.y = S3.y + S3.dy;
+    I6.x = S3.x + S3.dx;
+  }
 
   Plat1.y1 = I2.y - 8;
   Plat1.y2 = I2.y + 8;
