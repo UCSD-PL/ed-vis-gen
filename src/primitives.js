@@ -338,14 +338,17 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       var vls = vals.slice();
       vls.reverse();
 
-      u2d ? ctx.moveTo(x + vls[0],y) : ctx.moveTo(x, y + vls[0]);
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+      
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      
+      ctx.moveTo(xStart, yStart);
       for (var e = 0; e < vls.length; ++e) {
-
-
-        var dx = w * (vls[e] - mn)/(mx - mn);
-
-
-        var dy = u2d ? h*(e)/(res) : vls[e];
+        var dx = w * (vls[e][xFieldName] - xMn)/(xMx - xMn);
+        var dy = w * (vls[e][yFieldName] - yMn)/(yMx - yMn);;
+        
         ctx.lineTo(x + dx, y + dy);
       }
       ctx.stroke();

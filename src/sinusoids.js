@@ -16,7 +16,9 @@ function init() {
   Trc = Circle(Initials.tr.x, Initials.tr.y, Initials.tr.r, "black", "black");
   //I1 = InteractionPoint(Trc.x, Trc.y);
 
-  TCos = Trace(Crc.x + Crc.r + 50, Crc.y, 600, 600, "red", 1000, false);
+  //TCos = Trace(Crc.x + Crc.r + 50, Crc.y, 600, 600, "red", 1000, false);
+  var ranges =  {x:{mn: 0, mx:2*Math.PI}, y:{mn:-Crc.r, mx:Crc.r}};
+  TCos = Plot(Crc.x + Crc.r + 50, Crc.y, 600, 600, "x", "y", ranges, "red", 1000);
   TSin = Trace(Crc.x + Crc.r + 50, Crc.y, 600, 600, "blue", 1000, false);
 
   XAxis = Line([Crc.x - Crc.r, Crc.y, Crc.x + Crc.r, Crc.y], "red", false);
@@ -74,7 +76,10 @@ function update_constraints() {
   Trc.y = Crc.x - Crc.r*Math.sin(Current.theta);
 
   TSin.record(-Crc.r*Math.sin(Current.theta));
-  TCos.record(-Crc.r*Math.cos(Current.theta));
+  
+  var pushToCos = {x:Current.theta, y:(-Crc.r*Math.cos(Current.theta))};
+  //TCos.record(-Crc.r*Math.cos(Current.theta));
+  TCos.record(pushToCos);
 
   T2X.points = [Trc.x, Trc.y, Trc.x, Crc.y];
   T2Y.points = [Trc.x, Trc.y, Crc.x, Trc.y];
