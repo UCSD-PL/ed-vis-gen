@@ -9,7 +9,9 @@ function init() {
               l: 100,  // lever arm
               theta: -Math.PI/3, // angular displacement
               omega: 0, // angular velocity
-              w: {x: 163.3974596216, y: 300, r: 15 } // weight
+              w: {x: 163.3974596216, y: 300, r: 15 }, // weight
+              g: {mn: 0, mx: 0.098, v:0.0098}, // Gravity
+              gOff: 10 // gravity slider offset
             };
 
   Current = {l: Initials.l, theta: Initials.theta, omega: Initials.omega};
@@ -25,9 +27,10 @@ function init() {
 
   TX = Plot(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
   TY = Plot(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
-  G = .0098;
-  var GravPos = 49;
-  GravSlider = Slider(400, 400, 100, 49, "0", "2", ".98", "Gravity");
+  G = Initials.g.v;
+  var GravPos = Initials.gOff;
+  GravSlider = Slider(400, 400, 100, Initials.gOff,
+                      Initials.g.mn, Initials.g.mx, Initials.g.v, "Gravity");
 
 
   XTrace = Line([], "red", true);
@@ -69,6 +72,11 @@ function init() {
     XTrace.points = [];
     YTrace.points = [];
 
+    G = Initials.g.v;
+    GravSlider.offset = Initials.gOff;
+    I3.x = GravSlider.x + GravSlider.offset;
+    GravSlider.currVal = G;
+
     global_redraw();
   });
 }
@@ -92,7 +100,7 @@ function drag_update() {
   YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
 
 
-  if (I3.x > GravSlider.x + GravSlider.w) { 
+  if (I3.x > GravSlider.x + GravSlider.w) {
     I3.x = GravSlider.x + GravSlider.w;
   }
 
@@ -100,7 +108,8 @@ function drag_update() {
     I3.x = GravSlider.x;
   }
   GravSlider.offset = I3.x - GravSlider.x;
-  GravSlider.currVal = (2*(GravSlider.offset / GravSlider.w)).toFixed(2).toString();
+  GravSlider.currVal = (GravSlider.minVal + (GravSlider.maxVal-GravSlider.minVal) * GravSlider.offset / GravSlider.w);
+
 
 }
 
@@ -131,7 +140,7 @@ function update_constraints() {
   YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
 
   I3.y = GravSlider.y;
-  if (I3.x > GravSlider.x + GravSlider.w) { 
+  if (I3.x > GravSlider.x + GravSlider.w) {
     I3.x = GravSlider.x + GravSlider.w;
   }
 
@@ -139,8 +148,8 @@ function update_constraints() {
     I3.x = GravSlider.x;
   }
 
-  G = (1/500) * 2 * (GravSlider.offset / GravSlider.w);
-  GravSlider.currVal = (G*500).toFixed(2).toString();
+  G = (GravSlider.minVal + (GravSlider.maxVal-GravSlider.minVal) * GravSlider.offset / GravSlider.w);
+  GravSlider.currVal = G;
 
 
 }

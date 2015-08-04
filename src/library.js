@@ -144,9 +144,9 @@ function Slider(x, y, w, offset, minVal, maxVal, currVal, label) {
 			Rectangle(x + offset - 10, y - 5, x + offset + 10, y + 5, "black", "black").draw(ctx);
 
 			// labels
-			Text(x-5, y-20, minVal, "12pt MS Comic Sans").draw(ctx);
-			Text(x+w-5, y-20, maxVal, "12pt MS Comic Sans").draw(ctx);
-			Text(x+offset-5, y-20, currVal, "12pt MS Comic Sans").draw(ctx);
+			Text(x-5, y-20, minVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+w-5, y-20, maxVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+offset-5, y-20, currVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
 
 			// title
 			Text(x + 10, y + 30, label, "18pt MS Comic Sans").draw(ctx);
