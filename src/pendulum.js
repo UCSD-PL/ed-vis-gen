@@ -10,7 +10,6 @@ function init() {
               theta: -Math.PI/3, // angular displacement
               omega: 0, // angular velocity
               w: {x: 163.3974596216, y: 300, r: 15 } // weight
-
             };
 
   Current = {l: Initials.l, theta: Initials.theta, omega: Initials.omega};
@@ -27,6 +26,7 @@ function init() {
   TX = Plot(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
   TY = Plot(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
   G = .0098;
+  var GravPos = 49;
   GravSlider = Slider(400, 400, 100, 49, "0", "2", ".98", "Gravity");
 
 
@@ -36,9 +36,11 @@ function init() {
   I2 = InteractionPoint(Anc.x, Anc.y); // translation point for whole system
   push(I2.links, Anc, Lever, Weight, I1, TX, TY, XTrace, YTrace);
 
+  I3 = InteractionPoint(400 + GravPos, 400)
+
   push(all_objects, Anc, Lever, Weight, TX, TY, XTrace, YTrace, GravSlider);
-  push(all_objects, I1, I2);
-  push(drag_points, I1, I2);
+  push(all_objects, I1, I2, I3);
+  push(drag_points, I1, I2, I3);
 
   // initialize timer
 
@@ -89,6 +91,17 @@ function drag_update() {
   XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
   YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
 
+
+  if (I3.x > GravSlider.x + GravSlider.w) { 
+    I3.x = GravSlider.x + GravSlider.w;
+  }
+
+  if (I3.x < GravSlider.x) {
+    I3.x = GravSlider.x;
+  }
+  GravSlider.offset = I3.x - GravSlider.x;
+  GravSlider.currVal = (2*(GravSlider.offset / GravSlider.w)).toFixed(2).toString();
+
 }
 
 function rightClick_update () {
@@ -116,6 +129,19 @@ function update_constraints() {
 
   XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
   YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
+
+  I3.y = GravSlider.y;
+  if (I3.x > GravSlider.x + GravSlider.w) { 
+    I3.x = GravSlider.x + GravSlider.w;
+  }
+
+  if (I3.x < GravSlider.x) {
+    I3.x = GravSlider.x;
+  }
+
+  G = (1/500) * 2 * (GravSlider.offset / GravSlider.w);
+  GravSlider.currVal = (G*500).toFixed(2).toString();
+
 
 }
 
