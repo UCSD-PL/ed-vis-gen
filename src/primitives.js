@@ -181,21 +181,33 @@ function Timer (freq, work, done) {
   return {
     t: 0,
     freq: freq,
-    inner: 0,
+    intID: 0,
     work: work,
     done: done,
-    start: function () {
-      this.inner = setInterval(function(me){
-        me.work(me.t);
-        me.t++;
-      }, this.freq, this);
-    },
-    stop: function() { clearInterval(this.inner); },
-    reset: function() {
-      clearInterval(this.inner);
-      this.t=0;
-      this.done();
-    }
+    started: false,
+    start: function () { with (this) {
+      if (! started) {
+        started = true;
+        intID = setInterval(function(me){
+          me.work(me.t);
+          me.t++;
+        }, freq, this);
+      }
+    }},
+    stop: function() { with (this) {
+      if (started) {
+        started = false;
+        clearInterval(intID);
+      }
+    }},
+    reset: function() { with (this) {
+      if (started) {
+        started = false;
+        clearInterval(intID);
+      }
+      t=0;
+      done();
+    }}
   }
 }
 
