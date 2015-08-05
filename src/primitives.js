@@ -310,19 +310,42 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     res: resolution,
     stroke: stroke,
     vals: [],
+    xFieldName: xFieldName, // x and y coordinate axes, should not be directly
+    yFieldName: yFieldName, // modified. Instead, use setView.
+
+    // Helper function to calculate the position of the most recent value.
+    // Updates xStart and yStart.
+    _calcStart: function () { with (this) {
+      if (vals.length <= 0) {
+        // whoops
+        return;
+      }
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+      xStart = x + w * (vals[vals.length-1][xFieldName] - xMn)/(xMx - xMn);
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      yStart = y + h * (1 - (vals[vals.length-1][yFieldName] - yMn)/(yMx - yMn));
+    }},
+
+    // Change the coordinate axes. This changes the x and y starting values,
+    // so we wrap it in a function.
+    setView: function(xName, yName) { with (this) {
+      xFieldName = xName;
+      yFieldName = yName;
+      _calcStart();
+    }},
+    setXView: function(xName) { with (this) { setView(xName, yFieldName); }},
+    setYView: function(yName) { with (this) { setView(xFieldName, yName); }},
+
     record: function (v) { with (this) {
       vals.push(v);
       if (vals.length >= res) {
         vals.shift();
       }
-
-      var xMx = ranges[xFieldName].mx;
-      var xMn = ranges[xFieldName].mn;
-      xStart = x + w * (v[xFieldName] - xMn)/(xMx - xMn);
-
-      var yMx = ranges[yFieldName].mx;
-      var yMn = ranges[yFieldName].mn;
-      yStart = y + w * (v[yFieldName] - yMn)/(yMx - yMn);
+      // update starting values
+      _calcStart();
     }},
     translate: function (dx, dy) { with (this) {
       x += dx;
@@ -380,8 +403,8 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       ctx.fillStyle = stroke;
       for (var e = 0; e < vls.length; ++e) {
         var dx = w * (vls[e][xFieldName] - xMn)/(xMx - xMn);
-        var dy = w * (vls[e][yFieldName] - yMn)/(yMx - yMn);
-        ctx.moveTo(x + dx, y + dy);
+        var dy = h * (1 - (vls[e][yFieldName] - yMn)/(yMx - yMn));
+        //ctx.moveTo(x + dx, y + dy);
         ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
         ctx.fill();
       }
