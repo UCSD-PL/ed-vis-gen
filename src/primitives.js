@@ -233,14 +233,14 @@ function InteractionPoint (x,y) {
   }
 }
 
-// Plots values over time. Time is displayed either on the x-axis or on the y-axis.
+// Traces values over time. Time is displayed either on the x-axis or on the y-axis.
 // x and y are position, h and w are height/width, resolution is the number
 // of values to record, and orientation controls whether time goes top-down or
 // left-to-right. A new value is added to a plot by calling plot.record(val).
 
 // For best results, place x and y to the center of the thing being plotted and
 // record offsets from the center.
-function Plot (x, y, h, w, stroke, resolution, orientation) {
+function Trace (x, y, h, w, stroke, resolution, orientation) {
   return {
     x: x,
     y: y,
@@ -288,6 +288,126 @@ function Plot (x, y, h, w, stroke, resolution, orientation) {
         ctx.lineTo(x + dx, y + dy);
       }
       ctx.stroke();
+      ctx.restore();
+    }}
+  }
+}
+
+
+
+// e.g. record({t: 5, v: 7})
+// Plot(..., "t", "v", o, "red", 1000)
+// o = {t: {mn: 0, mx: 100},
+//      v: ...}
+function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
+  return {
+    x: x,
+    y: y,
+    h: h,
+    w: w,
+    xStart: 0, // coordinates of first value in plot
+    yStart: 0,
+    res: resolution,
+    stroke: stroke,
+    vals: [],
+    xFieldName: xFieldName, // x and y coordinate axes, should not be directly
+    yFieldName: yFieldName, // modified. Instead, use setView.
+
+    // Helper function to calculate the position of the most recent value.
+    // Updates xStart and yStart.
+    _calcStart: function () { with (this) {
+      if (vals.length <= 0) {
+        // whoops
+        return;
+      }
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+      xStart = x + w * (vals[vals.length-1][xFieldName] - xMn)/(xMx - xMn);
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      yStart = y + h * (1 - (vals[vals.length-1][yFieldName] - yMn)/(yMx - yMn));
+    }},
+
+    // Change the coordinate axes. This changes the x and y starting values,
+    // so we wrap it in a function.
+    setView: function(xName, yName) { with (this) {
+      xFieldName = xName;
+      yFieldName = yName;
+      _calcStart();
+    }},
+    setXView: function(xName) { with (this) { setView(xName, yFieldName); }},
+    setYView: function(yName) { with (this) { setView(xFieldName, yName); }},
+
+    record: function (v) { with (this) {
+      vals.push(v);
+      if (vals.length >= res) {
+        vals.shift();
+      }
+      // update starting values
+      _calcStart();
+    }},
+    translate: function (dx, dy) { with (this) {
+      x += dx;
+      y += dy;
+    }},
+    draw: function (ctx) { with (this) {
+      ctx.save();
+      ctx.fillStyle = stroke;
+      ctx.beginPath();
+
+      // @OPT: iterate through vals in reverse instead of making a new array
+      var vls = vals.slice();
+      vls.reverse();
+
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+
+      // axes
+      ctx.moveTo(x, y + h/2); // x axis
+      ctx.lineTo(x + w, y + h/2);
+      ctx.moveTo(x + w/2, y); // y axis
+      ctx.lineTo(x + w/2, y + h);
+
+      // y ticks
+      ctx.moveTo(x + w/2 - 10, y + h/4);
+      ctx.lineTo(x + w/2 + 10, y + h/4);
+      Text(x + w/2 + 15, y + h/4 + 5, (3*yMx/4 + yMn/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
+      ctx.moveTo(x + w/2 - 10, y + 3*h/4);
+      ctx.lineTo(x + w/2 + 10, y + 3*h/4);
+      Text(x + w/2 + 15, y + 3*h/4 + 5, (3*yMn/4 + yMx/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
+
+      // x ticks
+      ctx.moveTo(x + w/4, y + h/2 - 10);
+      ctx.lineTo(x + w/4, y + h/2 + 10);
+      var txt = (3*xMn/4 + xMx/4).toFixed(2);
+      Text(x + w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+      ctx.moveTo(x + 3*w/4, y + h/2 - 10);
+      ctx.lineTo(x + 3*w/4, y + h/2 + 10);
+      txt = (3*xMx/4 + xMn/4).toFixed(2);
+      Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+      ctx.strokeStyle = "black";
+      ctx.stroke();
+
+
+
+      Text(x + w/2 - 5*yFieldName.length, y + h + 20, yFieldName, "18pt MS Comic Sans").draw(ctx) // y label
+      Text(x + w + 10, y + h/2 + 5, xFieldName, "18pt MS Comic Sans").draw(ctx) // x label
+
+
+      // scatter plot of values
+      ctx.strokeStyle = stroke;
+      ctx.fillStyle = stroke;
+      for (var e = 0; e < vls.length; ++e) {
+        var dx = w * (vls[e][xFieldName] - xMn)/(xMx - xMn);
+        var dy = h * (1 - (vls[e][yFieldName] - yMn)/(yMx - yMn));
+        //ctx.moveTo(x + dx, y + dy);
+        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
+        ctx.fill();
+      }
       ctx.restore();
     }}
   }

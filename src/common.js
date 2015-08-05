@@ -53,6 +53,7 @@ function doRightClick(event) {
 }
 
 function doMouseUp(event) {
+  //drag_update();
   dragged_obj = null;
 }
 

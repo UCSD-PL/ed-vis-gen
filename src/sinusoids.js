@@ -5,19 +5,20 @@ function init() {
 
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
-  Initials = {circ: {x: 100, y: 100, r: 50},
+  Initials = {circ: {x: 200, y: 200, r: 100},
               theta: 0, // angular displacement
-              tr: {x: 150, y: 100, r: 5} // tracer
+              tr: {x: 300, y: 200, r: 5} // tracer
             };
 
   Current = {theta: Initials.theta, tr: copy(Initials.tr)};
 
   Crc = Circle(Initials.circ.x, Initials.circ.y, Initials.circ.r, "white", "black");
   Trc = Circle(Initials.tr.x, Initials.tr.y, Initials.tr.r, "black", "black");
-  //I1 = InteractionPoint(Trc.x, Trc.y);
 
-  TCos = Plot(Crc.x + Crc.r + 50, Crc.y, 600, 600, "red", 1000, false);
-  TSin = Plot(Crc.x + Crc.r + 50, Crc.y, 600, 600, "blue", 1000, false);
+  var ranges =  {theta:{mn: 0, mx:2*Math.PI}, "f(theta)":{mn:-Crc.r, mx:Crc.r}};
+  // record 200PI points :^)
+  TCos = Plot(Crc.x + Crc.r + 50, Crc.y - Crc.r, 300, 300, "theta", "f(theta)", ranges, "red",  629);
+  TSin = Plot(Crc.x + Crc.r + 50, Crc.y - Crc.r, 300, 300, "theta", "f(theta)", ranges, "blue", 629);
 
   XAxis = Line([Crc.x - Crc.r, Crc.y, Crc.x + Crc.r, Crc.y], "red", false);
   YAxis = Line([Crc.x, Crc.y - Crc.r, Crc.x, Crc.y + Crc.r], "blue", false);
@@ -73,8 +74,10 @@ function update_constraints() {
   Trc.x = Crc.x + Crc.r*Math.cos(Current.theta);
   Trc.y = Crc.x - Crc.r*Math.sin(Current.theta);
 
-  TSin.record(-Crc.r*Math.sin(Current.theta));
-  TCos.record(-Crc.r*Math.cos(Current.theta));
+  TSin.record({theta:Current.theta, "f(theta)": Crc.r*Math.sin(Current.theta)});
+
+  var pushToCos = {theta:Current.theta, "f(theta)":(Crc.r*Math.cos(Current.theta))};
+  TCos.record(pushToCos);
 
   T2X.points = [Trc.x, Trc.y, Trc.x, Crc.y];
   T2Y.points = [Trc.x, Trc.y, Crc.x, Trc.y];

@@ -9,8 +9,9 @@ function init() {
               l: 100,  // lever arm
               theta: -Math.PI/3, // angular displacement
               omega: 0, // angular velocity
-              w: {x: 163.3974596216, y: 300, r: 15 } // weight
-
+              w: {x: 163.3974596216, y: 300, r: 15 }, // weight
+              g: {mn: 0, mx: 0.098, v:0.0098}, // Gravity
+              gOff: 10 // gravity slider offset
             };
 
   Current = {l: Initials.l, theta: Initials.theta, omega: Initials.omega};
@@ -23,19 +24,29 @@ function init() {
   I1 = InteractionPoint(Weight.x, Weight.y);
   I1.links.push(Weight);
 
-  TX = Plot(Anc.x, Anc.y + Current.l + 50, 600, 600, "red", 1000, true);
-  TY = Plot(Anc.x + Current.l + 50, Anc.y, 600, 600, "blue", 1000, false);
-  G = .0098;
+  T = 0;
 
-  XTrace = Line([], "red", true);
+
+  var pltRanges = {t: {mn:0, mx: 100}, theta: {mn: -Math.PI, mx: Math.PI},
+                   omega: {mn: -0.02, mx: 0.02}, x: {mn: -Initials.l, mx: Initials.l},
+                   y: {mn: -Initials.l, mx: Initials.l}};
+  plt = Plot(Anc.x + Current.l + 50, Anc.y, 300, 300, "t", "y", pltRanges, "red", 1050);
+  G = Initials.g.v;
+  var GravPos = Initials.gOff;
+  GravSlider = Slider(400, 400, 100, Initials.gOff,
+                      Initials.g.mn, Initials.g.mx, Initials.g.v, "Gravity");
+
+
   YTrace = Line([], "blue", true);
 
   I2 = InteractionPoint(Anc.x, Anc.y); // translation point for whole system
-  push(I2.links, Anc, Lever, Weight, I1, TX, TY, XTrace, YTrace);
+  //push(I2.links, Anc, Lever, Weight, I1, plt, YTrace);
 
-  push(all_objects, Anc, Lever, Weight, TX, TY, XTrace, YTrace);
-  push(all_objects, I1, I2);
-  push(drag_points, I1, I2);
+  I3 = InteractionPoint(400 + GravPos, 400)
+
+  push(all_objects, Anc, Lever, Weight, plt, YTrace);
+  push(all_objects, I1, I2, I3);
+  push(drag_points, I1, I2, I3);
 
   // initialize timer
 
@@ -55,14 +66,17 @@ function init() {
                  Initials.anchor.x + Initials.l * Math.sin(Initials.theta),
                  Initials.anchor.y + Initials.l * Math.cos(Initials.theta)];
 
-    TX.x = Anc.x;
-    TX.y = Anc.y + Current.l + 50;
-    TY.x = Anc.x + Current.l + 50;
-    TY.y = Anc.y;
-    TX.vals = [];
-    TY.vals = [];
-    XTrace.points = [];
+    plt.x = Anc.x + Current.l + 50;
+    plt.y = Anc.y;
+    plt.vals = [];
     YTrace.points = [];
+
+    T = 0;
+
+    G = Initials.g.v;
+    GravSlider.offset = Initials.gOff;
+    I3.x = GravSlider.x + GravSlider.offset;
+    GravSlider.currVal = G;
 
     global_redraw();
   });
@@ -73,18 +87,28 @@ function drag_update() {
   var dy = Anc.y - Weight.y;
   var dx = Anc.x - Weight.x;
   var alpha = Math.atan2(dy, dx);
-  Current.theta = 3*Math.PI/2 - alpha;
+  Current.theta = (3*Math.PI/2 - alpha ) % (2 * Math.PI);
+  if (dx > 0) { // third quadrant...
+    Current.theta -= (2*Math.PI);
+  }
   Current.l = Math.sqrt(dy*dy + dx*dx);
   Current.omega = 0;
 
-  TX.y = Anc.y + Current.l + 50;
-  TY.x = Anc.x + Current.l + 50;
+  plt.x = Anc.x + Current.l + 50;
 
-  //TX.record(Weight.x - Anc.x);
-  //TY.record(Weight.y - Anc.y);
+  YTrace.points = [Weight.x, Weight.y, plt.xStart, plt.yStart];
 
-  XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
-  YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
+
+  if (I3.x > GravSlider.x + GravSlider.w) {
+    I3.x = GravSlider.x + GravSlider.w;
+  }
+
+  if (I3.x < GravSlider.x) {
+    I3.x = GravSlider.x;
+  }
+  GravSlider.offset = I3.x - GravSlider.x;
+  GravSlider.currVal = (GravSlider.minVal + (GravSlider.maxVal-GravSlider.minVal) * GravSlider.offset / GravSlider.w);
+
 
 }
 
@@ -99,6 +123,10 @@ function update_constraints() {
   // dTheta = Omega
   Current.theta = Current.theta + Current.omega;
 
+  Current.theta = Current.theta % (2*Math.PI);
+  T += 0.1;
+  T = T % 100;
+
   // arc length formulae
   Weight.x = Anc.x + Current.l*Math.sin(Current.theta);
   Weight.y = Anc.y + Current.l*Math.cos(Current.theta);
@@ -106,13 +134,28 @@ function update_constraints() {
   I1.x = Weight.x;
   I1.y = Weight.y;
 
-  TX.y = Anc.y + Current.l + 50;
-  TY.x = Anc.x + Current.l + 50;
-  TX.record(Weight.x - Anc.x);
-  TY.record(Weight.y - Anc.y);
+  plt.x = Anc.x + Current.l + 50;
 
-  XTrace.points = [Weight.x, Weight.y, TX.xStart, TX.yStart];
-  YTrace.points = [Weight.x, Weight.y, TY.xStart, TY.yStart];
+  var reading = { t: T, theta: Current.theta, omega: Current.omega,
+                  x: Weight.x - Anc.x, y: Weight.y - Anc.y};
+
+  console.log(Current.omega);
+  plt.record(reading);
+
+  YTrace.points = [Weight.x, Weight.y, plt.xStart, plt.yStart];
+
+  I3.y = GravSlider.y;
+  if (I3.x > GravSlider.x + GravSlider.w) {
+    I3.x = GravSlider.x + GravSlider.w;
+  }
+
+  if (I3.x < GravSlider.x) {
+    I3.x = GravSlider.x;
+  }
+
+  G = (GravSlider.minVal + (GravSlider.maxVal-GravSlider.minVal) * GravSlider.offset / GravSlider.w);
+  GravSlider.currVal = G;
+
 
 }
 

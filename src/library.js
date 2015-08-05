@@ -119,4 +119,39 @@ function TextCircle (x, y, r, dx, dy, text, fill) {
   }
 }
 
+// Primitive for building sliders. x and y specify initial position,
+// w specifies width of slider, offset specifies position of marker,
+// minVal, maxVal, currVal, and label specify text for labels.
+function Slider(x, y, w, offset, minVal, maxVal, currVal, label) {
+	return {
+		x: x,
+		y: y,
+		w: w,
+		offset: offset,
+		minVal: minVal,
+		maxVal: maxVal,
+		currVal: currVal,
+		label: label,
+		translate: function(dx, dy) {
+			x += dx;
+			y += dy;
+		},
+		draw: function(ctx) { with (this) {
+
+			Line([x, y - 10, x, y + 10], "black", false).draw(ctx);
+			Line([x, y, x + w, y], "black", false).draw(ctx);
+			Line([x + w, y - 10, x + w, y + 10], "black", false).draw(ctx);
+			Rectangle(x + offset - 10, y - 5, x + offset + 10, y + 5, "black", "black").draw(ctx);
+
+			// labels
+			Text(x-5, y-20, minVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+w-5, y-20, maxVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+offset-5, y-20, currVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+
+			// title
+			Text(x + 10, y + 30, label, "18pt MS Comic Sans").draw(ctx);
+		}}
+	}
+}
+
 // TODO: TextBox
