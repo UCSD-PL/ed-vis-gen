@@ -1,7 +1,7 @@
 function init() {
   all_objects = [];
   drag_points = [];
-  rightClick_points = [];
+  //rightClick_points = [];
 
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
@@ -19,7 +19,11 @@ function init() {
               p3: {x1: 375, y1: 92, x2: 425, y2: 108},
               w1: {x: 200, y: 77, h: 30, w: 30},
               w2: {x: 300, y: 70, h: 45, w: 45},
-              w3: {x: 400, y: 62, h: 60, w: 60}
+              w3: {x: 400, y: 62, h: 60, w: 60},
+              ms: {mn: 1, mx: 5, val: 1},
+              ss: {mn: 0.5, mx: 2.5, val: 0.5},
+              ds: {mn: 0, mx: 1, val: 0.5},
+              msOff: 0, ssOff: 0, dsOff: 50
             };
 
 
@@ -43,27 +47,38 @@ function init() {
   push(I5.links, S3, I6, W3);
 
   // right click points for the weights
-  I7 = InteractionPoint(Initials.w1.x, Initials.w1.y);
-  I8 = InteractionPoint(Initials.w2.x, Initials.w2.y);
-  I9 = InteractionPoint(Initials.w3.x, Initials.w3.y);
-  push(rightClick_points, I7, I8, I9);
+  //I7 = InteractionPoint(Initials.w1.x, Initials.w1.y);
+  //I8 = InteractionPoint(Initials.w2.x, Initials.w2.y);
+  //I9 = InteractionPoint(Initials.w3.x, Initials.w3.y);
+  //push(rightClick_points, I7, I8, I9);
 
 
   // (http://www.ux1.eiu.edu/~cfadd/1150/15Period/Vert.html)
   InitRestLengths = {s1: 125, s2: 125, s3: 125};
   CurrRestLengths = copy(InitRestLengths);
   G = 9.8; // currently not used, might be needed for restlengths (see above)
-  Ks = {s1: .5, s2: .5, s3: .5};
-  InitMasses = {s1: 1, s2: 2, s3: 3};
-  CurrMasses = copy(InitMasses);
+  //Ks = {s1: .5, s2: .5, s3: .5};
+  //InitMasses = {s1: 1, s2: 2, s3: 3};
+  //CurrMasses = copy(InitMasses);
 
-  I7.magnitude = InitMasses.s1;
-  I8.magnitude = InitMasses.s2;
-  I9.magnitude = InitMasses.s3;
+  //I7.magnitude = InitMasses.s1;
+  //I8.magnitude = InitMasses.s2;
+  //I9.magnitude = InitMasses.s3;
 
-  Dampers = {s1: .1, s2: .1, s3: .1};
+  //Dampers = {s1: .1, s2: .1, s3: .1};
 
   CurrentVs = {s1: 0, s2: 0, s3: 0};
+
+  
+  // sliders
+  MassSlider  = Slider(550, 200, 100, Initials.msOff, Initials.ms.mn, Initials.ms.mx, Initials.ms.val, "Mass");
+  StiffSlider = Slider(550, 300, 100, Initials.ssOff, Initials.ss.mn, Initials.ss.mx, Initials.ss.val, "Stiffness");
+  DampSlider  = Slider(550, 400, 100, Initials.dsOff, Initials.ds.mn, Initials.ds.mx, Initials.ds.val, "Damping");
+
+  // slider interaction point
+  I10 = InteractionPoint(550 + Initials.msOff, 200);
+  I11 = InteractionPoint(550 + Initials.ssOff, 300);
+  I12 = InteractionPoint(550 + Initials.dsOff, 400);
 
   // base, platforms
   Base = Rectangle(S1.x-100, S1.y, S3.x+100, S3.y + 100, "black", "rgba(127,127,127,0.5)");
@@ -77,9 +92,9 @@ function init() {
   push(I5.links, Plat3);
 
 
-  push(all_objects, S1, S2, S3, W1, W2, W3, Base, Plat1, Plat2, Plat3);
-  push(all_objects, I1, I2, I3, I4, I5, I6);
-  push(drag_points, I1, I2, I3, I4, I5, I6);
+  push(all_objects, S1, S2, S3, W1, W2, W3, Base, Plat1, Plat2, Plat3, MassSlider, StiffSlider, DampSlider);
+  push(all_objects, I1, I2, I3, I4, I5, I6, I10, I11, I12);
+  push(drag_points, I1, I2, I3, I4, I5, I6, I10, I11, I12);
 
   // initialize timer
 
@@ -98,15 +113,15 @@ function init() {
       // weights
       W1, Initials.w1, W2, Initials.w2, W3, Initials.w3,
       // masses and RLs
-      CurrMasses, InitMasses, CurrRestLengths, InitRestLengths
+      CurrMasses, InitMasses, CurrRestLengths, InitRestLengths,
     ]
     );
     // velocities
     restore(CurrentVs, {s1: Initials.s1.v, s2: Initials.s2.v, s3: Initials.s3.v});
     // magnitudes
-    I7.magnitude = InitMasses.s1;
-    I8.magnitude = InitMasses.s2;
-    I9.magnitude = InitMasses.s3;
+    //I7.magnitude = InitMasses.s1;
+    //I8.magnitude = InitMasses.s2;
+    //I9.magnitude = InitMasses.s3;
 
     global_redraw();
   });
@@ -131,30 +146,67 @@ function drag_update() {
   W1.y = Plat1.y1 - W1.h/2;
   W2.y = Plat2.y1 - W2.h/2;
   W3.y = Plat3.y1 - W3.h/2;
+  
+
+  // Mass Slider updates
+  if (I10.x > MassSlider.x + MassSlider.w) {
+    I10.x = MassSlider.x + MassSlider.w;
+  }
+
+  if (I10.x < MassSlider.x) {
+    I10.x = MassSlider.x;
+  }
+  I10.y = MassSlider.y;
+  MassSlider.offset = I10.x - MassSlider.x;
+  MassSlider.currVal = (MassSlider.minVal + (MassSlider.maxVal-MassSlider.minVal) * MassSlider.offset / MassSlider.w);
+
+  // Stiffness Slider updates
+  if (I11.x > StiffSlider.x + StiffSlider.w) {
+    I11.x = StiffSlider.x + StiffSlider.w;
+  }
+
+  if (I11.x < StiffSlider.x) {
+    I11.x = StiffSlider.x;
+  }
+  I11.y = StiffSlider.y;
+  StiffSlider.offset = I11.x - StiffSlider.x;
+  StiffSlider.currVal = (StiffSlider.minVal + (StiffSlider.maxVal-StiffSlider.minVal) * StiffSlider.offset / StiffSlider.w);
+
+  // Damping Slider updates
+  if (I12.x > DampSlider.x + DampSlider.w) {
+    I12.x = DampSlider.x + DampSlider.w;
+  }
+
+  if (I12.x < DampSlider.x) {
+    I12.x = DampSlider.x;
+  }
+  I12.y = DampSlider.y;
+  DampSlider.offset = I12.x - DampSlider.x;
+  DampSlider.currVal = (DampSlider.minVal + (DampSlider.maxVal-DampSlider.minVal) * DampSlider.offset / DampSlider.w);
 
 }
 
 function rightClick_update () {
-  CurrMasses.s1 = I7.magnitude;
-  CurrMasses.s2 = I8.magnitude;
-  CurrMasses.s3 = I9.magnitude;
+  //CurrMasses.s1 = I7.magnitude;
+  //CurrMasses.s2 = I8.magnitude;
+  //CurrMasses.s3 = I9.magnitude;
 }
 
 function update_constraints() {
-  CurrRestLengths.s1 = InitRestLengths.s1 - CurrMasses.s1 * G / Ks.s1;
-  CurrRestLengths.s2 = InitRestLengths.s2 - CurrMasses.s2 * G / Ks.s2;
-  CurrRestLengths.s3 = InitRestLengths.s3 - CurrMasses.s3 * G / Ks.s3;
+  CurrRestLengths.s1 = InitRestLengths.s1 - MassSlider.currVal * G / StiffSlider.currVal;
+  //CurrRestLengths.s2 = InitRestLengths.s2 - CurrMasses.s2 * G / Ks.s2;
+  //CurrRestLengths.s3 = InitRestLengths.s3 - CurrMasses.s3 * G / Ks.s3;
   // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
-  //CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
-  CurrentVs.s2 = CurrentVs.s2 + (Ks.s2*(-1*(S2.dy + CurrRestLengths.s2)) - Dampers.s2*CurrentVs.s2)/ CurrMasses.s2;
-  CurrentVs.s3 = CurrentVs.s3 + (Ks.s3*(-1*(S3.dy + CurrRestLengths.s3)) - Dampers.s3*CurrentVs.s3)/ CurrMasses.s3;
+  CurrentVs.s1 = CurrentVs.s1 + (StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/ MassSlider.currVal;
+  //CurrentVs.s2 = CurrentVs.s2 + (Ks.s2*(-1*(S2.dy + CurrRestLengths.s2)) - Dampers.s2*CurrentVs.s2)/ CurrMasses.s2;
+  //CurrentVs.s3 = CurrentVs.s3 + (Ks.s3*(-1*(S3.dy + CurrRestLengths.s3)) - Dampers.s3*CurrentVs.s3)/ CurrMasses.s3;
   // dx/dt = v => dx = v
-  //S1.dy = S1.dy + CurrentVs.s1;
-  S2.dy = S2.dy + CurrentVs.s2;
-  S3.dy = S3.dy + CurrentVs.s3;
+  S1.dy = S1.dy + CurrentVs.s1;
+  //S2.dy = S2.dy + CurrentVs.s2;
+  //S3.dy = S3.dy + CurrentVs.s3;
 
   if (dragged_obj !== I2) {
-    CurrentVs.s1 = CurrentVs.s1 + (Ks.s1*(-1*(S1.dy + CurrRestLengths.s1)) - Dampers.s1*CurrentVs.s1)/ CurrMasses.s1;
+    CurrentVs.s1 = CurrentVs.s1 + (StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/ MassSlider.currVal;
     S1.dy = S1.dy + CurrentVs.s1;
 
     I2.y = S1.y + S1.dy;
@@ -163,7 +215,7 @@ function update_constraints() {
     S1.dy = I2.y - S1.y;
     I2.x = S1.x + S1.dx;
   }
-  if (dragged_obj !== I4) {
+  /*if (dragged_obj !== I4) {
     I4.y = S2.y + S2.dy;
     I4.x = S2.x + S2.dx;
   }
@@ -171,24 +223,24 @@ function update_constraints() {
     I6.y = S3.y + S3.dy;
     I6.x = S3.x + S3.dx;
   }
-
+  */
   Plat1.y1 = I2.y - 8;
   Plat1.y2 = I2.y + 8;
-  Plat2.y2 = I4.y + 8;
+  /*Plat2.y2 = I4.y + 8;
   Plat2.y1 = I4.y - 8;
   Plat3.y1 = I6.y - 8;
   Plat3.y2 = I6.y + 8;
-
+ */
   W1.y = Plat1.y1 - W1.h/2;
-  W2.y = Plat2.y1 - W2.h/2;
-  W3.y = Plat3.y1 - W3.h/2;
+  //W2.y = Plat2.y1 - W2.h/2;
+  //W3.y = Plat3.y1 - W3.h/2;
 
-  I7.x = W1.x;
-  I7.y = W1.y;
-  I8.x = W2.x;
-  I8.y = W2.y;
-  I9.x = W3.x;
-  I9.y = W3.y;
+  //I7.x = W1.x;
+  //I7.y = W1.y;
+  //I8.x = W2.x;
+  //I8.y = W2.y;
+  //I9.x = W3.x;
+  //I9.y = W3.y;
 
 }
 
