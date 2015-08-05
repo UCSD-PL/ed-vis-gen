@@ -9,12 +9,12 @@ function init() {
               i2: {x: 200, y: 100},
               p1: {x1: 175, y1: 92, x2: 225, y2: 108},
               w1: {x: 200, y: 77, h: 30, w: 30},
-              ms: {mn: 1, mx: 5, val: 1},
-              ss: {mn: 0.5, mx: 2.5, val: 0.5},
+              ms: {mn: 10, mx: 100, val: 55},
+              ss: {mn: 0.5, mx: 5, val: 2.75},
               ds: {mn: 0, mx: 1, val: 0.5},
-              msOff: 0, ssOff: 0, dsOff: 50,
-              i10: {x: 350, y:200},
-              i11: {x: 350, y:300},
+              msOff: 50, ssOff: 50, dsOff: 50,
+              i10: {x: 400, y:200},
+              i11: {x: 400, y:300},
               i12: {x: 400, y:400}
             };
 
@@ -30,11 +30,11 @@ function init() {
   // (http://www.ux1.eiu.edu/~cfadd/1150/15Period/Vert.html)
   InitRestLengths = {s1: 125};// s2: 125, s3: 125};
   CurrRestLengths = copy(InitRestLengths);
-  G = 9.8; // currently not used, might be needed for restlengths (see above)
+  G = .98;
 
   CurrentVs = {s1: 0};
 
-  
+
   // sliders
   MassSlider  = Slider(350, 200, 100, Initials.msOff, Initials.ms.mn, Initials.ms.mx, Initials.ms.val, "Mass");
   StiffSlider = Slider(350, 300, 100, Initials.ssOff, Initials.ss.mn, Initials.ss.mx, Initials.ss.val, "Stiffness");
@@ -51,7 +51,7 @@ function init() {
 
   // link up ipoints
   push(I1.links, Plat1);
-  
+
 
   push(all_objects, S1,  W1, Base, Plat1, MassSlider, StiffSlider, DampSlider);
   push(all_objects, I1, I2, I10, I11, I12);
@@ -59,26 +59,26 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(25, function(t) {
+  tau = Timer(20, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
     restoreAll([
       // springs
-      S1, Initials.s1, 
+      S1, Initials.s1,
       // ipoints
-      I1, Initials.i1, I2, Initials.i2, 
-      
+      I1, Initials.i1, I2, Initials.i2,
+
       // platforms
-      Plat1, Initials.p1, 
+      Plat1, Initials.p1,
       // weights
-      W1, Initials.w1, 
+      W1, Initials.w1,
       // RLs
       CurrRestLengths, InitRestLengths,
 
       // slider interactivity points
       I10, Initials.i10, I11, Initials.i11, I12, Initials.i12
-      
+
     ]
     );
     // velocities
@@ -101,7 +101,7 @@ function drag_update() {
   Plat1.y2 = I2.y + 8;
 
   W1.y = Plat1.y1 - W1.h/2;
-  
+
 
   // Mass Slider updates
   if (I10.x > MassSlider.x + MassSlider.w) {
@@ -143,10 +143,10 @@ function drag_update() {
 
 function update_constraints() {
   CurrRestLengths.s1 = InitRestLengths.s1 - MassSlider.currVal * G / StiffSlider.currVal;
-  
+
   // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
-  CurrentVs.s1 = CurrentVs.s1 + (StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/ MassSlider.currVal;
-  
+  CurrentVs.s1 = CurrentVs.s1 + ((StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/MassSlider.currVal);
+
   // dx/dt = v => dx = v
   S1.dy = S1.dy + CurrentVs.s1;
 
@@ -160,7 +160,7 @@ function update_constraints() {
     S1.dy = I2.y - S1.y;
     I2.x = S1.x + S1.dx;
   }
- 
+
   Plat1.y1 = I2.y - 8;
   Plat1.y2 = I2.y + 8;
 

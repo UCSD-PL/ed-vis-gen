@@ -144,12 +144,12 @@ function Slider(x, y, w, offset, minVal, maxVal, currVal, label) {
 			Rectangle(x + offset - 10, y - 5, x + offset + 10, y + 5, "black", "black").draw(ctx);
 
 			// labels
-			Text(x-5, y-20, minVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
-			Text(x+w-5, y-20, maxVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
-			Text(x+offset-5, y-20, currVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x-3*minVal.toFixed(4).length, y-12, minVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+w-3*maxVal.toFixed(4).length, y-12, maxVal.toFixed(4), "12pt MS Comic Sans").draw(ctx);
+			Text(x+offset-4*currVal.toFixed(4).length, y-30, currVal.toFixed(4), "14pt MS Comic Sans").draw(ctx);
 
 			// title
-			Text(x + 10, y + 30, label, "18pt MS Comic Sans").draw(ctx);
+			Text(x + w/2 - 5*label.length, y + 30, label, "18pt MS Comic Sans").draw(ctx);
 		}}
 	}
 }
