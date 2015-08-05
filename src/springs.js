@@ -23,7 +23,10 @@ function init() {
               ms: {mn: 1, mx: 5, val: 1},
               ss: {mn: 0.5, mx: 2.5, val: 0.5},
               ds: {mn: 0, mx: 1, val: 0.5},
-              msOff: 0, ssOff: 0, dsOff: 50
+              msOff: 0, ssOff: 0, dsOff: 50,
+              i10: {x: 550, y:200},
+              i11: {x: 550, y:300},
+              i12: {x: 600, y:400}
             };
 
 
@@ -113,11 +116,19 @@ function init() {
       // weights
       W1, Initials.w1, W2, Initials.w2, W3, Initials.w3,
       // masses and RLs
-      CurrMasses, InitMasses, CurrRestLengths, InitRestLengths,
+      // CurrMasses, InitMasses, CurrRestLengths, InitRestLengths,
+
+      // slider interactivity points
+      I10, Initials.i10, I11, Initials.i11, I12, Initials.i12
+      
     ]
     );
     // velocities
     restore(CurrentVs, {s1: Initials.s1.v, s2: Initials.s2.v, s3: Initials.s3.v});
+    restore(MassSlider, {offset: Initials.msOff, minVal:Initials.ms.mn, maxVal:Initials.ms.mx, currVal:Initials.ms.val});
+    restore(StiffSlider, {offset: Initials.ssOff, minVal:Initials.ss.mn, maxVal:Initials.ss.mx, currVal:Initials.ss.val});
+    restore(DampSlider, {offset: Initials.dsOff, minVal:Initials.ds.mn, maxVal:Initials.ds.mx, currVal:Initials.ds.val});
+
     // magnitudes
     //I7.magnitude = InitMasses.s1;
     //I8.magnitude = InitMasses.s2;
