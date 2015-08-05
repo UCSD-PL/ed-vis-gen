@@ -2,10 +2,11 @@ function init() {
   all_objects = [];
   drag_points = [];
 
+  T = 0;
+
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
   Initials = {s1: {v: 0, x: 200, y: 300, dy: -200, dx: 0},
-              i1: {x: 200, y: 300},
               i2: {x: 200, y: 100},
               p1: {x1: 175, y1: 92, x2: 225, y2: 108},
               w1: {x: 200, y: 77, h: 30, w: 30},
@@ -21,10 +22,8 @@ function init() {
 
   // springs
   S1 = Spring(Initials.s1.x, Initials.s1.y, Initials.s1.dx, Initials.s1.dy, "black");
-  I1 = InteractionPoint (Initials.i1.x, Initials.i1.y);
   I2 = InteractionPoint (Initials.i2.x, Initials.i2.y);
   W1 = Image(Initials.w1.x, Initials.w1.y, Initials.w1.h, Initials.w1.w, "iron");
-  push(I1.links, S1, I2, W1)
 
 
   // (http://www.ux1.eiu.edu/~cfadd/1150/15Period/Vert.html)
@@ -36,6 +35,7 @@ function init() {
 
 
   // sliders
+  addSlider("Mass", "sliders", 10, 100, 55);
   MassSlider  = Slider(350, 200, 100, Initials.msOff, Initials.ms.mn, Initials.ms.mx, Initials.ms.val, "Mass");
   StiffSlider = Slider(350, 300, 100, Initials.ssOff, Initials.ss.mn, Initials.ss.mx, Initials.ss.val, "Stiffness");
   DampSlider  = Slider(350, 400, 100, Initials.dsOff, Initials.ds.mn, Initials.ds.mx, Initials.ds.val, "Damping");
@@ -49,17 +49,19 @@ function init() {
   Base = Rectangle(S1.x-100, S1.y, S1.x+100, S1.y + 100, "black", "rgba(127,127,127,0.5)");
   Plat1 = Rectangle(Initials.p1.x1, Initials.p1.y1, Initials.p1.x2, Initials.p1.y2, "black", "rgba(0,0,0,0)");
 
-  // link up ipoints
-  push(I1.links, Plat1);
+  // Plot of t, displacement, velocity, and force
+  var pltRanges = {t: {mn: 0, mx: 100}, y: {mn: -200, mx: 200}, v:{mn: -50, mx: 50}, f:{mn: -20, mx: 20}};
+  plt = Plot(MassSlider.x + MassSlider.w + 100, S1.y-200, 300, 300, "t", "y", pltRanges, "red", 1050);
 
 
-  push(all_objects, S1,  W1, Base, Plat1, MassSlider, StiffSlider, DampSlider);
-  push(all_objects, I1, I2, I10, I11, I12);
-  push(drag_points, I1, I2, I10, I11, I12);
+
+  push(all_objects, S1,  W1, Base, Plat1, MassSlider, StiffSlider, DampSlider, plt);
+  push(all_objects, I2, I10, I11, I12);
+  push(drag_points, I2, I10, I11, I12);
 
   // initialize timer
 
-  tau = Timer(20, function(t) {
+  tau = Timer(10, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
@@ -67,7 +69,7 @@ function init() {
       // springs
       S1, Initials.s1,
       // ipoints
-      I1, Initials.i1, I2, Initials.i2,
+      I2, Initials.i2,
 
       // platforms
       Plat1, Initials.p1,
@@ -88,6 +90,8 @@ function init() {
     restore(StiffSlider, {offset: Initials.ssOff, minVal:Initials.ss.mn, maxVal:Initials.ss.mx, currVal:Initials.ss.val});
     restore(DampSlider, {offset: Initials.dsOff, minVal:Initials.ds.mn, maxVal:Initials.ds.mx, currVal:Initials.ds.val});
 
+    plt.vals = [];
+    T = 0;
     global_redraw();
   });
 }
@@ -144,14 +148,15 @@ function drag_update() {
 function update_constraints() {
   CurrRestLengths.s1 = InitRestLengths.s1 - MassSlider.currVal * G / StiffSlider.currVal;
 
+  T += 0.1;
+  T = T % 100;
   // F = kx - cv - mg = ma => dv = (kx-cv)/m + g
-  CurrentVs.s1 = CurrentVs.s1 + ((StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/MassSlider.currVal);
+  var F = ((StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/MassSlider.currVal)
 
   // dx/dt = v => dx = v
-  S1.dy = S1.dy + CurrentVs.s1;
 
   if (dragged_obj !== I2) {
-    CurrentVs.s1 = CurrentVs.s1 + (StiffSlider.currVal*(-1*(S1.dy + CurrRestLengths.s1)) - DampSlider.currVal*CurrentVs.s1)/ MassSlider.currVal;
+    CurrentVs.s1 = CurrentVs.s1 + F;
     S1.dy = S1.dy + CurrentVs.s1;
 
     I2.y = S1.y + S1.dy;
@@ -165,6 +170,8 @@ function update_constraints() {
   Plat1.y2 = I2.y + 8;
 
   W1.y = Plat1.y1 - W1.h/2;
+
+  plt.record({t: T, y: (CurrRestLengths.s1 + S1.dy), v: CurrentVs.s1, f: F});
 
 }
 

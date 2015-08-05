@@ -49,3 +49,22 @@ function copy(src) {
 
   return res;
 }
+
+// Helper function to create an HTML slider. Takes slider parameters, builds
+// a node, and adds the node to a parent.
+function addSlider(name, parent, min, max, start) {
+  var step = (max-min)/(1000);
+  var newSlider = document.createElement("input");
+  var newNode = document.createElement("p");
+  newNode.id = name;
+  newNode.textContent = name + ": ";
+  newSlider.id = name + "-slider";
+  newSlider.type = "range";
+  newSlider.step = step;
+  newSlider.min = min;
+  newSlider.max = max;
+  newSlider.value = start;
+  document.getElementById(parent).appendChild(newNode);
+  document.getElementById(name).appendChild(newSlider);
+
+}
