@@ -324,14 +324,13 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       var yMn = ranges[yFieldName].mn;
       yStart = y + w * (v[yFieldName] - yMn)/(yMx - yMn);
     }},
-    // assumes traced object is translated as well
     translate: function (dx, dy) { with (this) {
       x += dx;
       y += dy;
     }},
     draw: function (ctx) { with (this) {
       ctx.save();
-      ctx.strokeStyle = stroke;
+      ctx.fillStyle = stroke;
       ctx.beginPath();
 
       // @OPT: iterate through vals in reverse instead of making a new array
@@ -340,18 +339,52 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
 
       var xMx = ranges[xFieldName].mx;
       var xMn = ranges[xFieldName].mn;
-      
+
       var yMx = ranges[yFieldName].mx;
       var yMn = ranges[yFieldName].mn;
-      
-      ctx.moveTo(xStart, yStart);
+
+      // axes
+      ctx.moveTo(x, y + h/2); // x axis
+      ctx.lineTo(x + w, y + h/2);
+      ctx.moveTo(x + w/2, y); // y axis
+      ctx.lineTo(x + w/2, y + h);
+
+      // y ticks
+      ctx.moveTo(x + w/2 - 10, y + h/4);
+      ctx.lineTo(x + w/2 + 10, y + h/4);
+      Text(x + w/2 + 15, y + h/4 + 5, (3*yMx/4 + yMn/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
+      ctx.moveTo(x + w/2 - 10, y + 3*h/4);
+      ctx.lineTo(x + w/2 + 10, y + 3*h/4);
+      Text(x + w/2 + 15, y + 3*h/4 + 5, (3*yMn/4 + yMx/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
+
+      // x ticks
+      ctx.moveTo(x + w/4, y + h/2 - 10);
+      ctx.lineTo(x + w/4, y + h/2 + 10);
+      var txt = (3*xMn/4 + xMx/4).toFixed(2);
+      Text(x + w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+      ctx.moveTo(x + 3*w/4, y + h/2 - 10);
+      ctx.lineTo(x + 3*w/4, y + h/2 + 10);
+      txt = (3*xMx/4 + xMn/4).toFixed(2);
+      Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+      ctx.strokeStyle = "black";
+      ctx.stroke();
+
+
+
+      Text(x + w/2 - 5*yFieldName.length, y + h + 20, yFieldName, "18pt MS Comic Sans").draw(ctx) // y label
+      Text(x + w + 10, y + h/2 + 5, xFieldName, "18pt MS Comic Sans").draw(ctx) // x label
+
+
+      // scatter plot of values
+      ctx.strokeStyle = stroke;
+      ctx.fillStyle = stroke;
       for (var e = 0; e < vls.length; ++e) {
         var dx = w * (vls[e][xFieldName] - xMn)/(xMx - xMn);
-        var dy = w * (vls[e][yFieldName] - yMn)/(yMx - yMn);;
-        
-        ctx.lineTo(x + dx, y + dy);
+        var dy = w * (vls[e][yFieldName] - yMn)/(yMx - yMn);
+        ctx.moveTo(x + dx, y + dy);
+        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
+        ctx.fill();
       }
-      ctx.stroke();
       ctx.restore();
     }}
   }
