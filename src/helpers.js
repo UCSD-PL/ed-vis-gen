@@ -50,21 +50,36 @@ function copy(src) {
   return res;
 }
 
-// Helper function to create an HTML slider. Takes slider parameters, builds
-// a node, and adds the node to a parent.
-function addSlider(name, parent, min, max, start) {
+// Helper functions for HTML sliders.
+
+// Create an HTML slider. Takes slider parameters, builds a node, and adds the
+// node to a parent.
+function addSlider(name, parent, min, max, start, onchange) {
   var step = (max-min)/(1000);
   var newSlider = document.createElement("input");
   var newNode = document.createElement("p");
+  var padding = document.createElement("div");
   newNode.id = name;
-  newNode.textContent = name + ": ";
-  newSlider.id = name + "-slider";
+  newNode.textContent = name + ":";
+  newSlider.id = name + "-slider"; // if this naming convention changes, getSliderValue needs to change.
   newSlider.type = "range";
   newSlider.step = step;
   newSlider.min = min;
   newSlider.max = max;
   newSlider.value = start;
+  newSlider.onchange = onchange;
+  newNode.appendChild(padding);
+  padding.appendChild(newSlider);
   document.getElementById(parent).appendChild(newNode);
-  document.getElementById(name).appendChild(newSlider);
+  // document.getElementById(name).appendChild(newSlider);
+}
 
+// Get the value from an HTML slider. Takes the name of the slider.
+function getSliderValue(name) {
+  return document.getElementById(name + "-slider").value;
+}
+
+// Set the value for an HTML slider. Takes the name of the slider and the new value.
+function setSliderValue(name, val) {
+  document.getElementById(name + "-slider").value = val;
 }

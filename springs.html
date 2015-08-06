@@ -20,16 +20,16 @@
 <head>
     <title>Spring simulation</title>
 
-    <p>
+    <div style="float:left; width:250px; margin-top: -20px;">
       <h2> Simulation controls </h2>
       <button onclick="start()">Start</button>
       <button onclick="stop()">Stop</button>
       <button onclick="reset()">Reset</button>
-      <p id="sliders"></p>
-    </p>
-    <p>
+      <div id="sliders"></div>
+    </div>
+    <div style="margin:auto;">
       <h2 > Graph controls </h2>
-        <button onclick="plt.vals = []; T = 0;"> Clear plot </button>
+        <button onclick="plt.clear(); T = 0;"> Clear plot </button>
       <p> X Axis:
         <button onclick="xView('t');">Time</button>
         <button onclick="xView('y');">Displacement from rest</button>
@@ -42,8 +42,8 @@
         <button onclick="yView('v');">Velocity</button>
         <button onclick="yView('f');">Force</button>
       </p>
-    </p>
-  </h2>
+    </div>
+
     <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none"
      onload="main();">
 

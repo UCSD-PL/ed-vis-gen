@@ -2,6 +2,7 @@
 function ClosedLine (points, stroke, fill) {
   return {
     draw: function(ctx) {
+      ctx.save();
       var len = points.length;
       if (len <= 0) { return }
       if (len%2 != 0) { return }
@@ -14,6 +15,7 @@ function ClosedLine (points, stroke, fill) {
       }
       ctx.fill();
       ctx.stroke();
+      ctx.restore();
     }
   }
 }
@@ -34,10 +36,10 @@ function Line (points, stroke, dash) {
     },
     draw: function(ctx) {
       with (this) {
+        ctx.save();
         var len = points.length;
         if (len <= 0) { return }
         if (len%2 != 0) { return }
-        ctx.save();
         if (dash) {ctx.setLineDash([2,2]);}
         ctx.strokeStyle = stroke;
         ctx.beginPath();
@@ -66,12 +68,7 @@ function Spring (x, y, dx, dy, stroke) {
 		},
     draw: function (ctx) {
       with (this) {
-        // draw a sinusoid centered on the line between
-        // (x,y) -> (x+dx, y+dy)
-        //ctx.save();
-        //ctx.translate(x,y);
-        //ctx.moveTo(0,0);
-        //ctx.rotate(Math.atan2(dy,dx));
+        ctx.save();
         ctx.strokeStyle = stroke;
         ctx.beginPath();
 
@@ -95,9 +92,8 @@ function Spring (x, y, dx, dy, stroke) {
         }
 
         ctx.lineTo(x + dx, y + dy);
-
         ctx.stroke();
-        //ctx.restore();
+        ctx.restore();
       }
     }
   }
@@ -116,9 +112,11 @@ function Text(x, y, text, font) { // font is an optional parameter
 			}
 		},
     draw: function (ctx) {
+      ctx.save();
       ctx.font = font;
       ctx.fillStyle = "black";
       ctx.fillText(text, x, y);
+      ctx.restore();
     }
   }
 }
@@ -140,12 +138,14 @@ function Circle (x, y, r, fill, stroke) {
 		},
     draw: function (ctx) {
       with (this) {
+        ctx.save();
         ctx.beginPath();
         ctx.fillStyle = fill;
         ctx.strokeStyle = stroke;
         ctx.arc(x,y,r, 0, 2*Math.PI);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
       }
     }
   }
@@ -166,9 +166,10 @@ function Image (x, y, h, w, name) {
 		},
     draw: function(ctx) {
       with (this) {
+        ctx.save();
         var i = document.getElementById(name);
-        //i.style.display="initial";
         ctx.drawImage(i, x-w/2, y-h/2, h, w);
+        ctx.restore();
       }
     }
   }
@@ -305,8 +306,8 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     y: y,
     h: h,
     w: w,
-    xStart: 0, // coordinates of first value in plot
-    yStart: 0,
+    xStart: x+w/2, // coordinates of first value in plot
+    yStart: y+h/2,
     res: resolution,
     stroke: stroke,
     vals: [],
@@ -350,6 +351,11 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     translate: function (dx, dy) { with (this) {
       x += dx;
       y += dy;
+    }},
+    reset: function() { with (this) {
+      vals = [];
+      xStart = x + w/2;
+      yStart = y + h/2;
     }},
     draw: function (ctx) { with (this) {
       ctx.save();

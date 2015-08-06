@@ -40,11 +40,11 @@ function init() {
   YTrace = Line([], "blue", true);
 
   I2 = InteractionPoint(Anc.x, Anc.y); // translation point for whole system
-  //push(I2.links, Anc, Lever, Weight, I1, plt, YTrace);
+  push(I2.links, Anc, Lever, Weight, I1, plt, YTrace);
 
   I3 = InteractionPoint(400 + GravPos, 400)
 
-  push(all_objects, Anc, Lever, Weight, plt, YTrace);
+  push(all_objects, Anc, Lever, Weight, plt, YTrace, GravSlider);
   push(all_objects, I1, I2, I3);
   push(drag_points, I1, I2, I3);
 
@@ -139,7 +139,7 @@ function update_constraints() {
   var reading = { t: T, theta: Current.theta, omega: Current.omega,
                   x: Weight.x - Anc.x, y: Weight.y - Anc.y};
 
-  console.log(Current.omega);
+
   plt.record(reading);
 
   YTrace.points = [Weight.x, Weight.y, plt.xStart, plt.yStart];
