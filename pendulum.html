@@ -20,23 +20,32 @@
 <head>
     <title>Pendulum simulation</title>
 
-    <button onclick="start()">Start</button>
-    <button onclick="stop()">Stop</button>
-    <button onclick="reset()">Reset</button>
-    <p> X Axis:
-      <button onclick="xView('t');">Time</button>
-      <button onclick="xView('theta');">Angular displacement</button>
-      <button onclick="xView('omega');">Angular velocity</button>
-      <button onclick="xView('x');">Horizontal displacement</button>
-      <button onclick="xView('y');">Vertical displacement</button>
-    </p>
-    <p> Y Axis:
-      <button onclick="yView('t');">Time</button>
-      <button onclick="yView('theta');">Angular displacement</button>
-      <button onclick="yView('omega');">Angular velocity</button>
-      <button onclick="yView('x');">Horizontal displacement</button>
-      <button onclick="yView('y');">Vertical displacement</button>
-    </p>
+    <div style="float:left; width:250px; margin-top: -20px;">
+      <h2> Simulation controls </h2>
+      <button onclick="start()">Start</button>
+      <button onclick="stop()">Stop</button>
+      <button onclick="reset()">Reset</button>
+      <div id="sliders"></div>
+    </div>
+    <div style="margin:auto;">
+      <h2 > Graph controls </h2>
+        <button onclick="plt.reset(); T = 0;"> Clear plot </button>
+      <p> X Axis:
+        <button onclick="xView('t');">Time</button>
+        <button onclick="xView('theta');">Angular displacement</button>
+        <button onclick="xView('omega');">Angular velocity</button>
+        <button onclick="xView('x');">Horizontal displacement</button>
+        <button onclick="xView('y');">Vertical displacement</button>
+      </p>
+      <p> Y Axis:
+        <button onclick="yView('t');">Time</button>
+        <button onclick="yView('theta');">Angular displacement</button>
+        <button onclick="yView('omega');">Angular velocity</button>
+        <button onclick="yView('x');">Horizontal displacement</button>
+        <button onclick="yView('y');">Vertical displacement</button>
+      </p>
+    </div>
+
 
 </head>
 

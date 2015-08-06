@@ -76,7 +76,7 @@ function addSlider(name, parent, min, max, start, onchange) {
 
 // Get the value from an HTML slider. Takes the name of the slider.
 function getSliderValue(name) {
-  return document.getElementById(name + "-slider").value;
+  return parseFloat(document.getElementById(name + "-slider").value);
 }
 
 // Set the value for an HTML slider. Takes the name of the slider and the new value.

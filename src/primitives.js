@@ -300,6 +300,7 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
 // Plot(..., "t", "v", o, "red", 1000)
 // o = {t: {mn: 0, mx: 100},
 //      v: ...}
+// TODO: make ranges adjustable on the fly
 function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
   return {
     x: x,
@@ -351,6 +352,8 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     translate: function (dx, dy) { with (this) {
       x += dx;
       y += dy;
+      xStart += dx;
+      yStart += dy;
     }},
     reset: function() { with (this) {
       vals = [];
