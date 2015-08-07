@@ -6,6 +6,10 @@ function common_init() {
   ctx.canvas.width  = window.innerWidth-20;
   ctx.canvas.height = window.innerHeight-20;
   global_ctx = ctx;
+  ctx = document.getElementById("incCanvas").getContext("2d");
+  ctx.canvas.width  = window.innerWidth-20;
+  ctx.canvas.height = window.innerHeight-20;
+  inc_ctx = ctx;
   c.addEventListener("mousedown", doMouseDown);
   c.addEventListener("mouseup", doMouseUp);
   c.addEventListener("mousemove", doMouseMove);
@@ -83,6 +87,10 @@ function global_redraw() {
   var ctx = global_ctx;
   ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
   draw_all(ctx);
+
+  inc_objects.forEach(function(e) {
+    e.incDraw(inc_ctx);
+  });
 }
 
 function draw_all(ctx) {

@@ -317,8 +317,12 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     res: resolution,
     stroke: stroke,
     vals: initVals,
-    xVals: [], // x and y deltas
+    xVals: [], // x and y views
     yVals: [],
+    xToDraw: [],
+    yToDraw: [],
+    xToErase: [],
+    yToErase: [],
     xFieldName: xFieldName, // x and y coordinate axes, should not be directly
     yFieldName: yFieldName, // modified. Instead, use setView.
 
@@ -335,6 +339,7 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
 
     // Change the coordinate axes. This changes the x and y starting values,
     // so we wrap it in a function.
+    // TODO
     setView: function(xName, yName) { with (this) {
 
 
@@ -374,7 +379,9 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       var hCnst = (yMx-yMn);
 
       xVals.push(wCnst*(v[xFieldName]-xMn));
+      xToDraw.push(wCnst*(v[xFieldName]-xMn));
       yVals.push(h * (1 - (v[yFieldName] - yMn)/hCnst));
+      yToDraw.push(h * (1 - (v[yFieldName] - yMn)/hCnst));
       for (var e in v) {
         vals[e].push(v[e]);
 
@@ -384,6 +391,8 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       }
 
       if (xVals.length >= res) {
+        xToErase.push(xVals[0]);
+        yToErase.push(yVals[0]);
         xVals.shift();
         yVals.shift();
       }
@@ -398,6 +407,7 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       xStart += dx;
       yStart += dy;
     }},
+    // TODO
     reset: function() { with (this) {
 
       for (var k in vals) {
@@ -407,6 +417,38 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       yVals = [];
       xStart = x + w/2;
       yStart = y + h/2;
+    }},
+    incDraw : function (ctx) { with (this) {
+      // scatter plot of values
+      ctx.fillStyle = stroke;
+      var end = xToDraw.length -1;
+
+      // draw new values
+      for (var e = end; e > -1 ; --e) {
+        var dx = xToDraw[e];
+        var dy = yToDraw[e];
+        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
+      }
+      ctx.fill();
+      ctx.stroke();
+      xToDraw = [];
+      yToDraw = [];
+      // erase outdated values
+      end = xToErase.length -1;
+      for (var e = end; e > -1; --e) {
+        var dx = xToErase[e];
+        var dy = yToErase[e];
+        // if (xVals.indexOf(dx) > 0 && yVals.indexOf(dy) > 0) {
+        //   continue;
+        // }
+        ctx.clearRect(x + dx-1,y + dy-1,3,3);
+
+      }
+
+      xToErase = [];
+      yToErase = [];
+      ctx.fill();
+      ctx.stroke();
     }},
     draw: function (ctx) { with (this) {
       ctx.save();
@@ -444,21 +486,9 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
       ctx.strokeStyle = "black";
 
-
-
       Text(x + w/2 - 5*yFieldName.length, y + h + 20, yFieldName, "18pt MS Comic Sans").draw(ctx) // y label
       Text(x + w + 10, y + h/2 + 5, xFieldName, "18pt MS Comic Sans").draw(ctx) // x label
 
-
-      // scatter plot of values
-      ctx.fillStyle = stroke;
-      var end = xVals.length -1;
-
-      for (var e = end; e > -1 ; --e) {
-        var dx = xVals[e];
-        var dy = yVals[e];
-        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
-      }
       ctx.fill();
       ctx.stroke();
       ctx.restore();
