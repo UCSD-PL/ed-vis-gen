@@ -1,29 +1,48 @@
 function init() {
-  all_objects = [];
+  all_objects = [];  
   drag_points = [];
   rightClick_points = [];
 
-  PigMass = 7500;
   PigVelocity = {x:0, y:0};
-  Initial = {x:150, y:150, v:{x:0, y:0} };
-  Pig = Image(Initial.x, Initial.y, 50, 50, "pig");
-  //Pig = {x:Initial.x, y:Initial.y}
-  //all_objects.push(Pig);
-
+  Initial ={ramp: {x1:100 , y1:163 , x2:100 , y2:250 , x3:250, y3:250},
+            v: {x:0, y:0}, 
+            mu: {mn:0, mx:1, val:.55},
+            g: {mn:0, mx:2, val:1},
+            ang: {mn:0, mx:Math.PI/2, val:Math.PI/6},
+            pig: {x:175, y:207},
+            mass: {mn:10000, mx:20000, val:15000}
+            };
+  
   Ramp = Triangle (
-    Initial.x-75, Initial.y-75,
-    Initial.x-75, Initial.y+75,
-    Initial.x+75, Initial.y+75,
+    Initial.ramp.x1, Initial.ramp.y1,
+    Initial.ramp.x2, Initial.ramp.y2,
+    Initial.ramp.x3, Initial.ramp.y3,
     "black", "rgba(0,0,0,0)");
-  V1 = Arrow (Initial.x, Initial.y, -50, -50, "red");
-  I1 = InteractionPoint (Initial.x-50, Initial.y-50);
-  I1.magnitude = Math.sqrt(V1.dx*V1.dx + V1.dy*V1.dy); // magnitude constraint variable
-  V2 = Arrow (Initial.x, Initial.y, 50, -50, "red");
-  I2 = InteractionPoint (Initial.x+50, Initial.y-50);
-  I2.magnitude = Math.sqrt(V2.dx*V2.dx + V2.dy*V2.dy);
-  V3 = Arrow (Initial.x, Initial.y, 0, +150, "red");
-  I3 = InteractionPoint (Initial.x, Initial.y+150);
-  I3.magnitude = Math.sqrt(V3.dx*V3.dx + V3.dy*V3.dy);
+  Pig = Image(Initial.pig.x, Initial.pig.y, 50, 50, "pig");
+  
+
+  CurrConstants = {mass: Initial.mass.val, g: Initial.g.val, ang: Initial.ang.val, mu: Initial.mu.val};
+  // sliders
+  addSlider("Mass", "sliders", Initial.mass.mn, Initial.mass.mx, Initial.mass.val, function(o) {
+      CurrConstants.mass = getSliderValue("Mass");
+  });
+  addSlider("Angle", "sliders", Initial.ang.mn, Initial.ang.mx, Initial.ang.val, function(o) {
+      CurrConstants.ang = getSliderValue("Angle");
+  });
+  addSlider("Friction", "sliders", Initial.mu.mn, Initial.mu.mx, Initial.mu.val, function(o) {
+      CurrConstants.mu = getSliderValue("Friction");
+  });
+  addSlider("Gravity", "sliders", Initial.g.mn, Initial.g.mx, Initial.g.val, function(o) {
+      CurrConstants.g = getSliderValue("Gravity");
+  });
+  
+   /*
+  FricVec = Arrow (Initial.x, Initial.y, -50, -50, "red");
+  
+  NormVec = Arrow (Initial.x, Initial.y, 50, -50, "red");
+  
+  GravVec = Arrow (Initial.x, Initial.y, 0, +150, "red");
+  */
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
 
@@ -42,85 +61,73 @@ function init() {
     global_redraw();
   }, function() {
     T = 0;
-    restore(Pig, Initial);
+    restore(Pig, Initial.pig);
     restore(PigVelocity, Initial.v);
+    restore(Ramp, Initial.ramp)
+    /*
+    FricVec.dx = -50;
+    FricVec.dy = -50;
+    NormVec.dx = 50;
+    NormVec.dy = -50;
+    GravVec.dx = 0;
+    GravVec.dy = 150;
+    */
 
-    V1.dx = -50;
-    V1.dy = -50;
-    V2.dx = 50;
-    V2.dy = -50;
-    V3.dx = 0;
-    V3.dy = 150;
+    setSliderValue("Mass", Initial.mass.val);
+    setSliderValue("Friction", Initial.mu.val);
+    setSliderValue("Angle", Initial.ang.val);
+    setSliderValue("Gravity", Initial.g.val);
+
+    for (var e in CurrConstants) {
+      CurrConstants[e] = Initial[e].val;
+    }
+
     update_constraints();
     global_redraw();
   }); // executes every 10ms (.01s)
 
-  push(all_objects, V1, V2, V3, Title, Pig, Ramp, I1, I2, I3 /*,Start, Reset*/);
-  push(drag_points, I1, I2, I3 /*,SI, RI*/);
-  push(rightClick_points, I1, I2, I3);
+  push(all_objects, /*FricVec, NormVec, GravVec,*/ Title, Pig, Ramp /*,Start, Reset*/);
+  //push(drag_points, I1, I2, I3 /*,SI, RI*/);
+
 
 }
 
 function drag_update() {
-  // update locations based on changes in interactivity points
-  V1.dx = I1.x - V1.x;
-  V1.dy = I1.y - V1.y;
-  V2.dx = I2.x - V2.x;
-  V2.dy = I2.y - V2.y;
-  V3.dx = I3.x - V3.x;
-  V3.dy = I3.y - V3.y;
+  
 }
 
 function rightClick_update() {
-  // update locations based on magnitude field
-  var v1theta = Math.atan2(V1.dy, V1.dx);
-  var v2theta = Math.atan2(V2.dy, V2.dx);
-  var v3theta = Math.atan2(V3.dy, V3.dx);
-  V1.dx = I1.magnitude * Math.cos(v1theta);
-  V1.dy = I1.magnitude * Math.sin(v1theta);
-  V2.dx = I2.magnitude * Math.cos(v2theta);
-  V2.dy = I2.magnitude * Math.sin(v2theta);
-  V3.dx = I3.magnitude * Math.cos(v3theta);
-  V3.dy = I3.magnitude * Math.sin(v3theta);
-  I1.x = V1.x + V1.dx;
-  I1.y = V1.y + V1.dy;
-  I2.x = V2.x + V2.dx;
-  I2.y = V2.y + V2.dy;
-  I3.x = V3.x + V3.dx;
-  I3.y = V3.y + V3.dy;
 }
 
 function update_constraints() {
   // differential equations, implicit time version (i.e. dt = 1)
   // a = dv/dt = ∑ F/m => dv = ∑ F/m
-  PigVelocity.x = PigVelocity.x + (V1.dx + V2.dx + V3.dx) / PigMass;
-  PigVelocity.y = PigVelocity.y + (V1.dy + V2.dy + V3.dy) / PigMass;
+  G = 9.8*CurrConstants.g;
+  Grav = CurrConstants.mass*G;
+  NormF = Grav*Math.cos(CurrConstants.ang);
+  Fric = CurrConstants.mu*NormF;
+  
+  netForce = Math.max(0, Grav*Math.sin(CurrConstants.ang)-Fric);
+
+  PigVelocity.x = PigVelocity.x + netForce*Math.cos(CurrConstants.ang) / CurrConstants.mass;
+  PigVelocity.y = PigVelocity.y + netForce*Math.sin(CurrConstants.ang) / CurrConstants.mass;
   // v = dx/dt => dx = v
   Pig.x = Pig.x + PigVelocity.x;
   Pig.y = Pig.y + PigVelocity.y;
-
+  /*
   // update the vector positions
-  V1.x = Pig.x;
-  V1.y = Pig.y;
+  FricVec.x = Pig.x;
+  FricVec.y = Pig.y;
 
-  V2.x = Pig.x;
-  V2.y = Pig.y;
+  NormVec.x = Pig.x;
+  NormVec.y = Pig.y;
 
-  V3.x = Pig.x;
-  V3.y = Pig.y;
+  GravVec.x = Pig.x;
+  GravVec.y = Pig.y;
+  */
 
-  // update interactivity point locations
-  I1.x = V1.x + V1.dx;
-  I1.y = V1.y + V1.dy;
-  I2.x = V2.x + V2.dx;
-  I2.y = V2.y + V2.dy;
-  I3.x = V3.x + V3.dx;
-  I3.y = V3.y + V3.dy;
-
-  // update magnitudes
-  I1.magnitude = Math.sqrt(V1.dx*V1.dx + V1.dy*V1.dy);
-  I2.magnitude = Math.sqrt(V2.dx*V2.dx + V2.dy*V2.dy);
-  I3.magnitude = Math.sqrt(V3.dx*V3.dx + V3.dy*V3.dy);
+  // TODO - make ramp height actually change, possibly with interaction
+  //      - show force vectors with arrows
 }
 
 function start() {

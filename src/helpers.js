@@ -1,3 +1,13 @@
+window.requestAnimFrame = (function(){
+  return  false ||
+          window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
 
 // Pushes a variable number of arguments to an array.
 // Despite the function signature, the intended use is

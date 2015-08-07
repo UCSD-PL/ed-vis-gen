@@ -29,7 +29,7 @@ function init() {
   var pltRanges = {t: {mn:0, mx: 100}, theta: {mn: -Math.PI, mx: Math.PI},
                    omega: {mn: -0.02, mx: 0.02}, x: {mn: -Initials.l.mx, mx: Initials.l.mx},
                    y: {mn: -Initials.l.mx, mx: Initials.l.mx}};
-  plt = Plot(Anc.x + Current.l + 50, 50, 300, 300, "t", "y", pltRanges, "red", 1050);
+  plt = Plot(Anc.x + Current.l + 50, 50, 300, 300, "t", "y", pltRanges, "red", 1000);
 
   addSlider("Gravity", "sliders", Initials.g.mn, Initials.g.mx, Initials.g.v,
             function(cng) { Current.g = getSliderValue("Gravity"); });
@@ -64,7 +64,7 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(10, function(t) {
+  tau = Timer(5, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
