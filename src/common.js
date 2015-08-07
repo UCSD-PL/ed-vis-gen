@@ -1,6 +1,16 @@
 //
 
 function common_init() {
+
+  // canvas operations are expensive, so we distinguish between a global canvas
+  // "mainCanvas", which gets (globally) wiped and redrawn every frame, and
+  // an incremental canvas "incCanvas", which never gets wiped. In return,
+  // drawn on the incremental canvas must clean up after themselves and implement
+  // an "incDraw" method.
+
+  // for the moment, only plots draw on the incremental canvas, but a further
+  // optimization would be to put all static objects in a background canvas
+  // and make everything dynamic live in the incremental canvas.
   var c = document.getElementById("mainCanvas");
   var ctx = c.getContext("2d");
   ctx.canvas.width  = window.innerWidth-20;
