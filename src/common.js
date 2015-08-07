@@ -1,11 +1,25 @@
 //
 
 function common_init() {
+
+  // canvas operations are expensive, so we distinguish between a global canvas
+  // "mainCanvas", which gets (globally) wiped and redrawn every frame, and
+  // an incremental canvas "incCanvas", which never gets wiped. In return,
+  // drawn on the incremental canvas must clean up after themselves and implement
+  // an "incDraw" method.
+
+  // for the moment, only plots draw on the incremental canvas, but a further
+  // optimization would be to put all static objects in a background canvas
+  // and make everything dynamic live in the incremental canvas.
   var c = document.getElementById("mainCanvas");
   var ctx = c.getContext("2d");
   ctx.canvas.width  = window.innerWidth-20;
   ctx.canvas.height = window.innerHeight-20;
   global_ctx = ctx;
+  ctx = document.getElementById("incCanvas").getContext("2d");
+  ctx.canvas.width  = window.innerWidth-20;
+  ctx.canvas.height = window.innerHeight-20;
+  inc_ctx = ctx;
   c.addEventListener("mousedown", doMouseDown);
   c.addEventListener("mouseup", doMouseUp);
   c.addEventListener("mousemove", doMouseMove);
@@ -83,6 +97,10 @@ function global_redraw() {
   var ctx = global_ctx;
   ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
   draw_all(ctx);
+
+  inc_objects.forEach(function(e) {
+    e.incDraw(inc_ctx);
+  });
 }
 
 function draw_all(ctx) {

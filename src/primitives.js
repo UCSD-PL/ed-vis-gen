@@ -295,12 +295,28 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
   }
 }
 
+// Plot primitive. Records an arbitrary number of columns and plots two views
+// versus each other. Auto-scales views to plot height and width as a function
+// of view min/max. Data is recorded by calling member function "record" with
+// an object of the form {viewName : viewValue} e.g. plot.record({t: 0, x: 5, y: 3}).
 
+// Takes parameters:
+// x, y, h, w: centers the plot at (x + w/2, y + h/2) with height h and width w.
+// xFieldName, yFieldName: initial view names.
+// ranges: object mapping view names to view min and max values. e.g. {x: {mn: 0, mx: 100}}
+// stroke: color of plotted points
+// resolution: number of points kept as history.
 
-// e.g. record({t: 5, v: 7})
-// Plot(..., "t", "v", o, "red", 1000)
-// o = {t: {mn: 0, mx: 100},
-//      v: ...}
+// Exports member functions:
+// setView(x,y), setXView, setYView: change the views to input parameters.
+// record(v): records a datapoint.
+// reset(): clears the plot. This should be called when resetting started
+//          instead of modifying vals directly.
+
+// Exports values:
+// xStart: x-coordinate for "current" point.
+// yStart: y-coordinate for "current" point.
+
 // TODO: make ranges adjustable on the fly
 function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
   var initVals = {};
@@ -316,9 +332,10 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     yStart: y+h/2,
     res: resolution,
     stroke: stroke,
-    vals: initVals,
-    xVals: [], // x and y deltas
-    yVals: [],
+    vals: initVals, // history of values.
+    xVals: [], // x and y (incremental) views. incDraw plots these when called.
+    yVals: [], // we maintain the invariant that xVals.length = yVals.length.
+    _needToClear: false, // flag for clearing plot before next incremental draw
     xFieldName: xFieldName, // x and y coordinate axes, should not be directly
     yFieldName: yFieldName, // modified. Instead, use setView.
 
@@ -337,16 +354,10 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     // so we wrap it in a function.
     setView: function(xName, yName) { with (this) {
 
-
-      if (true || xName !== xFieldName) {
-        xVals = [];
-      }
-      if (true || yName !== yFieldName) {
-        yVals = [];
-      }
-
+      _needToClear = true;
       xFieldName = xName;
       yFieldName = yName;
+
       // recalculate x and y views
       var xMx = ranges[xFieldName].mx;
       var xMn = ranges[xFieldName].mn;
@@ -356,15 +367,19 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       var wCnst = w/(xMx - xMn);
       var hCnst = (yMx-yMn);
 
-      vals[xFieldName].forEach(function (e) { xVals.push(wCnst*(e-xMn)); });
-      vals[yFieldName].forEach(function (e) { yVals.push(h * (1 - (e- yMn)/hCnst)); });
+      xVals = vals[xFieldName].map(function (e) { return wCnst*(e-xMn); });
+      yVals = vals[yFieldName].map(function (e) { return h * (1 - (e- yMn)/hCnst); });
 
       _calcStart();
     }},
     setXView: function(xName) { with (this) { setView(xName, yFieldName); }},
     setYView: function(yName) { with (this) { setView(xFieldName, yName); }},
 
+    // record a value, of the form {view: val} e.g. {t: 0, KE: 55, PE: 70}
     record: function (v) { with (this) {
+
+      // as an optimization, we store the (plotting) dx and dy directly in
+      // xVals and yVals, so we need to scale the incoming value appropriately.
       var xMx = ranges[xFieldName].mx;
       var xMn = ranges[xFieldName].mn;
 
@@ -373,6 +388,9 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       var wCnst = w/(xMx - xMn);
       var hCnst = (yMx-yMn);
 
+      // some pre-school algebra...
+      // linearly map {xMin -> 0, xMax -> w} and { yMin -> h, yMax -> 0}.
+      // y-axis is inverted because of the shitty coordinate system.
       xVals.push(wCnst*(v[xFieldName]-xMn));
       yVals.push(h * (1 - (v[yFieldName] - yMn)/hCnst));
       for (var e in v) {
@@ -388,7 +406,6 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
         yVals.shift();
       }
 
-
       // update starting values
       _calcStart();
     }},
@@ -398,6 +415,7 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       xStart += dx;
       yStart += dy;
     }},
+    // clear internal history and schedule a wipe of the plot
     reset: function() { with (this) {
 
       for (var k in vals) {
@@ -405,9 +423,35 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       }
       xVals = [];
       yVals = [];
+      _needToClear = true;
       xStart = x + w/2;
       yStart = y + h/2;
     }},
+    // incrementally draw points on the canvas. points are staged into xVals and
+    // yVals, so they must be cleared after plotting. if something else (e.g. a
+    // reset or changing a view) schedules a clear, wipe the portion containing
+    // points.
+    incDraw : function (ctx) { with (this) {
+      if (_needToClear) {
+        ctx.clearRect(x, y, x + w, y + h);
+        ctx.fill();
+        _needToClear = false;
+      }
+      ctx.fillStyle = stroke;
+
+      // draw new values
+      xVals.forEach(function (dx, i) {
+        var dy = yVals[i];
+        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
+      });
+
+      ctx.fill();
+      ctx.stroke();
+      xVals = [];
+      yVals = [];
+
+    }},
+    // draws the axes and labels.
     draw: function (ctx) { with (this) {
       ctx.save();
       ctx.fillStyle = stroke;
@@ -444,21 +488,9 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
       ctx.strokeStyle = "black";
 
-
-
       Text(x + w/2 - 5*yFieldName.length, y + h + 20, yFieldName, "18pt MS Comic Sans").draw(ctx) // y label
       Text(x + w + 10, y + h/2 + 5, xFieldName, "18pt MS Comic Sans").draw(ctx) // x label
 
-
-      // scatter plot of values
-      ctx.fillStyle = stroke;
-      var end = xVals.length -1;
-
-      for (var e = end; e > -1 ; --e) {
-        var dx = xVals[e];
-        var dy = yVals[e];
-        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
-      }
       ctx.fill();
       ctx.stroke();
       ctx.restore();

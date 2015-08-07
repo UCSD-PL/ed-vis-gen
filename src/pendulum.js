@@ -1,5 +1,6 @@
 function init() {
   all_objects = [];
+  inc_objects = [];
   drag_points = [];
   rightClick_points = [];
 
@@ -29,7 +30,7 @@ function init() {
   var pltRanges = {t: {mn:0, mx: 100}, theta: {mn: -Math.PI, mx: Math.PI},
                    omega: {mn: -0.02, mx: 0.02}, x: {mn: -Initials.l.mx, mx: Initials.l.mx},
                    y: {mn: -Initials.l.mx, mx: Initials.l.mx}};
-  plt = Plot(Anc.x + Current.l + 50, 50, 300, 300, "t", "y", pltRanges, "red", 1000);
+  plt = Plot(Anc.x + Current.l + 50, 50, 300, 300, "t", "y", pltRanges, "red", 900);
 
   addSlider("Gravity", "sliders", Initials.g.mn, Initials.g.mx, Initials.g.v,
             function(cng) { Current.g = getSliderValue("Gravity"); });
@@ -61,6 +62,7 @@ function init() {
   push(all_objects, Anc, Lever, Weight, plt, YTrace);
   push(all_objects, I1, I2);
   push(drag_points, I1, I2);
+  inc_objects.push(plt);
 
   // initialize timer
 

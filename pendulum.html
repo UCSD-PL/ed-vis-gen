@@ -29,7 +29,7 @@
     </div>
     <div style="margin:auto;">
       <h2 > Graph controls </h2>
-        <button onclick="plt.reset(); T = 0;"> Clear plot </button>
+        <button onclick="plt.reset();"> Clear plot </button>
       <p> X Axis:
         <button onclick="xView('t');">Time</button>
         <button onclick="xView('theta');">Angular displacement</button>
@@ -50,7 +50,9 @@
 </head>
 
 <body oncontextmenu="return false" width="2000px" height="2000px" onload="main();">
-<canvas id="mainCanvas" width="100%" height="100%">
+<canvas id="mainCanvas" width="100%" height="100%" style="position:absolute; z-index:0;">
+</canvas>
+<canvas id="incCanvas" width="100%" height="100%" style="position:absolute; z-index:1;">
 </canvas>
 
 
