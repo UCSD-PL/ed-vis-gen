@@ -190,9 +190,10 @@ function Timer (freq, work, done) {
       if (! started) {
         started = true;
         intID = setInterval(function(me){
+          requestAnimFrame( function () {
           me.work(me.t);
           me.t++;
-        }, freq, this);
+        })}, freq, this);
       }
     }},
     stop: function() { with (this) {
@@ -302,6 +303,10 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
 //      v: ...}
 // TODO: make ranges adjustable on the fly
 function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
+  var initVals = {};
+  for (var d in ranges) {
+    initVals[d] = [];
+  }
   return {
     x: x,
     y: y,
@@ -311,41 +316,79 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     yStart: y+h/2,
     res: resolution,
     stroke: stroke,
-    vals: [],
+    vals: initVals,
+    xVals: [], // x and y deltas
+    yVals: [],
     xFieldName: xFieldName, // x and y coordinate axes, should not be directly
     yFieldName: yFieldName, // modified. Instead, use setView.
 
     // Helper function to calculate the position of the most recent value.
     // Updates xStart and yStart.
     _calcStart: function () { with (this) {
-      if (vals.length <= 0) {
+      if (vals[xFieldName].length <= 0) {
         // whoops
         return;
       }
-      var xMx = ranges[xFieldName].mx;
-      var xMn = ranges[xFieldName].mn;
-      xStart = x + w * (vals[vals.length-1][xFieldName] - xMn)/(xMx - xMn);
-
-      var yMx = ranges[yFieldName].mx;
-      var yMn = ranges[yFieldName].mn;
-      yStart = y + h * (1 - (vals[vals.length-1][yFieldName] - yMn)/(yMx - yMn));
+      xStart = x + xVals[xVals.length -1];
+      yStart = y + yVals[yVals.length -1];
     }},
 
     // Change the coordinate axes. This changes the x and y starting values,
     // so we wrap it in a function.
     setView: function(xName, yName) { with (this) {
+
+
+      if (true || xName !== xFieldName) {
+        xVals = [];
+      }
+      if (true || yName !== yFieldName) {
+        yVals = [];
+      }
+
       xFieldName = xName;
       yFieldName = yName;
+      // recalculate x and y views
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      var wCnst = w/(xMx - xMn);
+      var hCnst = (yMx-yMn);
+
+      vals[xFieldName].forEach(function (e) { xVals.push(wCnst*(e-xMn)); });
+      vals[yFieldName].forEach(function (e) { yVals.push(h * (1 - (e- yMn)/hCnst)); });
+
       _calcStart();
     }},
     setXView: function(xName) { with (this) { setView(xName, yFieldName); }},
     setYView: function(yName) { with (this) { setView(xFieldName, yName); }},
 
     record: function (v) { with (this) {
-      vals.push(v);
-      if (vals.length >= res) {
-        vals.shift();
+      var xMx = ranges[xFieldName].mx;
+      var xMn = ranges[xFieldName].mn;
+
+      var yMx = ranges[yFieldName].mx;
+      var yMn = ranges[yFieldName].mn;
+      var wCnst = w/(xMx - xMn);
+      var hCnst = (yMx-yMn);
+
+      xVals.push(wCnst*(v[xFieldName]-xMn));
+      yVals.push(h * (1 - (v[yFieldName] - yMn)/hCnst));
+      for (var e in v) {
+        vals[e].push(v[e]);
+
+        if (vals[e].length >= res) {
+          vals[e].shift();
+        }
       }
+
+      if (xVals.length >= res) {
+        xVals.shift();
+        yVals.shift();
+      }
+
+
       // update starting values
       _calcStart();
     }},
@@ -356,7 +399,12 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       yStart += dy;
     }},
     reset: function() { with (this) {
-      vals = [];
+
+      for (var k in vals) {
+        vals[k] = [];
+      }
+      xVals = [];
+      yVals = [];
       xStart = x + w/2;
       yStart = y + h/2;
     }},
@@ -364,10 +412,6 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       ctx.save();
       ctx.fillStyle = stroke;
       ctx.beginPath();
-
-      // @OPT: iterate through vals in reverse instead of making a new array
-      var vls = vals.slice();
-      vls.reverse();
 
       var xMx = ranges[xFieldName].mx;
       var xMn = ranges[xFieldName].mn;
@@ -399,7 +443,6 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       txt = (3*xMx/4 + xMn/4).toFixed(2);
       Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
       ctx.strokeStyle = "black";
-      ctx.stroke();
 
 
 
@@ -408,15 +451,16 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
 
 
       // scatter plot of values
-      ctx.strokeStyle = stroke;
       ctx.fillStyle = stroke;
-      for (var e = 0; e < vls.length; ++e) {
-        var dx = w * (vls[e][xFieldName] - xMn)/(xMx - xMn);
-        var dy = h * (1 - (vls[e][yFieldName] - yMn)/(yMx - yMn));
-        //ctx.moveTo(x + dx, y + dy);
+      var end = xVals.length -1;
+
+      for (var e = end; e > -1 ; --e) {
+        var dx = xVals[e];
+        var dy = yVals[e];
         ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
-        ctx.fill();
       }
+      ctx.fill();
+      ctx.stroke();
       ctx.restore();
     }}
   }
