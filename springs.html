@@ -50,8 +50,12 @@
 </head>
 
 <body width="1200px" height="1200px">
-<canvas id="mainCanvas" width="100%" height="100%">
-</canvas>
+  <canvas id="mainCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:0; ">
+  </canvas>
+  <canvas id="incCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:1; pointer-events:none; ">
+  </canvas>
 
 </body>
 </html>

@@ -1,6 +1,7 @@
 function init() {
   all_objects = [];
   drag_points = [];
+  inc_objects = [];
 
   T = 0;
 
@@ -60,12 +61,13 @@ function init() {
 
 
   push(all_objects, S1,  W1, Base, Plat1, plt, Tracer);
+  inc_objects.push(plt);
   push(all_objects, I2);
   push(drag_points, I2);
 
   // initialize timer
 
-  tau = Timer(10, function(t) {
+  tau = Timer(1, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
