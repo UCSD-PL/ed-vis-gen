@@ -93,3 +93,10 @@ function getSliderValue(name) {
 function setSliderValue(name, val) {
   document.getElementById(name + "-slider").value = val;
 }
+
+// sqrt-sum values in quadrature, assumes numeric arguments
+function sqrtSquaredSum() {
+  return Math.sqrt(arguments.reduce(function(s, next) {
+    return s + (next * next);
+  }));
+}

@@ -1,0 +1,40 @@
+<html>
+<script>
+  function main() {
+    common_init();
+    init();
+    global_redraw();
+  }
+</script>
+<script src="src/helpers.js"> </script>
+<script src="src/primitives.js"></script>
+<script src="src/library.js"></script>
+<script src="src/common.js"></script>
+<script src="src/deltoids.js"></script>
+<head>
+    <title> Deltoid tracer</title>
+
+    <div style="float:left; width:250px; margin-top: -20px;">
+      <h2> Simulation controls </h2>
+      <button onclick="start()">Start</button>
+      <button onclick="stop()">Stop</button>
+      <button onclick="reset()">Reset</button>
+      <div id="sliders"></div>
+    </div>
+    <div style="margin:auto;">
+      <h2 > Graph controls </h2>
+        <button onclick="plt.reset();"> Clear plot </button>
+    </div>
+
+</head>
+
+<body width="1200px" height="1200px" onload="main();">
+  <canvas id="mainCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:0; ">
+  </canvas>
+  <canvas id="incCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:1; pointer-events:none; ">
+  </canvas>
+
+</body>
+</html>

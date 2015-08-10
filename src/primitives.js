@@ -312,6 +312,8 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
 // record(v): records a datapoint.
 // reset(): clears the plot. This should be called when resetting started
 //          instead of modifying vals directly.
+// translate(dx, dy): translates by an input delta
+// moveTo(x, y): move to x and y coordinate.
 
 // Exports values:
 // xStart: x-coordinate for "current" point.
@@ -324,8 +326,8 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     initVals[d] = [];
   }
   return {
-    x: x,
-    y: y,
+    x: x, // since we're drawing incrementally, these shouldn't be directly edited.
+    y: y, // intead, call "moveTo"
     h: h,
     w: w,
     xStart: x+w/2, // coordinates of first value in plot
@@ -348,6 +350,12 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       }
       xStart = x + xVals[xVals.length -1];
       yStart = y + yVals[yVals.length -1];
+    }},
+
+    moveTo: function (newx, newy) {with (this) {
+      _needToClear = true;
+      x = newx;
+      y = newy;
     }},
 
     // Change the coordinate axes. This changes the x and y starting values,
@@ -442,7 +450,7 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       // draw new values
       xVals.forEach(function (dx, i) {
         var dy = yVals[i];
-        ctx.fillRect(x + dx,y + dy,1,1); // optimization over drawing a circle
+        ctx.fillRect(x + dx-0.5,y + dy-0.5,1.25,1.25); // optimization over drawing a circle
       });
 
       ctx.fill();
