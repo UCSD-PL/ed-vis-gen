@@ -95,8 +95,10 @@ function setSliderValue(name, val) {
 }
 
 // sqrt-sum values in quadrature, assumes numeric arguments
-function sqrtSquaredSum() {
-  return Math.sqrt(arguments.reduce(function(s, next) {
+function sqrtSquaredSum(args) {
+  return Math.sqrt(args.reduce(function(s, next) {
     return s + (next * next);
-  }));
+  }, 1));
 }
+
+CLEAR_COLOR = "rgba(255,255,255,0)";
