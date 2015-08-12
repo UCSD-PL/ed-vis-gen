@@ -1,0 +1,47 @@
+<html>
+<!-- constraint sources -->
+<script src="src/cassie/c.js"></script>
+<script src="src/cassie/HashTable.js"></script>
+<script src="src/cassie/HashSet.js"></script>
+<script src="src/cassie/Error.js"></script>
+<script src="src/cassie/SymbolicWeight.js"></script>
+<script src="src/cassie/Strength.js"></script>
+<script src="src/cassie/Variable.js"></script>
+<script src="src/cassie/Point.js"></script>
+<script src="src/cassie/Expression.js"></script>
+<script src="src/cassie/Constraint.js"></script>
+<script src="src/cassie/EditInfo.js"></script>
+<script src="src/cassie/Tableau.js"></script>
+<script src="src/cassie/SimplexSolver.js"></script>
+<script src="src/cassie/Timer.js"></script>
+
+
+<script>
+  function main() {
+    common_init();
+    init();
+    global_redraw();
+  }
+</script>
+
+
+<script src="src/eddie/helpers.js"> </script>
+<script src="src/eddie/primitives.js"></script>
+<script src="src/eddie/library.js"></script>
+<script src="src/eddie/common.js"></script>
+<script src="src/eddie/bisection.js"></script>
+<head>
+    <title> Line bisection visual proof</title>
+
+</head>
+
+<body width="1200px" height="1200px" onload="main();">
+  <canvas id="mainCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:0; ">
+  </canvas>
+  <canvas id="incCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:1; pointer-events:none; ">
+  </canvas>
+
+</body>
+</html>

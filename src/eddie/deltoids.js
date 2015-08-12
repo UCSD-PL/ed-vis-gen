@@ -28,16 +28,14 @@ function init() {
   HeightPoint = InteractionPoint(Initials.heightp.x, Initials.heightp.y);
 
   Constants = copy(Initials.constants);
-  var pltRanges = {t: {mn: 0, mx: 100}, x: {mn: -200, mx: 200}, y:{mn: -200, mx: 200}};
+  var pltRanges = {t: {mn: 0, mx: 100}, x: {mn: -BigCirc.r, mx: BigCirc.r}, y:{mn: -BigCirc.r, mx: BigCirc.r}};
   // plot center is at x + w/2, y + w/2
-  plt = Plot(BigCirc.x - 150, BigCirc.y - 150, 300, 300, "x", "y", pltRanges, "red", 500);
+  plt = Plot(BigCirc.x - BigCirc.r, BigCirc.y - BigCirc.r, 2*BigCirc.r, 2*BigCirc.r, "x", "y", pltRanges, "red", 500, true);
 
-  // trace the current value with a green dot
-  Tracer = Circle(plt.xStart, plt.yStart, 3, "green", "green");
 
 
   push(all_objects, BigCirc, SmallCirc, TangentPoint, InnerPoint, HeightPoint,
-       plt, Tracer);
+       plt);
   inc_objects.push(plt);
   push(drag_points, TangentPoint, HeightPoint);
 
@@ -58,8 +56,6 @@ function init() {
 
     plt.reset();
     T = 0;
-    Tracer.x = plt.xStart;
-    Tracer.y = plt.yStart;
     global_redraw();
   });
 }
@@ -67,7 +63,8 @@ function init() {
 function drag_update() {
   BigCirc.r = BigCirc.y - HeightPoint.y;
   HeightPoint.x = BigCirc.x;
-  //plt.moveTo(BigCirc.x + BigCirc.r + 25, plt.y);
+  plt.moveTo(BigCirc.x - BigCirc.r, BigCirc.y - BigCirc.r);
+  plt.resize(2*BigCirc.r, 2*BigCirc.r);
 
   // recenter about new point
   var dx = TangentPoint.x - BigCirc.x;
@@ -99,8 +96,6 @@ function fixed_constraints() {
   InnerPoint.y = SmallCirc.y + SmallCirc.r * Math.sin(Constants.omega);
 
   plt.record({t: T, x: InnerPoint.x - BigCirc.x, y: BigCirc.y - InnerPoint.y});
-  Tracer.x = plt.xStart;
-  Tracer.y = plt.yStart;
 
 }
 function start() {

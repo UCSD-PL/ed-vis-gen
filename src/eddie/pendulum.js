@@ -111,7 +111,7 @@ function drag_update() {
   Current.l = Math.sqrt(dy*dy + dx*dx);
   Current.omega = 0;
 
-  plt.x = Anc.x + Current.l + 50;
+  plt.moveTo(Anc.x + Current.l + 50, plt.y);
 
 
 
