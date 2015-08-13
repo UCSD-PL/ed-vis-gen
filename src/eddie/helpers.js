@@ -102,3 +102,28 @@ function sqrtSquaredSum(args) {
 }
 
 CLEAR_COLOR = "rgba(255,255,255,0)";
+
+// suggest x and y of the given object should be edited.
+function startEdit(slvr, o) {
+  slvr.addEditVar(o.x).addEditVar(o.y).beginEdit();
+}
+
+// for a given x and y, force an update to the solver
+function forceUpdate(slvr, vs, x, y) {
+  slvr.suggestValue(vs.x, x).suggestValue(vs.y, y).resolve();
+}
+
+// helper function to add a bunch of canvas constraints
+function addWindowConstraints(slvr, window, xs, ys) {
+  var h, w;
+  h = window.height;
+  w = window.width;
+  xs.forEach(function (v) {
+    slvr.addConstraint(new c.Inequality(v, c.GEQ, 10));
+    slvr.addConstraint(new c.Inequality(v, c.LEQ, w));
+  });
+  ys.forEach(function (v) {
+    slvr.addConstraint(new c.Inequality(v, c.GEQ, 10));
+    slvr.addConstraint(new c.Inequality(v, c.LEQ, h));
+  });
+}

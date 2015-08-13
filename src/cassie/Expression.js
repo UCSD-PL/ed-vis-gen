@@ -259,7 +259,7 @@ c.Expression = c.inherit({
       if (needsplus) {
         bstr += " + ";
       }
-      bstr += coeff + "*" + clv;
+      bstr += coeff + "*" + clv.toString();
       needsplus = true;
     });
     return bstr;

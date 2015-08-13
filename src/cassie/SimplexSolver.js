@@ -19,6 +19,7 @@ c.SimplexSolver = c.inherit({
   extends: c.Tableau,
   initialize: function(){
 
+
     c.Tableau.call(this);
     this._stayMinusErrorVars = [];
     this._stayPlusErrorVars = [];

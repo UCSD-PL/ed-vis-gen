@@ -11,8 +11,8 @@ function common_init() {
   // for the moment, only plots draw on the incremental canvas, but a further
   // optimization would be to put all static objects in a background canvas
   // and make everything dynamic live in the incremental canvas.
-  var c = document.getElementById("mainCanvas");
-  var ctx = c.getContext("2d");
+  var canvas = document.getElementById("mainCanvas");
+  var ctx = canvas.getContext("2d");
   ctx.canvas.width  = window.innerWidth-20;
   ctx.canvas.height = window.innerHeight-20;
   global_ctx = ctx;
@@ -20,10 +20,13 @@ function common_init() {
   ctx.canvas.width  = window.innerWidth-20;
   ctx.canvas.height = window.innerHeight-20;
   inc_ctx = ctx;
-  c.addEventListener("mousedown", doMouseDown);
-  c.addEventListener("mouseup", doMouseUp);
-  c.addEventListener("mousemove", doMouseMove);
+  canvas.addEventListener("mousedown", doMouseDown);
+  canvas.addEventListener("mouseup", doMouseUp);
+  canvas.addEventListener("mousemove", doMouseMove);
   dragged_obj = null;
+
+  solver = new c.SimplexSolver();
+  solver.autoSolve = false;
 }
 
 function doMouseDown(event) {
@@ -85,8 +88,6 @@ function doMouseMove(event) {
     // console.log("(" + dragged_obj.x +"," + dragged_obj.y + ")");
     // console.log("-");
     drag_update();
-    // confused why this is commented out: don't we need to update the constraints too here?
-    // with implicit time, calling "update_constraints" corresponds to a clock tick.
 
     //update_constraints();
     global_redraw();
