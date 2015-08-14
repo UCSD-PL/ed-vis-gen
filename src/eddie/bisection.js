@@ -15,15 +15,19 @@ function init() {
 
   P1 = InteractionPoint(Initials.p1.x, Initials.p1.y);
   P2 = InteractionPoint(Initials.p2.x, Initials.p2.y);
-
   Subject = Line([Initials.p1.x, Initials.p1.y, Initials.p2.x, Initials.p2.y], "black");
 
   LCircle = Circle(P1.x, P1.y, Initials.lhs.r, CLEAR_COLOR, "black");
   RCircle = Circle(P2.x, P2.y, Initials.rhs.r, CLEAR_COLOR, "black");
 
+  // x0, y0, x1, y1
+  var interPoints = intersection(P1.x, P1.y, LCircle.r, P2.x, P2.y, RCircle.r);
+  LP = Circle(interPoints[0], interPoints[1], 5, "red", "red");
+  RP = Circle(interPoints[2], interPoints[3], 5, "red", "red");
+  Bisector = Line(interPoints, "red");
+
   R1 = InteractionPoint(LCircle.x - LCircle.r, LCircle.y);
   R2 = InteractionPoint(RCircle.x + RCircle.r, RCircle.y);
-
 
   R1X = new c.Variable({name: "R1.x", value: R1.x});
   R1Y = new c.Variable({name: "R1.y", value: R1.y});
@@ -77,7 +81,7 @@ function init() {
     [R1X, P1X, R2X, P2X],
     [R1Y, P1Y, R2Y, P2Y]);
 
-  push(all_objects, P1, P2, Subject, LCircle, RCircle, R1, R2);
+  push(all_objects, P1, P2, Subject, LCircle, RCircle, R1, R2, LP, RP, Bisector);
   push(drag_points, P1, P2, R1, R2);
 
 
@@ -92,16 +96,37 @@ function init() {
     restoreAll([
       P1, Initials.p1,
       P2, Initials.p2,
+      LCircle, Initials.lhs,
+      RCircle, Initials.rhs
     ]
     );
 
-    drag_update();
+    var rootCVs =  [P1X, P1Y, P2X, P2Y, C1R, C2R];
+    var rootInit = [P1.x, P1.y, P2.x, P2.y, LCircle.r, RCircle.r];
+    // update solver primary variables (p1, p2, c1, c2)
+    rootCVs.forEach(function (cvar) {
+      solver.addEditVar(cvar);
+    });
+    solver.beginEdit();
+
+    // relies on rootCVS and rootInit having same size, order
+    rootCVs.forEach(function (cvar, i) {
+      solver.suggestValue(cvar, rootInit[i]);
+    });
+    solver.resolve();
+    solver.endEdit();
+
+    //console.log(solver.toString());
+
+    fixed_constraints();
+    global_redraw();
 
   });
+
+  update_constraints();
 }
 
 function on_release() {
-
 
   for (var cVar in constrainedPoints) {
     var rec = constrainedPoints[cVar];
@@ -229,6 +254,23 @@ function fixed_constraints() {
   RCircle.r = C2R.value;
 
   Subject.points = [P1.x, P1.y, P2.x, P2.y];
+
+  var interPoints = intersection(P1.x, P1.y, LCircle.r, P2.x, P2.y, RCircle.r);
+  if (interPoints) {
+    // intersection exists
+    LP.x = interPoints[0];
+    LP.y = interPoints[1];
+    LP.r = 5;
+    RP.x = interPoints[2];
+    RP.y = interPoints[3];
+    RP.r = 5;
+    Bisector.points = interPoints;
+  } else {
+    LP.r = 0;
+    RP.r = 0;
+    Bisector.points = [];
+  }
+
 
 }
 function start() {
