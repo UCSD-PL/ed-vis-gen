@@ -37,14 +37,14 @@ function init() {
   P2Y = new c.Variable({name: "P2.y", value: P2.y});
   C2R = new c.Variable({name: "C2.r", value: RCircle.r});
 
-  CVars = {P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R};
-  StayEqs = {P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R}
+  CVars = { P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R,
+            P2X: P2X, P2Y: P2Y, R2X: R2X, R2Y: R2Y, C2R: C2R,};
+  StayEqs = {};
 
   constrainedPoints = {R1: {  ipoint: R1,
                               vs: {x: R1X,
                                    y: R1Y},
-                              stayVars: ["C1R", "R1X"]
-
+                              stayVars: ["C1R", "R1X", "C2R", "R2X"]
                            },
                        P1: {  ipoint: P1,
                               vs: {x: P1X,
@@ -53,54 +53,33 @@ function init() {
                             },
                        R2: {  ipoint: R2,
                               vs: {x: R2X,
-                                   y: R2Y}
+                                   y: R2Y},
+                              stayVars: ["C2R", "R2X", "C1R", "R1X"]
                            },
                        P2: {  ipoint: P2,
                               vs: {x: P2X,
-                                   y: P2Y}
+                                   y: P2Y},
+                              stayVars: ["R2X", "P2X", "P2Y", "R2Y"]
                             },
                       };
 
 
-  var radConstraint = c.Expression
-    .fromVariable(C1R).plus(c.Expression.fromVariable(R1X));
-
-  var e1 = new c.Equation(P1X, radConstraint);
-  var e2 = new c.Equation(R1Y, c.Expression.fromVariable(P1Y));
+  var e1 = new c.Equation(P1X, c.Expression.fromVariable(C1R).plus(R1X));
+  var e2 = new c.Equation(P2X, c.Expression.fromVariable(R2X).minus(C2R));
   solver.addConstraint(e1);
   solver.addConstraint(e2);
+  solver.addConstraint(new c.Equation(R1Y, P1Y));
+  solver.addConstraint(new c.Equation(R2Y, P2Y));
+  solver.addConstraint(new c.Equation(C1R, C2R));
 
   // window bound constraints
-  addWindowConstraints(solver, global_ctx.canvas, [R1X, P1X], [R1Y, P1Y]);
-
-  //solver.addPointStays([{x: R1X, y: R1Y}, {x: P1X, y: P1Y}]);
-  // p1 < r1 < rad => translation on r1, stretch + translation on p1
-  // p1 < rad < r1 => translation on r1, stretch on p1
-  // r1 < rad < p1 => stretch + translation when moving right,
-  //                  stretch r1 on left, translation p1 on left
-  // rad < r1 < p1 => right-translation r1, left stretch r1, stretch p1
-  // rad < p1 < r1 => ^^
-  // r1 < p1 < rad => translation r1, left-translate p1, right-stretch p1
-
-
-  // solver.addStay(P1X);
-  // solver.addStay(P1Y);
-  // solver.addConstraint(constrainedPoints.R1.stays[0]); // C1R
-  // console.log(constrainedPoints.R1.stays[0].toString());
-  // solver.addConstraint(constrainedPoints.P1.stays[0]); // R1X
-  // solver.addStay(R1Y);
-
-
-
-  //console.log(solver.toString());
-
-
+  addWindowConstraints(solver, global_ctx.canvas,
+    [R1X, P1X, R2X, P2X],
+    [R1Y, P1Y, R2Y, P2Y]);
 
   push(all_objects, P1, P2, Subject, LCircle, RCircle, R1, R2);
   push(drag_points, P1, P2, R1, R2);
 
-  //P1.links.push(LCircle);
-  P2.links.push(RCircle);
 
   eps = 2;
 
@@ -158,10 +137,10 @@ function on_click() {
     }
   }
 
-  console.log("adding stays:");
+  //console.log("adding stays:");
   for (var cVar in StayEqs) {
     solver.addConstraint(StayEqs[cVar]);
-    console.log(StayEqs[cVar].toString());
+    //console.log(StayEqs[cVar].toString());
   }
 
 }
@@ -187,12 +166,12 @@ function drag_update() {
 
   for (var cVar in CVars) {
     if (cVar in StayEqs) {
-      console.log("clearing stay:");
+      //console.log("clearing stay:");
       solver.removeConstraint(StayEqs[cVar]);
-      console.log(StayEqs[cVar].toString());
+      //console.log(StayEqs[cVar].toString());
       StayEqs[cVar] = makeStay(CVars[cVar]);
       solver.addConstraint(StayEqs[cVar]);
-      console.log("adding stay: " + StayEqs[cVar].toString());
+      //console.log("adding stay: " + StayEqs[cVar].toString());
 
     }
   }
@@ -240,16 +219,14 @@ function fixed_constraints() {
   LCircle.y = P1.y;
   LCircle.r = C1R.value;
 
-  // P2.x = P2X.value;
-  // P2.y = P2Y.value;
-  // R2.x = R2X.value;
-  // P1.x = P1X.value;
-  // P1.y = P1Y.value;
-  // R1.x = R1X.value;
-  // R1.y = R1Y.value;
-  // LCircle.x = P1.x;
-  // LCircle.y = P1.y;
-  // LCircle.r = C1R.value;
+  P2.x = P2X.value;
+  P2.y = P2Y.value;
+  R2.x = R2X.value;
+  R2.y = R2Y.value;
+
+  RCircle.x = P2.x;
+  RCircle.y = P2.y;
+  RCircle.r = C2R.value;
 
   Subject.points = [P1.x, P1.y, P2.x, P2.y];
 
