@@ -105,12 +105,12 @@ CLEAR_COLOR = "rgba(255,255,255,0)";
 
 // suggest x and y of the given object should be edited.
 function startEdit(slvr, o) {
-  slvr.addEditVar(o.x).addEditVar(o.y).beginEdit();
+  slvr.addEditVar(o.x, c.Strength.weak, 1).addEditVar(o.y, c.Strength.weak, 1).beginEdit();
 }
 
 // for a given x and y, force an update to the solver
 function forceUpdate(slvr, vs, x, y) {
-  slvr.suggestValue(vs.x, x).suggestValue(vs.y, y).resolve();
+  slvr.suggestValue(vs.x, x).suggestValue(vs.y, y);
 }
 
 // helper function to add a bunch of canvas constraints
@@ -126,4 +126,8 @@ function addWindowConstraints(slvr, window, xs, ys) {
     slvr.addConstraint(new c.Inequality(v, c.GEQ, 10));
     slvr.addConstraint(new c.Inequality(v, c.LEQ, h));
   });
+}
+
+function makeStay(cvar) {
+  return new c.StayConstraint(cvar, c.Strength.weak, 1);
 }

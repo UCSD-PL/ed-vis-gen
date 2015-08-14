@@ -49,6 +49,7 @@ function doLeftClick(event) {
   for (var i = 0; i < drag_points.length; i++) {
     if (withinRadius(x, y, drag_points[i])) {
       dragged_obj = drag_points[i];
+      on_click();
       break;
     }
   }
@@ -71,6 +72,7 @@ function doRightClick(event) {
 
 function doMouseUp(event) {
   //drag_update();
+  on_release();
   dragged_obj = null;
 }
 

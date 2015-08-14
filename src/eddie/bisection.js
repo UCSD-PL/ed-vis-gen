@@ -37,15 +37,19 @@ function init() {
   P2Y = new c.Variable({name: "P2.y", value: P2.y});
   C2R = new c.Variable({name: "C2.r", value: RCircle.r});
 
-
+  CVars = {P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R};
+  StayEqs = {P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R}
 
   constrainedPoints = {R1: {  ipoint: R1,
                               vs: {x: R1X,
-                                   y: R1Y}
+                                   y: R1Y},
+                              stayVars: ["C1R", "R1X"]
+
                            },
                        P1: {  ipoint: P1,
                               vs: {x: P1X,
-                                   y: P1Y}
+                                   y: P1Y},
+                              stayVars: ["R1X", "P1X", "P1Y", "R1Y"]
                             },
                        R2: {  ipoint: R2,
                               vs: {x: R2X,
@@ -59,20 +63,32 @@ function init() {
 
 
   var radConstraint = c.Expression
-    .fromVariable(P1X).minus(
-      c.Expression.fromVariable(C1R)
-    );
+    .fromVariable(C1R).plus(c.Expression.fromVariable(R1X));
 
-  var e1 = new c.Equation(R1X, radConstraint);
+  var e1 = new c.Equation(P1X, radConstraint);
   var e2 = new c.Equation(R1Y, c.Expression.fromVariable(P1Y));
   solver.addConstraint(e1);
   solver.addConstraint(e2);
-  solver.addConstraint(new c.Inequality(C1R, c.GEQ, 5));
 
   // window bound constraints
   addWindowConstraints(solver, global_ctx.canvas, [R1X, P1X], [R1Y, P1Y]);
 
-  solver.addPointStays([{x: R1X, y: R1Y}, {x: P1X, y: P1Y}]);
+  //solver.addPointStays([{x: R1X, y: R1Y}, {x: P1X, y: P1Y}]);
+  // p1 < r1 < rad => translation on r1, stretch + translation on p1
+  // p1 < rad < r1 => translation on r1, stretch on p1
+  // r1 < rad < p1 => stretch + translation when moving right,
+  //                  stretch r1 on left, translation p1 on left
+  // rad < r1 < p1 => right-translation r1, left stretch r1, stretch p1
+  // rad < p1 < r1 => ^^
+  // r1 < p1 < rad => translation r1, left-translate p1, right-stretch p1
+
+
+  // solver.addStay(P1X);
+  // solver.addStay(P1Y);
+  // solver.addConstraint(constrainedPoints.R1.stays[0]); // C1R
+  // console.log(constrainedPoints.R1.stays[0].toString());
+  // solver.addConstraint(constrainedPoints.P1.stays[0]); // R1X
+  // solver.addStay(R1Y);
 
 
 
@@ -90,7 +106,7 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(1, function(t) {
+  tau = Timer(100, function(t) {
     update_constraints();
     global_redraw();
   }, function() {
@@ -105,6 +121,51 @@ function init() {
   });
 }
 
+function on_release() {
+
+
+  for (var cVar in constrainedPoints) {
+    var rec = constrainedPoints[cVar];
+    var ip = rec.ipoint;
+    if (dragged_obj === ip) {
+      solver.endEdit();
+      //solver.solve();
+      break;
+    }
+  }
+
+  for (var cVar in StayEqs) {
+    solver.removeConstraint(StayEqs[cVar]);
+  }
+  StayEqs = {};
+}
+
+function on_click() {
+
+  for (var cVar in CVars) {
+    StayEqs[cVar] = makeStay(CVars[cVar]);
+  }
+
+  for (var cVar in constrainedPoints) {
+    var rec = constrainedPoints[cVar];
+    var ip = rec.ipoint;
+    if (dragged_obj === ip) {
+      rec.stayVars.forEach(function(cvar) {
+        delete StayEqs[cvar];
+      });
+      startEdit(solver, rec.vs);
+      break;
+    }
+  }
+
+  console.log("adding stays:");
+  for (var cVar in StayEqs) {
+    solver.addConstraint(StayEqs[cVar]);
+    console.log(StayEqs[cVar].toString());
+  }
+
+}
+
 function drag_update() {
 
   // @OPT: be smart about edits in common
@@ -112,16 +173,28 @@ function drag_update() {
     var ip = constrainedPoints[cVar].ipoint;
     if (dragged_obj === ip) {
       var cvs = constrainedPoints[cVar].vs;
-      startEdit(solver, cvs);
       forceUpdate(solver, cvs, ip.x, ip.y);
       //console.log(solver.toString());
-      solver.endEdit();
+      //solver.endEdit();
+      solver.resolve();
+      //startEdit(solver, constrainedPoints[cVar].vs);
       // console.log("values:");
       // console.log("" + ip.x + " =? " + cvs.x.value);
       // console.log("" + ip.y + " =? " + cvs.y.value);
       break;
     }
+  }
 
+  for (var cVar in CVars) {
+    if (cVar in StayEqs) {
+      console.log("clearing stay:");
+      solver.removeConstraint(StayEqs[cVar]);
+      console.log(StayEqs[cVar].toString());
+      StayEqs[cVar] = makeStay(CVars[cVar]);
+      solver.addConstraint(StayEqs[cVar]);
+      console.log("adding stay: " + StayEqs[cVar].toString());
+
+    }
   }
 
 
@@ -179,6 +252,7 @@ function fixed_constraints() {
   // LCircle.r = C1R.value;
 
   Subject.points = [P1.x, P1.y, P2.x, P2.y];
+
 }
 function start() {
   tau.start();

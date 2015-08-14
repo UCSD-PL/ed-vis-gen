@@ -182,7 +182,6 @@ c.SimplexSolver = c.inherit({
     return this.addConstraint(cn);
   },
 
-
   setConstant: function(cn, constant) {
     this._setConstant(cn, constant);
     this.resolve();
