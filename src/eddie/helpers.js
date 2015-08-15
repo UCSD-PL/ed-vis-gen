@@ -105,12 +105,27 @@ CLEAR_COLOR = "rgba(255,255,255,0)";
 
 // suggest x and y of the given object should be edited.
 function startEdit(slvr, o) {
-  slvr.addEditVar(o.x, c.Strength.weak, 1).addEditVar(o.y, c.Strength.weak, 1).beginEdit();
+  c.assert('x' in o, "bad object " + o.toString());
+  c.assert('y' in o, "bad object " + o.toString());
+  slvr.addEditVar(o.x, c.Strength.strong, 5).addEditVar(o.y, c.Strength.strong, 5).beginEdit();
 }
 
 // for a given x and y, force an update to the solver
 function forceUpdate(slvr, vs, x, y) {
-  slvr.suggestValue(vs.x, x).suggestValue(vs.y, y);
+  c.assert('x' in vs, "bad object " + vs.toString());
+  c.assert('y' in vs, "bad object " + vs.toString());
+    try {
+    slvr.suggestValue(vs.x, x);
+  } catch (err) {
+    console.log("err on x" + err.toString());
+  }
+
+    try {
+    slvr.suggestValue(vs.y, y);
+  } catch (err) {
+    console.log("err on y" + err.toString());
+  }
+  //slvr.suggestValue(vs.x, x).suggestValue(vs.y, y);
 }
 
 // helper function to add a bunch of canvas constraints
@@ -128,8 +143,8 @@ function addWindowConstraints(slvr, window, xs, ys) {
   });
 }
 
-function makeStay(cvar) {
-  return new c.StayConstraint(cvar, c.Strength.weak, 1);
+function makeStay(cvar, w) {
+  return new c.StayConstraint(cvar, c.Strength.weak, w || 1);
 }
 
 
