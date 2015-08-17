@@ -125,7 +125,9 @@ c.SimplexSolver = c.inherit({
   endEdit: function() {
     // FIXME(slightlyoff): we shouldn't throw here. Log instead
     c.assert(this._editVarMap.size > 0, "_editVarMap.size > 0");
-    this.resolve();
+    if (this.autoSolve) {
+      this.resolve();
+    }
     this._editVariableStack.pop();
     this.removeEditVarsTo(
       this._editVariableStack[this._editVariableStack.length - 1]

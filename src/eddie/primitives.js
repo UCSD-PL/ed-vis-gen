@@ -218,6 +218,7 @@ function Timer (freq, work, done) {
 function InteractionPoint (x,y) {
   // c.assert(x instanceof c.Variable && y instanceof c.Variable,
   //   "InteractionPoint requires c.Variable arguments");
+  // backwards compatible interface
   if (! (x instanceof c.Variable) ) {
     x = new c.Variable({value: x});
   }

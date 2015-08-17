@@ -45,6 +45,12 @@ function init() {
   constrained_vars = { P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R,
                        P2X: P2X, P2Y: P2Y, R2X: R2X, R2Y: R2Y, C2R: C2R,};
 
+   for (cv in constrained_vars) {
+     stay_equations[cv] = makeStay(constrained_vars[cv]);
+   }
+
+   add_stays();
+
   // add drag transitive dependencies to ipoints
   R1.links = ["C1R", "R1X", "C2R", "R2X"];
   P1.links = ["R1X", "P1X", "P1Y", "R1Y"];
@@ -52,11 +58,12 @@ function init() {
   P2.links = ["R2X", "P2X", "P2Y", "R2Y"];
 
 
+  c.assert(! c.autoSolve, "inconceivable");
   var fromVar = c.Expression.fromVariable;
   var fromConst = c.Expression.fromConstant;
-  var c1e = fromVar(C1R);
+  var c1e = fromConst(C1R);
   solver.addConstraint(new c.Equation(P1X, c1e.plus(R1X)));
-  solver.addConstraint(new c.Equation(P2X, fromVar(R2X).minus(C2R)));
+  solver.addConstraint(new c.Equation(P2X, fromConst(R2X).minus(C2R)));
   solver.addConstraint(new c.Equation(R1Y, P1Y));
   solver.addConstraint(new c.Equation(R2Y, P2Y));
   solver.addConstraint(new c.Equation(C1R, C2R));
@@ -157,6 +164,8 @@ function update_constraints() {
 function recursive_constraints() {
 }
 function fixed_constraints() {
+
+
 
   LCircle.x = P1.x.value;
   LCircle.y = P1.y.value;

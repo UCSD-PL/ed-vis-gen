@@ -59,14 +59,13 @@ function doLeftClick(event) {
   if (dragged_obj) {
     // suggest each constrained variable as possible to edit
     //console.log("clicked on: " + dragged_obj.x.name);
-    addEdit(solver, dragged_obj.x);
-    addEdit(solver, dragged_obj.y);
-    solver.beginEdit();
+    // console.log("before edit");
+    // console.log(solver.getDebugInfo());
+    remove_stays();
+
 
     // make a correct stay equation for the current values
-    for (var cv in constrained_vars) {
-      stay_equations[cv] = makeStay(constrained_vars[cv]);
-    }
+
 
     // only *actually* add stays that are desired
     //console.log("removing stays:");
@@ -76,6 +75,12 @@ function doLeftClick(event) {
     });
 
     add_stays();
+
+    addEdit(solver, dragged_obj.x);
+    addEdit(solver, dragged_obj.y);
+    solver.beginEdit();
+    // console.log("after edit");
+    // console.log(solver.getDebugInfo());
   }
 }
 
@@ -101,7 +106,12 @@ function doMouseUp(event) {
     on_release();
     // clear stay constraints in solver
     remove_stays();
-    stay_equations = {};
+    for (var cv in constrained_vars) {
+      stay_equations[cv] = makeStay(constrained_vars[cv]);
+    }
+    add_stays();
+    console.log("after cleanup: ");
+    console.log(solver.getDebugInfo());
     dragged_obj = null;
   }
 }
@@ -114,18 +124,22 @@ function doMouseMove(event) {
     solver.suggestValue(dragged_obj.x, event.layerX);
     solver.suggestValue(dragged_obj.y, event.layerY);
 
+    // console.log("before move");
+    // console.log(solver.getDebugInfo());
     refresh_stays();
 
     // get edits from app
     drag_update();
     // after edits are suggested, recalculate values
-    solver.resolve();
+    solver.solve();
     // update drawing WRT current constrained values
     update_constraints();
     global_redraw();
 
     // remove old stays and update stay equations
     refresh_stays();
+    // console.log("after move");
+    // console.log(solver.getDebugInfo());
   }
 }
 
@@ -138,7 +152,7 @@ function add_stays() {
   //console.log("adding stays:");
   for (var cv in stay_equations) {
     solver.addConstraint(stay_equations[cv]);
-    //console.log(stay_equations[cv].toString());
+    //console.log(cv + " : " + stay_equations[cv].toString());
   }
 }
 
@@ -147,7 +161,7 @@ function remove_stays() {
   for (var cv in stay_equations) {
     solver.removeConstraint(stay_equations[cv]);
     stay_equations[cv] = makeStay(constrained_vars[cv]);
-    //console.log(stay_equations[cv].toString());
+    //console.log(cv + " : " + stay_equations[cv].toString());
   }
 }
 
