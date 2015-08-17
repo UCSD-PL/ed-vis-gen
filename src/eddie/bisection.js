@@ -49,7 +49,7 @@ function init() {
      stay_equations[cv] = makeStay(constrained_vars[cv]);
    }
 
-   add_stays();
+  add_stays();
 
   // add drag transitive dependencies to ipoints
   R1.links = ["C1R", "R1X", "C2R", "R2X"];
@@ -57,8 +57,6 @@ function init() {
   R2.links = ["C2R", "R2X", "C1R", "R1X"];
   P2.links = ["R2X", "P2X", "P2Y", "R2Y"];
 
-
-  c.assert(! c.autoSolve, "inconceivable");
   var fromVar = c.Expression.fromVariable;
   var fromConst = c.Expression.fromConstant;
   var c1e = fromConst(C1R);
@@ -96,15 +94,15 @@ function init() {
     global_redraw();
   }, function() {
     restoreAll([
-      P1, Initials.p1,
-      P2, Initials.p2,
       LCircle, Initials.lhs,
       RCircle, Initials.rhs
     ]
     );
 
+    remove_stays();
+
     var rootCVs =  [P1X, P1Y, P2X, P2Y, C1R, C2R];
-    var rootInit = [P1.x, P1.y, P2.x, P2.y, LCircle.r, RCircle.r];
+    var rootInit = [Initials.p1.x, Initials.p1.y, Initials.p2.x, Initials.p2.y, LCircle.r, RCircle.r];
     // update solver primary variables (p1, p2, c1, c2)
     rootCVs.forEach(function (cvar) {
       solver.addEditVar(cvar);
@@ -119,10 +117,12 @@ function init() {
         console.log("err on " + i + " " + err.toString());
       }
     });
-    solver.resolve();
+    solver.solve();
     solver.endEdit();
+    add_stays();
 
     //console.log(solver.toString());
+
 
     fixed_constraints();
     global_redraw();

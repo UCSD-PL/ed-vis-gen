@@ -147,7 +147,9 @@ function addWindowConstraints(slvr, window, xs, ys) {
 // CV is in point.links
 
 function makeStay(cvar, w) {
-  return new c.StayConstraint(cvar, c.Strength.strong, w || 1);
+  var e = c.Expression.fromConstant(cvar).minus(c.Expression.fromConstant(cvar.value));
+  //console.log(e.toString());
+  return new c.Constraint(e, c.Strength.strong, w || 1);
 }
 
 function addEdit(slvr, cv, w) {

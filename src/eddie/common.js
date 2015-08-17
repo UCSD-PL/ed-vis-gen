@@ -110,8 +110,8 @@ function doMouseUp(event) {
       stay_equations[cv] = makeStay(constrained_vars[cv]);
     }
     add_stays();
-    console.log("after cleanup: ");
-    console.log(solver.getDebugInfo());
+    //console.log("after cleanup: ");
+    //console.log(solver.getDebugInfo());
     dragged_obj = null;
   }
 }
