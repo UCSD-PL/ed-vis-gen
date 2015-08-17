@@ -17,11 +17,11 @@ function init() {
   P2 = InteractionPoint(Initials.p2.x, Initials.p2.y);
   Subject = Line([Initials.p1.x, Initials.p1.y, Initials.p2.x, Initials.p2.y], "black");
 
-  LCircle = Circle(P1.x, P1.y, Initials.lhs.r, CLEAR_COLOR, "black");
-  RCircle = Circle(P2.x, P2.y, Initials.rhs.r, CLEAR_COLOR, "black");
+  LCircle = Circle(P1.x.value, P1.y.value, Initials.lhs.r, CLEAR_COLOR, "black");
+  RCircle = Circle(P2.x.value, P2.y.value, Initials.rhs.r, CLEAR_COLOR, "black");
 
   // x0, y0, x1, y1
-  var interPoints = intersection(P1.x, P1.y, LCircle.r, P2.x, P2.y, RCircle.r);
+  var interPoints = intersection(P1.x.value, P1.y.value, LCircle.r, P2.x.value, P2.y.value, RCircle.r);
   LP = Circle(interPoints[0], interPoints[1], 5, "red", "red");
   RP = Circle(interPoints[2], interPoints[3], 5, "red", "red");
   Bisector = Line(interPoints, "red");
@@ -29,16 +29,16 @@ function init() {
   R1 = InteractionPoint(LCircle.x - LCircle.r, LCircle.y);
   R2 = InteractionPoint(RCircle.x + RCircle.r, RCircle.y);
 
-  R1X = new c.Variable({name: "R1.x", value: R1.x});
-  R1Y = new c.Variable({name: "R1.y", value: R1.y});
-  P1X = new c.Variable({name: "P1.x", value: P1.x});
-  P1Y = new c.Variable({name: "P1.y", value: P1.y});
+  R1X = R1.x;
+  R1Y = R1.y;
+  P1X = P1.x;
+  P1Y = P1.y;
   C1R = new c.Variable({name: "C1.r", value: LCircle.r});
 
-  R2X = new c.Variable({name: "R2.x", value: R2.x});
-  R2Y = new c.Variable({name: "R2.y", value: R2.y});
-  P2X = new c.Variable({name: "P2.x", value: P2.x});
-  P2Y = new c.Variable({name: "P2.y", value: P2.y});
+  R2X = R2.x;
+  R2Y = R2.y;
+  P2X = P2.x;
+  P2Y = P2.y;
   C2R = new c.Variable({name: "C2.r", value: RCircle.r});
 
   // map cvar name -> var
@@ -50,24 +50,6 @@ function init() {
   P1.links = ["R1X", "P1X", "P1Y", "R1Y"];
   R2.links = ["C2R", "R2X", "C1R", "R1X"];
   P2.links = ["R2X", "P2X", "P2Y", "R2Y"];
-
-  constrainedPoints = {R1: {  ipoint: R1,
-                              vs: {x: R1X,
-                                   y: R1Y}
-                           },
-                       P1: {  ipoint: P1,
-                              vs: {x: P1X,
-                                   y: P1Y}
-                            },
-                       R2: {  ipoint: R2,
-                              vs: {x: R2X,
-                                   y: R2Y}
-                           },
-                       P2: {  ipoint: P2,
-                              vs: {x: P2X,
-                                   y: P2Y}
-                            },
-                      };
 
 
   var fromVar = c.Expression.fromVariable;
@@ -154,33 +136,13 @@ function drag_update() {
 
   // @OPT: be smart about edits in common
 
-  for (var i in constrainedPoints) {
-    var cmn = constrainedPoints[i];
-    if (cmn.ipoint === dragged_obj) {
-      console.log("suggested " + cmn.vs.x.toString() + " " + cmn.vs.y.toString());
-      solver.suggestValue(cmn.vs.x, dragged_obj.x);
-      solver.suggestValue(cmn.vs.y, dragged_obj.y);
-    }
-  }
-
-  //
-  // var dy = P2.y - P1.y;
-  // var dx = P2.x - P1.x;
-  // var newDist = sqrtSquaredSum([dy, dx]);
-  // // corresponds to constraints with >=, e.g.
-  // // LCircle.r >= newDist + eps
-  //
-  // Subject.points = [P1.x, P1.y, P2.x, P2.y];
-  //
-  // LCircle.r = LCircle.x - R1.x; // update radius
-  // RCircle.r = R2.x - RCircle.x;
-  //
-  // LCircle.r = RCircle.r;
-  // RCircle.r = LCircle.r;
-  //
-  // if ( newDist/2 >= LCircle.r) {
-  //   LCircle.r = newDist/2 + eps;
-  //   RCircle.r = newDist/2 + eps;
+  // for (var i in constrainedPoints) {
+  //   var cmn = constrainedPoints[i];
+  //   if (cmn.ipoint === dragged_obj) {
+  //     console.log("suggested " + cmn.vs.x.toString() + " " + cmn.vs.y.toString());
+  //     solver.suggestValue(cmn.vs.x, dragged_obj.x);
+  //     solver.suggestValue(cmn.vs.y, dragged_obj.y);
+  //   }
   // }
 
   fixed_constraints();
@@ -196,26 +158,17 @@ function recursive_constraints() {
 }
 function fixed_constraints() {
 
-  P1.x = P1X.value;
-  P1.y = P1Y.value;
-  R1.x = R1X.value;
-  R1.y = R1Y.value;
-  LCircle.x = P1.x;
-  LCircle.y = P1.y;
+  LCircle.x = P1.x.value;
+  LCircle.y = P1.y.value;
   LCircle.r = C1R.value;
 
-  P2.x = P2X.value;
-  P2.y = P2Y.value;
-  R2.x = R2X.value;
-  R2.y = R2Y.value;
-
-  RCircle.x = P2.x;
-  RCircle.y = P2.y;
+  RCircle.x = P2.x.value;
+  RCircle.y = P2.y.value;
   RCircle.r = C2R.value;
 
-  Subject.points = [P1.x, P1.y, P2.x, P2.y];
+  Subject.points = [P1.x.value, P1.y.value, P2.x.value, P2.y.value];
 
-  var interPoints = intersection(P1.x, P1.y, LCircle.r, P2.x, P2.y, RCircle.r);
+  var interPoints = intersection(P1.x.value, P1.y.value, LCircle.r, P2.x.value, P2.y.value, RCircle.r);
   if (interPoints) {
     // intersection exists
     LP.x = interPoints[0];

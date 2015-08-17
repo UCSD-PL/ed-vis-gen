@@ -213,23 +213,32 @@ function Timer (freq, work, done) {
   }
 }
 
+// x and y are assumed to be cassowary constraint variables (i.e., instances of
+// c.Variable)
 function InteractionPoint (x,y) {
+  // c.assert(x instanceof c.Variable && y instanceof c.Variable,
+  //   "InteractionPoint requires c.Variable arguments");
+  if (! (x instanceof c.Variable) ) {
+    x = new c.Variable({value: x});
+  }
+
+  if (! (y instanceof c.Variable) ) {
+    y = new c.Variable({value: y});
+  }
   return {
     x: x,
     y: y,
     cr: 2,
     r: 20,
     fill: "black",
-    links: [], // linked objects for translations
+    links: [], // transitive cassowary data dependencies,
+               // need to be keys in constrained_vars.
     translate: function(dx, dy) {
-			with (this) {
-				x += dx;
-				y += dy;
-			}
+			c.assert(false, "translation interface not supported");
 		},
     draw: function(ctx) {
       with (this) {
-        Circle(x, y, cr, fill).draw(ctx);
+        Circle(x.value, y.value, cr, fill).draw(ctx);
       }
     }
   }

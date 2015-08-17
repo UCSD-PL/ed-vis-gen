@@ -56,30 +56,26 @@ function doLeftClick(event) {
     }
   }
 
-    if (dragged_obj) {
+  if (dragged_obj) {
     // suggest each constrained variable as possible to edit
-    // @TODO: after point refactoring, only suggest dragged_obj.x,y
-    for (cv in constrained_vars) {
-      var v = constrained_vars[cv];
-      if (v === R1X || v === R1Y) {
-        solver.addEditVar(v, c.Strength.strong, 5);
-      }
-    }
-
-    //solver.addEditVar(P1X, c.Strength.strong, 5).addEditVar(P1Y, c.Strength.strong, 5);
+    //console.log("clicked on: " + dragged_obj.x.name);
+    addEdit(solver, dragged_obj.x);
+    addEdit(solver, dragged_obj.y);
     solver.beginEdit();
 
     // make a correct stay equation for the current values
     for (var cv in constrained_vars) {
-      stay_equations[cv] = makeStay(constrained_vars[cv], 1);
+      stay_equations[cv] = makeStay(constrained_vars[cv]);
     }
 
     // only *actually* add stays that are desired
-    console.log("removing stays:");
+    //console.log("removing stays:");
     dragged_obj.links.forEach(function (cv) {
-      console.log(cv);
+      //console.log(cv);
       delete stay_equations[cv];
     });
+
+    add_stays();
   }
 }
 
@@ -100,25 +96,25 @@ function doRightClick(event) {
 
 function doMouseUp(event) {
   //drag_update();
-  solver.endEdit();
-  solver.solve();
-  on_release();
-  // clear stay constraints in solver
-  stay_equations = {};
-  dragged_obj = null;
+  if (dragged_obj != null) {
+    solver.endEdit();
+    on_release();
+    // clear stay constraints in solver
+    remove_stays();
+    stay_equations = {};
+    dragged_obj = null;
+  }
 }
 
-// invariant: solver contains no stay equations for any variables before + after call
+// precondition: stay equations are outdated
+// postcondition: stay equations are updated
 function doMouseMove(event) {
   if (dragged_obj != null) {
-    dragged_obj.x = event.layerX;
-    dragged_obj.y = event.layerY;
 
-    console.log("adding stays:");
-    for (var cv in stay_equations) {
-      solver.addConstraint(stay_equations[cv]);
-      console.log(stay_equations[cv].toString());
-    }
+    solver.suggestValue(dragged_obj.x, event.layerX);
+    solver.suggestValue(dragged_obj.y, event.layerY);
+
+    refresh_stays();
 
     // get edits from app
     drag_update();
@@ -129,11 +125,29 @@ function doMouseMove(event) {
     global_redraw();
 
     // remove old stays and update stay equations
-    for (var cv in stay_equations) {
-      //console.log("clearing stay:");
-      solver.removeConstraint(stay_equations[cv]);
-      stay_equations[cv] = makeStay(constrained_vars[cv], 1);
-    }
+    refresh_stays();
+  }
+}
+
+function refresh_stays() {
+  remove_stays();
+  add_stays();
+}
+
+function add_stays() {
+  //console.log("adding stays:");
+  for (var cv in stay_equations) {
+    solver.addConstraint(stay_equations[cv]);
+    //console.log(stay_equations[cv].toString());
+  }
+}
+
+function remove_stays() {
+  //console.log("clearing stays:")
+  for (var cv in stay_equations) {
+    solver.removeConstraint(stay_equations[cv]);
+    stay_equations[cv] = makeStay(constrained_vars[cv]);
+    //console.log(stay_equations[cv].toString());
   }
 }
 

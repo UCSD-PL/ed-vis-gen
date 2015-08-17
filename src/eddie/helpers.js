@@ -23,8 +23,8 @@ function push(arr) {
 // object (namely, one that defines x, y, and r)
 function withinRadius(x, y, iPoint) {
   var r = iPoint.r;
-  var dx = x - iPoint.x;
-  var dy = y - iPoint.y;
+  var dx = x - iPoint.x.value;
+  var dy = y - iPoint.y.value;
   return (dx <= r && dx >= -r && dy <= r && dy >= -r);
 }
 
@@ -143,8 +143,15 @@ function addWindowConstraints(slvr, window, xs, ys) {
   });
 }
 
+// prefer stays over edits. thus, a point's dimension is free iff the corresponding
+// CV is in point.links
+
 function makeStay(cvar, w) {
-  return new c.StayConstraint(cvar, c.Strength.weak, w || 1);
+  return new c.StayConstraint(cvar, c.Strength.medium, w || 1);
+}
+
+function addEdit(slvr, cv, w) {
+  slvr.addEditVar(cv, c.Strength.weak, w || 1);
 }
 
 
