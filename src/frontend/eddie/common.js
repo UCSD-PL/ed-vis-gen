@@ -28,6 +28,7 @@ function common_init() {
   solver = new c.SimplexSolver();
   solver.autoSolve = false;
 
+  constrained_vars = {}
   stay_equations = {};
 }
 

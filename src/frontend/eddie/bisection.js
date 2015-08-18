@@ -29,18 +29,18 @@ function init() {
   R1 = InteractionPoint(LCircle.x - LCircle.r, LCircle.y);
   R2 = InteractionPoint(RCircle.x + RCircle.r, RCircle.y);
 
-  C1R = new c.Variable({name: "C1.r", value: LCircle.r});
-  C2R = new c.Variable({name: "C2.r", value: RCircle.r});
+  C1R = makeVariable("C1R", LCircle.r);
+  C2R = makeVariable("C2R", RCircle.r);
 
   // map cvar name -> var
-  constrained_vars = { P1X: P1.x, P1Y: P1.y, R1X: R1.x, R1Y: R1.y, C1R: C1R,
-                       P2X: P2.x, P2Y: P2.y, R2X: R2.x, R2Y: R2.y, C2R: C2R,};
+  var newVars = { P1X: P1.x, P1Y: P1.y, R1X: R1.x, R1Y: R1.y,
+                       P2X: P2.x, P2Y: P2.y, R2X: R2.x, R2Y: R2.y};
+  for (var cv in newVars) {
+    constrained_vars[cv] = newVars[cv];
+  }
 
-   for (cv in constrained_vars) {
-     stay_equations[cv] = makeStay(constrained_vars[cv]);
-   }
 
-  add_stays();
+  init_stays();
 
   // add drag transitive dependencies to ipoints
   R1.links = ["C1R", "R1X", "C2R", "R2X"];
@@ -48,29 +48,24 @@ function init() {
   R2.links = ["C2R", "R2X", "C1R", "R1X"];
   P2.links = ["R2X", "P2X", "P2Y", "R2Y"];
 
-  var fromVar = c.Expression.fromVariable;
-  var fromConst = c.Expression.fromConstant;
   var c1e = fromConst(C1R);
-  solver.addConstraint(new c.Equation(P1.x, c1e.plus(R1.x)));
-  solver.addConstraint(new c.Equation(P2.x, fromConst(R2.x).minus(C2R)));
-  solver.addConstraint(new c.Equation(R1.y, P1.y));
-  solver.addConstraint(new c.Equation(R2.y, P2.y));
-  solver.addConstraint(new c.Equation(C1R, C2R));
+  addEquation(P1.x, c1e.plus(R1.x));
+  addEquation(P2.x, fromConst(R2.x).minus(C2R));
+  addEquation(R1.y, P1.y);
+  addEquation(R2.y, P2.y);
+  addEquation(C1R, C2R);
 
   // window bound constraints
-  var geq = function (a1, a2){ return new c.Inequality(a1, c.GEQ, a2)};
-  var leq = function (a1, a2){ return new c.Inequality(a1, c.LEQ, a2)};
-
   var padding = 5;
-  solver.addConstraint(geq(P1.x, c1e.plus(fromConst(padding))));
-  solver.addConstraint(geq(P1.x, c1e.plus(fromConst(padding))));
-  solver.addConstraint(leq(P1.x, fromConst(global_ctx.canvas.width-padding).minus(C1R)));
-  solver.addConstraint(leq(P1.y, fromConst(global_ctx.canvas.height-padding).minus(C1R)));
+  addGEQ(P1.x, c1e.plus(fromConst(padding)));
+  addGEQ(P1.y, c1e.plus(fromConst(padding)));
+  addLEQ(P1.x, fromConst(global_ctx.canvas.width-padding).minus(C1R));
+  addLEQ(P1.y, fromConst(global_ctx.canvas.height-padding).minus(C1R));
 
-  solver.addConstraint(geq(P2.x, fromVar(C2R).plus(fromConst(padding))));
-  solver.addConstraint(geq(P2.x, fromVar(C2R).plus(fromConst(padding))));
-  solver.addConstraint(leq(P2.x, fromConst(global_ctx.canvas.width-padding).minus(C2R)));
-  solver.addConstraint(leq(P2.x, fromConst(global_ctx.canvas.height-padding).minus(C2R)));
+  addGEQ(P2.x, fromConst(C2R).plus(fromConst(padding)));
+  addGEQ(P2.y, fromConst(C2R).plus(fromConst(padding)));
+  addLEQ(P2.x, fromConst(global_ctx.canvas.width-padding).minus(C2R));
+  addLEQ(P2.y, fromConst(global_ctx.canvas.height-padding).minus(C2R));
 
   push(all_objects, P1, P2, Subject, LCircle, RCircle, R1, R2, LP, RP, Bisector);
   push(drag_points, P1, P2, R1, R2);

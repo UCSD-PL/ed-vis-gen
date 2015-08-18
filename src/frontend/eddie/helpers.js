@@ -214,3 +214,48 @@ function intersection(x0, y0, r0, x1, y1, r1) {
 
   return [xi, yi, xi_prime, yi_prime];
 }
+
+
+// wrappers for cassowary constructors
+function makeVariable(name, value) {
+  var tmp = new c.Variable({name:name, value:value});
+  constrained_vars[name] = tmp;
+  return tmp;
+}
+
+// for some reason, c.Expression.fromVar doesn't work like I think it should...
+// but fromConstant does... specifically, using fromVar in a constraint does not
+// evaluate to the current value of the variable, but fromConstant does
+function fromVar(args) {
+  return c.Expression.fromConstant.apply(this, arguments);
+}
+
+function fromConst(args) {
+  return c.Expression.fromConstant.apply(this, arguments);
+}
+
+function GEQ(a1, a2) { return new c.Inequality(a1, c.GEQ, a2)};
+function LEQ(a1, a2) { return new c.Inequality(a1, c.LEQ, a2)};
+
+function init_stays() {
+  var logstr = "adding stays: "
+  for (cv in constrained_vars) {
+    logstr += (cv + ", ");
+    stay_equations[cv] = makeStay(constrained_vars[cv]);
+  }
+  console.log(logstr);
+  add_stays();
+}
+
+function addEquation(lhs, rhs) {
+  console.log("adding " + lhs.toString() + " = " + rhs.toString());
+  solver.addConstraint(new c.Equation(lhs, rhs));
+  console.log("added.");
+}
+
+function addLEQ(lhs, rhs) {
+  solver.addConstraint(LEQ(lhs, rhs));
+}
+function addGEQ(lhs, rhs) {
+  solver.addConstraint(GEQ(lhs, rhs));
+}
