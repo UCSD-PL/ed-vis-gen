@@ -29,21 +29,12 @@ function init() {
   R1 = InteractionPoint(LCircle.x - LCircle.r, LCircle.y);
   R2 = InteractionPoint(RCircle.x + RCircle.r, RCircle.y);
 
-  R1X = R1.x;
-  R1Y = R1.y;
-  P1X = P1.x;
-  P1Y = P1.y;
   C1R = new c.Variable({name: "C1.r", value: LCircle.r});
-
-  R2X = R2.x;
-  R2Y = R2.y;
-  P2X = P2.x;
-  P2Y = P2.y;
   C2R = new c.Variable({name: "C2.r", value: RCircle.r});
 
   // map cvar name -> var
-  constrained_vars = { P1X: P1X, P1Y: P1Y, R1X: R1X, R1Y: R1Y, C1R: C1R,
-                       P2X: P2X, P2Y: P2Y, R2X: R2X, R2Y: R2Y, C2R: C2R,};
+  constrained_vars = { P1X: P1.x, P1Y: P1.y, R1X: R1.x, R1Y: R1.y, C1R: C1R,
+                       P2X: P2.x, P2Y: P2.y, R2X: R2.x, R2Y: R2.y, C2R: C2R,};
 
    for (cv in constrained_vars) {
      stay_equations[cv] = makeStay(constrained_vars[cv]);
@@ -60,10 +51,10 @@ function init() {
   var fromVar = c.Expression.fromVariable;
   var fromConst = c.Expression.fromConstant;
   var c1e = fromConst(C1R);
-  solver.addConstraint(new c.Equation(P1X, c1e.plus(R1X)));
-  solver.addConstraint(new c.Equation(P2X, fromConst(R2X).minus(C2R)));
-  solver.addConstraint(new c.Equation(R1Y, P1Y));
-  solver.addConstraint(new c.Equation(R2Y, P2Y));
+  solver.addConstraint(new c.Equation(P1.x, c1e.plus(R1.x)));
+  solver.addConstraint(new c.Equation(P2.x, fromConst(R2.x).minus(C2R)));
+  solver.addConstraint(new c.Equation(R1.y, P1.y));
+  solver.addConstraint(new c.Equation(R2.y, P2.y));
   solver.addConstraint(new c.Equation(C1R, C2R));
 
   // window bound constraints
@@ -71,21 +62,18 @@ function init() {
   var leq = function (a1, a2){ return new c.Inequality(a1, c.LEQ, a2)};
 
   var padding = 5;
-  solver.addConstraint(geq(P1X, c1e.plus(fromConst(padding))));
-  solver.addConstraint(geq(P1Y, c1e.plus(fromConst(padding))));
-  solver.addConstraint(leq(P1X, fromConst(global_ctx.canvas.width-padding).minus(C1R)));
-  solver.addConstraint(leq(P1Y, fromConst(global_ctx.canvas.height-padding).minus(C1R)));
+  solver.addConstraint(geq(P1.x, c1e.plus(fromConst(padding))));
+  solver.addConstraint(geq(P1.x, c1e.plus(fromConst(padding))));
+  solver.addConstraint(leq(P1.x, fromConst(global_ctx.canvas.width-padding).minus(C1R)));
+  solver.addConstraint(leq(P1.y, fromConst(global_ctx.canvas.height-padding).minus(C1R)));
 
-  solver.addConstraint(geq(P2X, fromVar(C2R).plus(fromConst(padding))));
-  solver.addConstraint(geq(P2Y, fromVar(C2R).plus(fromConst(padding))));
-  solver.addConstraint(leq(P2X, fromConst(global_ctx.canvas.width-padding).minus(C2R)));
-  solver.addConstraint(leq(P2Y, fromConst(global_ctx.canvas.height-padding).minus(C2R)));
+  solver.addConstraint(geq(P2.x, fromVar(C2R).plus(fromConst(padding))));
+  solver.addConstraint(geq(P2.x, fromVar(C2R).plus(fromConst(padding))));
+  solver.addConstraint(leq(P2.x, fromConst(global_ctx.canvas.width-padding).minus(C2R)));
+  solver.addConstraint(leq(P2.x, fromConst(global_ctx.canvas.height-padding).minus(C2R)));
 
   push(all_objects, P1, P2, Subject, LCircle, RCircle, R1, R2, LP, RP, Bisector);
   push(drag_points, P1, P2, R1, R2);
-
-
-  eps = 2;
 
   // initialize timer
 
@@ -93,17 +81,11 @@ function init() {
     update_constraints();
     global_redraw();
   }, function() {
-    restoreAll([
-      LCircle, Initials.lhs,
-      RCircle, Initials.rhs
-    ]
-    );
-
+    // update solver primary variables (p1, p2, c1, c2)
     remove_stays();
 
-    var rootCVs =  [P1X, P1Y, P2X, P2Y, C1R, C2R];
+    var rootCVs =  [P1.x, P1.x, P2.x, P2.y, C1R, C2R];
     var rootInit = [Initials.p1.x, Initials.p1.y, Initials.p2.x, Initials.p2.y, LCircle.r, RCircle.r];
-    // update solver primary variables (p1, p2, c1, c2)
     rootCVs.forEach(function (cvar) {
       solver.addEditVar(cvar);
     });
@@ -121,9 +103,6 @@ function init() {
     solver.endEdit();
     add_stays();
 
-    //console.log(solver.toString());
-
-
     fixed_constraints();
     global_redraw();
 
@@ -136,22 +115,9 @@ function on_release() {
 }
 
 function on_click() {
-
 }
 
 function drag_update() {
-
-  // @OPT: be smart about edits in common
-
-  // for (var i in constrainedPoints) {
-  //   var cmn = constrainedPoints[i];
-  //   if (cmn.ipoint === dragged_obj) {
-  //     console.log("suggested " + cmn.vs.x.toString() + " " + cmn.vs.y.toString());
-  //     solver.suggestValue(cmn.vs.x, dragged_obj.x);
-  //     solver.suggestValue(cmn.vs.y, dragged_obj.y);
-  //   }
-  // }
-
   fixed_constraints();
 }
 
@@ -164,9 +130,6 @@ function update_constraints() {
 function recursive_constraints() {
 }
 function fixed_constraints() {
-
-
-
   LCircle.x = P1.x.value;
   LCircle.y = P1.y.value;
   LCircle.r = C1R.value;
