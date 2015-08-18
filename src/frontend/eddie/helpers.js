@@ -153,7 +153,7 @@ function makeStay(cvar, w) {
 }
 
 function addEdit(slvr, cv, w) {
-  slvr.addEditVar(cv, c.Strength.weak, w || 1);
+  slvr.addEditVar(cv, c.Strength.medium, w || 1);
 }
 
 

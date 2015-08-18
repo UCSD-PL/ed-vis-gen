@@ -44,6 +44,8 @@ function init() {
   K = makeVariable("K", Initials.k.val);
   C = makeVariable("C", Initials.c.val);
   V = makeVariable("V", 0);
+  F = makeVariable("F", 0);
+  T = makeVariable("T", 0);
 
   // sliders
   // addSlider("Mass", "sliders", Initials.m.mn, Initials.m.mx, Initials.m.val, function(o) {
@@ -90,8 +92,6 @@ function init() {
   // weight on top of platform
   init_stays();
 
-
-  //var fromVar = c.Expression.fromConstant;
   addEquation(SX, fromVar(BX1).plus(BX2).divide(fromConst(2)));
   addEquation(SY, BY1);
   addEquation(IX, SX);
@@ -113,7 +113,10 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(1, function(t) {
+  tau = Timer(10, function(t) {
+    update_rec_constraints(recursive_constraints,
+    ["F", "V", "T", "SDY", "IY", "WY", "RL", "PY1", "PY2"]
+    );
     update_constraints();
     global_redraw();
   }, function() {
@@ -136,15 +139,44 @@ function init() {
 }
 
 function drag_update() {
-  // I2.x = S1.x + S1.dx;
-  // S1.dy = (I2.y - S1.y);
-  //
-  // Plat1.y1 = I2.y - 8;
-  // Plat1.y2 = I2.y + 8;
-  //
-  // W1.y = Plat1.y1 - W1.h/2;
 }
 
+// assumes args of the form {cvname:cvvalue}. returns a similar object.
+function recursive_constraints(args) {
+
+  // var logstr = "receiving args: ";
+  // for (var cv in args) {
+  //   logstr += (cv + " -> " + args[cv] + " ");
+  // }
+  // console.log(logstr);
+
+  var m = args.M;
+  var g = args.G;
+  var k = args.K;
+  var c = args.C;
+
+  var rl = InitRL - m * g / k;
+
+  var t = args.T;
+
+  var y = args.SY;
+  var dy = args.SDY;
+  var v = args.V;
+
+  t += 0.1;
+  t = t % 100;
+
+  // F = kx - cv = ma => dv = (kx-cv)/m
+  var f = (-k*(dy + rl) - c*v)/m;
+
+  // dx/dt = v => dx = v
+  v += f;
+  dy += v;
+
+  // dx/dt = v => dx = v
+  return { RL:rl, T:t, F:f, V:v, SDY:dy };
+
+}
 function update_constraints() {
 
   S.x = SX.value;

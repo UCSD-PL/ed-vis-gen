@@ -181,3 +181,42 @@ function draw_all(ctx) {
     all_objects[i].draw(ctx);
   }
 }
+
+// given a function for recursive constraints, which expects an object of
+// {"cvname":cvalue}, pass all current cvalues to the function, suggest the values
+// to the solver, and update. second argument specifies which stay equations
+//
+function update_rec_constraints(work, fvs) {
+  var cvs = {};
+  for (var cv in constrained_vars) {
+    cvs[cv] = constrained_vars[cv].value;
+  }
+  var newVs = work(cvs);
+
+  remove_stays();
+  fvs.forEach(function (cv) {delete stay_equations[cv];});
+
+  for (var cv in newVs) {
+    addEdit(solver, constrained_vars[cv]);
+  }
+  //add_stays();
+  solver.beginEdit();
+  //var logstr = "adding values: "
+  for (var cv in newVs) {
+    //logstr += (cv + " -> " + newVs[cv]);
+    solver.suggestValue(constrained_vars[cv], newVs[cv]);
+  }
+  //refresh_stays();
+  //console.log(logstr);
+  add_stays();
+  solver.solve();
+  solver.endEdit();
+
+  //refresh_stays();
+  //add_stays();
+  remove_stays();
+  for (var cv in constrained_vars) {
+    stay_equations[cv] = makeStay(constrained_vars[cv]);
+  }
+  add_stays();
+}
