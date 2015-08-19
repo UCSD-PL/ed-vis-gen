@@ -28,7 +28,8 @@ function common_init() {
   solver = new c.SimplexSolver();
   solver.autoSolve = false;
 
-  constrained_vars = {}
+  constrained_vars = {};
+  constrained_inits = {};
   stay_equations = {};
 }
 
@@ -187,6 +188,21 @@ function draw_all(ctx) {
 // to the solver, and update. second argument specifies which stay equations
 //
 function update_rec_constraints(work, fvs) {
+
+  // if we're dragging an object, and the object would interfere with the simulation,
+  // break.
+  var clash = false;
+  if (dragged_obj != null) {
+
+    fvs.forEach(function (cv) {
+      if (dragged_obj.links.indexOf(cv) != -1) {
+        clash = true;
+        return;
+      }
+    });
+  }
+
+  if (clash) { return; }
   var cvs = {};
   for (var cv in constrained_vars) {
     cvs[cv] = constrained_vars[cv].value;

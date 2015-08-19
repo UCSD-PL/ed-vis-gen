@@ -84,9 +84,20 @@ function addSlider(name, parent, min, max, start, onchange) {
   // document.getElementById(name).appendChild(newSlider);
 }
 
-// Get the value from an HTML slider. Takes the name of the slider.
-function getSliderValue(name) {
-  return parseFloat(document.getElementById(name + "-slider").value);
+// Get the value from an HTML slider and store it in a constraint variable.
+// Takes the name of the slider and concrete constraint variable.
+function getSliderValue(name, cv) {
+  c.assert(cv instanceof c.Variable, "must store sliders into constraint variables");
+  var num = parseFloat(document.getElementById(name + "-slider").value);
+  //console.log("stay eqn: " + stay_equations[cv.name].toString());
+  solver.removeConstraint(stay_equations[cv.name]);
+  addEdit(solver, cv);
+  solver.beginEdit();
+  solver.suggestValue(cv, num);
+  solver.solve();
+  solver.endEdit();
+  stay_equations[cv.name] = makeStay(cv);
+  solver.addConstraint(stay_equations[cv.name]);
 }
 
 // Set the value for an HTML slider. Takes the name of the slider and the new value.
@@ -220,6 +231,7 @@ function intersection(x0, y0, r0, x1, y1, r1) {
 function makeVariable(name, value) {
   var tmp = new c.Variable({name:name, value:value});
   constrained_vars[name] = tmp;
+  constrained_inits[name] = value;
   return tmp;
 }
 
@@ -238,19 +250,19 @@ function GEQ(a1, a2) { return new c.Inequality(a1, c.GEQ, a2)};
 function LEQ(a1, a2) { return new c.Inequality(a1, c.LEQ, a2)};
 
 function init_stays() {
-  var logstr = "adding stays: "
+  //var logstr = "adding stays: "
   for (cv in constrained_vars) {
-    logstr += (cv + ", ");
+    //logstr += (cv + ", ");
     stay_equations[cv] = makeStay(constrained_vars[cv]);
   }
-  console.log(logstr);
+  //console.log(logstr);
   add_stays();
 }
 
 function addEquation(lhs, rhs) {
-  console.log("adding " + lhs.toString() + " = " + rhs.toString());
+  //console.log("adding " + lhs.toString() + " = " + rhs.toString());
   solver.addConstraint(new c.Equation(lhs, rhs));
-  console.log("added.");
+  //console.log("added.");
 }
 
 function addLEQ(lhs, rhs) {
@@ -258,4 +270,30 @@ function addLEQ(lhs, rhs) {
 }
 function addGEQ(lhs, rhs) {
   solver.addConstraint(GEQ(lhs, rhs));
+}
+
+function resetCVs() {
+
+  for (var cv in constrained_vars) {
+    //if (constrained_vars[cv].value != constrained_inits[cv]) {
+      solver.addEditVar(constrained_vars[cv]);
+    //}
+  }
+
+  remove_stays();
+  solver.beginEdit();
+
+  for (var cv in constrained_vars) {
+    //if (constrained_vars[cv].value != constrained_inits[cv]) {
+      try {
+        solver.suggestValue(constrained_vars[cv], constrained_inits[cv]);
+      } catch (err) {
+        console.log("err on " + cv + " " + err.toString());
+      }
+    //}
+  }
+
+  solver.solve();
+  solver.endEdit();
+  add_stays();
 }

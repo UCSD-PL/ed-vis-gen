@@ -3,8 +3,6 @@ function init() {
   drag_points = [];
   inc_objects = [];
 
-  T = 0;
-
   // initial positions for everything that needs to be restored
   // the compiler should build this up in the future
   Initials = {s: {v: 0, x: 200, y: 300, dy: -200, dx: 0},
@@ -37,7 +35,7 @@ function init() {
 
   // (http://www.ux1.eiu.edu/~cfadd/1150/15Period/Vert.html)
   InitRL = 125;
-  CurrRL = makeVariable("RL", 125);
+  RL = makeVariable("RL", 125);
 
   M = makeVariable("M", Initials.m.val);
   G = makeVariable("G", Initials.g.val);
@@ -48,18 +46,18 @@ function init() {
   T = makeVariable("T", 0);
 
   // sliders
-  // addSlider("Mass", "sliders", Initials.m.mn, Initials.m.mx, Initials.m.val, function(o) {
-  //     CurrConstants.m = getSliderValue("Mass");
-  // });
-  // addSlider("Stiffness", "sliders", Initials.k.mn, Initials.k.mx, Initials.k.val, function(o) {
-  //     CurrConstants.k = getSliderValue("Stiffness");
-  // });
-  // addSlider("Dampening", "sliders", Initials.c.mn, Initials.c.mx, Initials.c.val, function(o) {
-  //     CurrConstants.c = getSliderValue("Dampening");
-  // });
-  // addSlider("Gravity", "sliders", Initials.g.mn, Initials.g.mx, Initials.g.val, function(o) {
-  //     CurrConstants.g = getSliderValue("Gravity");
-  // });
+  addSlider("Mass", "sliders", Initials.m.mn, Initials.m.mx, Initials.m.val, function(o) {
+      getSliderValue("Mass", M);
+  });
+  addSlider("Stiffness", "sliders", Initials.k.mn, Initials.k.mx, Initials.k.val, function(o) {
+      getSliderValue("Stiffness", K);
+  });
+  addSlider("Dampening", "sliders", Initials.c.mn, Initials.c.mx, Initials.c.val, function(o) {
+      getSliderValue("Dampening", C);
+  });
+  addSlider("Gravity", "sliders", Initials.g.mn, Initials.g.mx, Initials.g.val, function(o) {
+      getSliderValue("Gravity", G);
+  });
 
   // base, platform
   BX1 = makeVariable("BX1", S.x-100);
@@ -83,14 +81,15 @@ function init() {
   // trace the current value with a green dot
   Tracer = Circle(plt.xStart, plt.yStart, 3, "green", "green");
 
-  I.links = ["SDY", "IY", "WY", "PY1", "PY2"]; // ipoint compresses spring in x-axis
+  I.links = ["SDY", "IY", "WY", "PY1", "PY2"]; // ipoint compresses spring in y-axis
 
 
   // equations:
   // spring in middle of base
   // platform on top of spring
   // weight on top of platform
-  init_stays();
+
+  init_stays(); // SUPER IMPORTANT NEED THIS CALL
 
   addEquation(SX, fromVar(BX1).plus(BX2).divide(fromConst(2)));
   addEquation(SY, BY1);
@@ -113,32 +112,30 @@ function init() {
 
   // initialize timer
 
-  tau = Timer(10, function(t) {
-    update_rec_constraints(recursive_constraints,
-    ["F", "V", "T", "SDY", "IY", "WY", "RL", "PY1", "PY2"]
+  tau = Timer(20, function(t) {
+    update_rec_constraints(
+      recursive_constraints, // function for handling spring motion
+      ["F", "V", "T", "SDY", "IY", "WY", "RL", "PY1", "PY2"] // all modified variables
     );
     update_constraints();
     global_redraw();
   }, function() {
 
-    // velocities
-    //restore(CurrentVs, {s1: Initials.s1.v});
     plt.reset();
-    T = 0;
+    resetCVs();
 
-    // setSliderValue("Mass", Initials.m.val);
-    // setSliderValue("Stiffness", Initials.k.val);
-    // setSliderValue("Dampening", Initials.c.val);
-    // setSliderValue("Gravity", Initials.g.val);
+    setSliderValue("Mass", Initials.m.val);
+    setSliderValue("Stiffness", Initials.k.val);
+    setSliderValue("Dampening", Initials.c.val);
+    setSliderValue("Gravity", Initials.g.val);
 
-
-    Tracer.x = plt.xStart;
-    Tracer.y = plt.yStart;
+    update_constraints();
     global_redraw();
   });
 }
 
 function drag_update() {
+  update_constraints();
 }
 
 // assumes args of the form {cvname:cvvalue}. returns a similar object.
@@ -199,39 +196,10 @@ function update_constraints() {
   Base.x2 = BX2.value;
   Base.y2 = BY2.value;
 
-  // var mass = CurrConstants.m;
-  // var g = CurrConstants.g;
-  // var k = CurrConstants.k;
-  // var c = CurrConstants.c;
-  //
-  // CurrRestLengths.s1 = InitRestLengths.s1 - mass * g / k;
-  //
-  // T += 0.1;
-  // T = T % 100;
-  // // F = kx - cv = ma => dv = (kx-cv)/m
-  // var F = (-k*(S1.dy + CurrRestLengths.s1) - c*CurrentVs.s1)/mass;
-  //
-  // // dx/dt = v => dx = v
-  // if (dragged_obj !== I2) {
-  //   CurrentVs.s1 = CurrentVs.s1 + F;
-  //   S1.dy = S1.dy + CurrentVs.s1;
-  //
-  //   I2.y = S1.y + S1.dy;
-  //   I2.x = S1.x + S1.dx;
-  // } else {
-  //   S1.dy = I2.y - S1.y;
-  //   I2.x = S1.x + S1.dx;
-  // }
-  //
-  // Plat1.y1 = I2.y - 8;
-  // Plat1.y2 = I2.y + 8;
-  //
-  // W1.y = Plat1.y1 - W1.h/2;
 
-
-  // plt.record({t: T, y: -(CurrRestLengths.s1 + S1.dy), v: -CurrentVs.s1, f: -F});
-  // Tracer.x = plt.xStart;
-  // Tracer.y = plt.yStart;
+  plt.record({t: T.value, y: -(RL.value + SDY.value), v: -V.value, f: -F.value});
+  Tracer.x = plt.xStart;
+  Tracer.y = plt.yStart;
 
 }
 

@@ -37,6 +37,7 @@ function init() {
                        P2X: P2.x, P2Y: P2.y, R2X: R2.x, R2Y: R2.y};
   for (var cv in newVars) {
     constrained_vars[cv] = newVars[cv];
+    constrained_inits[cv] = newVars[cv].value;
   }
 
 
@@ -76,31 +77,10 @@ function init() {
     update_constraints();
     global_redraw();
   }, function() {
-    // update solver primary variables (p1, p2, c1, c2)
-    remove_stays();
 
-    var rootCVs =  [P1.x, P1.x, P2.x, P2.y, C1R, C2R];
-    var rootInit = [Initials.p1.x, Initials.p1.y, Initials.p2.x, Initials.p2.y, LCircle.r, RCircle.r];
-    rootCVs.forEach(function (cvar) {
-      solver.addEditVar(cvar);
-    });
-    solver.beginEdit();
-
-    // relies on rootCVS and rootInit having same size, order
-    rootCVs.forEach(function (cvar, i) {
-        try {
-        solver.suggestValue(cvar, rootInit[i]);
-      } catch (err) {
-        console.log("err on " + i + " " + err.toString());
-      }
-    });
-    solver.solve();
-    solver.endEdit();
-    add_stays();
-
-    fixed_constraints();
+    resetCVs();
+    update_constraints();
     global_redraw();
-
   });
 
   update_constraints();
@@ -113,18 +93,10 @@ function on_click() {
 }
 
 function drag_update() {
-  fixed_constraints();
+  update_constraints();
 }
 
 function update_constraints() {
-  // recursive constraints
-  recursive_constraints();
-  fixed_constraints();
-
-}
-function recursive_constraints() {
-}
-function fixed_constraints() {
   LCircle.x = P1.x.value;
   LCircle.y = P1.y.value;
   LCircle.r = C1R.value;
