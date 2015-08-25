@@ -7,6 +7,12 @@ import scala.util.parsing.combinator.PackratParsers
 
 import scala.collection.immutable.{Map ⇒ Map, Set ⇒ Set}
 
+// abstract syntax definitions. at the moment, the supported nodes are variables,
+// shapes, and constraint expressions/equations.
+
+// TODO: if/when we write the compiler, add in everything else in Library.js,
+// Primitives.js, and common.js
+
 // constraint variables
 case class Variable(name:String)
 // convenience point class
@@ -88,9 +94,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val equation = (expr <~ "=") ~ expr ^^ { case l ~ r ⇒ Eq(l,r) }
 
-
-
-
+  // external parsing interface
   def tryParsing[T](start: PackratParser[T])(input: String) : T =
     parseAll(start, input) match {
       case Success(res, _) ⇒ res
@@ -101,10 +105,4 @@ object Parser extends JavaTokenParsers with PackratParsers {
   def parseExpr(input:String) = tryParsing(expr)(input)
   def apply(input: String) = parseShp(input)
 
-}
-
-object Tester extends App {
-  //val inp = "x + 3*y + 4 + 8*q + -7 = 7"
-  val inp = "Line((a,b), (c,d))"
-  //println(Parser(inp))
 }
