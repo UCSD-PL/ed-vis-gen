@@ -87,6 +87,7 @@ function addSlider(name, parent, min, max, start, onchange) {
 // Get the value from an HTML slider and store it in a constraint variable.
 // Takes the name of the slider and concrete constraint variable.
 function getSliderValue(name, cv) {
+  //console.log("reading from slider");
   c.assert(cv instanceof c.Variable, "must store sliders into constraint variables");
   var num = parseFloat(document.getElementById(name + "-slider").value);
   //console.log("stay eqn: " + stay_equations[cv.name].toString());
@@ -98,6 +99,8 @@ function getSliderValue(name, cv) {
   solver.endEdit();
   stay_equations[cv.name] = makeStay(cv);
   solver.addConstraint(stay_equations[cv.name]);
+
+  //print_stays();
 }
 
 // Set the value for an HTML slider. Takes the name of the slider and the new value.
@@ -294,6 +297,18 @@ function resetCVs() {
   }
 
   solver.solve();
+
   solver.endEdit();
+  for (var cv in stay_equations) {
+    stay_equations[cv] = makeStay(constrained_vars[cv]);
+  }
   add_stays();
+}
+
+function print_stays() {
+  var logstr = ""
+  for (var cv in stay_equations) {
+    logstr += (cv + " -> " + stay_equations[cv].toString() + "\n");
+  }
+  console.log(logstr);
 }
