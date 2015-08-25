@@ -2,134 +2,217 @@ function init() {
   all_objects = [];  
   drag_points = [];
   rightClick_points = [];
+  inc_objects = [];
 
-  PigVelocity = {x:0, y:0};
   Initial ={ramp: {x1:100 , y1:163 , x2:100 , y2:250 , x3:250, y3:250},
             v: {x:0, y:0}, 
             mu: {mn:0, mx:1, val:.55},
             g: {mn:0, mx:2, val:1},
-            ang: {mn:0, mx:Math.PI/2, val:Math.PI/6},
-            pig: {x:175, y:207},
-            mass: {mn:10000, mx:20000, val:15000}
+            ang: {val:Math.PI/6},
+            pig: {x:100, y:140},
+            mass: {mn:100, mx:200, val:150},
+            fricvec: {x: 100, y: 140, dx: -51, dy: -51},
+            normvec: {x: 100, y: 140, dx: 92, dy: -92},
+            gravvec: {x: 100, y: 140, dx: 0, dy: +150},
+            h: {x:100, y:163},
+            vel: {x:0, y:0}
             };
   
+  
+  // ramp and pig
+  RX = makeVariable("RX", Initial.ramp.x1);
+  RY = makeVariable("RY", Initial.ramp.y1);
   Ramp = Triangle (
-    Initial.ramp.x1, Initial.ramp.y1,
+    RX.value, RY.value,
     Initial.ramp.x2, Initial.ramp.y2,
     Initial.ramp.x3, Initial.ramp.y3,
     "black", "rgba(0,0,0,0)");
-  Pig = Image(Initial.pig.x, Initial.pig.y, 50, 50, "pig");
-  
+  PX = makeVariable("PX", Initial.pig.x);
+  PY = makeVariable("PY", Initial.pig.y);
+  Pig = Image(PX.value, PY.value, 50, 50, "pig");
+  VX = makeVariable("VX", Initial.vel.x);
+  VY = makeVariable("VY", Initial.vel.y);
 
-  CurrConstants = {mass: Initial.mass.val, g: Initial.g.val, ang: Initial.ang.val, mu: Initial.mu.val};
+  Mass = makeVariable("Mass", Initial.mass.val);
+  Fric = makeVariable("Fric", Initial.mu.val);
+  Grav = makeVariable("Grav", Initial.g.val);
+
   // sliders
   addSlider("Mass", "sliders", Initial.mass.mn, Initial.mass.mx, Initial.mass.val, function(o) {
-      CurrConstants.mass = getSliderValue("Mass");
-  });
-  addSlider("Angle", "sliders", Initial.ang.mn, Initial.ang.mx, Initial.ang.val, function(o) {
-      CurrConstants.ang = getSliderValue("Angle");
+      getSliderValue("Mass", Mass);
   });
   addSlider("Friction", "sliders", Initial.mu.mn, Initial.mu.mx, Initial.mu.val, function(o) {
-      CurrConstants.mu = getSliderValue("Friction");
+      getSliderValue("Friction", Fric);
   });
   addSlider("Gravity", "sliders", Initial.g.mn, Initial.g.mx, Initial.g.val, function(o) {
-      CurrConstants.g = getSliderValue("Gravity");
+      getSliderValue("Gravity", Grav);
   });
   
-   /*
-  FricVec = Arrow (Initial.x, Initial.y, -50, -50, "red");
-  
-  NormVec = Arrow (Initial.x, Initial.y, 50, -50, "red");
-  
-  GravVec = Arrow (Initial.x, Initial.y, 0, +150, "red");
+  /*
+  // Interaction point
+  HX = makeVariable("HX", Initial.h.x);
+  HY = makeVariable("HY", Initial.h.y);
+  Height = InteractionPoint(HX, HY);
   */
+
+  // Force Vectors
+  FDX = makeVariable("FDX", Initial.fricvec.dx);
+  FDY = makeVariable("FDY", Initial.fricvec.dy);
+  FricVec = Arrow (Initial.fricvec.x, Initial.fricvec.y, Initial.fricvec.dx, Initial.fricvec.dy, "red");
+  
+  NDX = makeVariable("NDX", Initial.normvec.dx);
+  NDY = makeVariable("NDY", Initial.normvec.dy);
+  NormVec = Arrow (Initial.normvec.x, Initial.normvec.y, Initial.normvec.dx, Initial.normvec.dy, "red");
+  
+  GDX = makeVariable("GDX", Initial.gravvec.dx);
+  GDY = makeVariable("GDY", Initial.gravvec.dy);
+  GravVec = Arrow (Initial.gravvec.x, Initial.gravvec.y, Initial.gravvec.dx, Initial.gravvec.dy, "red");
+  
+
 
   Title = Text(50, 50, "Pig on a ramp with friction", "16pt Comic sans MS");
 
-  // right now, start/stop/reset are handled as html buttons
-  // TODO: implement these
-  //Start = TextCircle(400, 100, 40, -15, 10, "Go", "black");
-  //SI = InteractionPoint(400, 100);
-  //Reset = TextCircle(400, 200, 40, -30, 10, "Reset", "black");
-  //RI = InteractionPoint(400, 200);
+  /*Height.links = ["PX", "PY", "RX", "RY", "Ang"];
+  */
+  init_stays(); // http://imgur.com/yOtPUOt
+  /*
+  // Equations go here
+  // Not sure what they are yet though
+  
+  // one keeps the x coord of the interaction point the same
+  addEquation(HX, fromConst(Initial.h.x));
+  */
 
-  T = 0;
+
+
+  push(all_objects, FricVec, NormVec, GravVec, Title, Pig, Ramp);// Height);
+  //push(drag_points, Height);
 
   tau = Timer(10, function(t){
-    T = t/100;
-    update_constraints();
+    update_rec_constraints(
+      recursive_constraints, // function handling pig motion
+      ["PX", "PY", "VX", "VY",  "FDX", "FDY",
+       "NDX", "NDY",, "GDX", "GDY"]); // list of modified variables here)
+    update_drawing();
     global_redraw();
   }, function() {
-    T = 0;
-    restore(Pig, Initial.pig);
-    restore(PigVelocity, Initial.v);
-    restore(Ramp, Initial.ramp)
-    /*
-    FricVec.dx = -50;
-    FricVec.dy = -50;
-    NormVec.dx = 50;
-    NormVec.dy = -50;
-    GravVec.dx = 0;
-    GravVec.dy = 150;
-    */
+    
+    resetCVs();
 
     setSliderValue("Mass", Initial.mass.val);
     setSliderValue("Friction", Initial.mu.val);
-    setSliderValue("Angle", Initial.ang.val);
     setSliderValue("Gravity", Initial.g.val);
 
-    for (var e in CurrConstants) {
-      CurrConstants[e] = Initial[e].val;
-    }
 
-    update_constraints();
+    update_drawing();
     global_redraw();
   }); // executes every 10ms (.01s)
-
-  push(all_objects, /*FricVec, NormVec, GravVec,*/ Title, Pig, Ramp /*,Start, Reset*/);
-  //push(drag_points, I1, I2, I3 /*,SI, RI*/);
 
 
 }
 
 function drag_update() {
+  update_drawing();  
+
+  /*Height.x = Initial.h.x;
   
+  var lastRamp = Ramp.y1;
+  Ramp.y1 = Height.y;
+  CurrConstants.ang = Math.atan((Ramp.y2-Ramp.y1)/(Ramp.x2-Ramp.x3));
+  
+
+  // Get pig to drop the correct amount
+  // non-trivial geometry problem
+  var bigHeight = Ramp.y2 - lastRamp;
+  var bigDelta = Ramp.y1 - lastRamp;
+  var smallHeight = Ramp.y2 - Pig.y;
+  var smallDelta = smallHeight*bigDelta/bigHeight;
+  Pig.y += bigDelta;
+
+  FricVec.x = GravVec.x = NormVec.x = Pig.x;
+  FricVec.y = GravVec.y = NormVec.y = Pig.y;
+  */
 }
 
 function rightClick_update() {
 }
 
-function update_constraints() {
+function recursive_constraints(args) {
+  //TODO
+
+  var px = args.PX;
+  var py = args.PY;
+  var vx = args.VX;
+  var vy = args.VY;
+
+  var g = Grav.value;
+  var m = Mass.value;
+  var mu = Fric.value;
+  
+  var fdx = FDX;
+  var fdy = FDY;
+  var ndx = NDX;
+  var ndy = NDY;
+  var gdx = GDX;
+  var gdy = GDY;
+
+  var ang = Initial.ang.val;
+  
   // differential equations, implicit time version (i.e. dt = 1)
   // a = dv/dt = ∑ F/m => dv = ∑ F/m
-  G = 9.8*CurrConstants.g;
-  Grav = CurrConstants.mass*G;
-  NormF = Grav*Math.cos(CurrConstants.ang);
-  Fric = CurrConstants.mu*NormF;
   
-  netForce = Math.max(0, Grav*Math.sin(CurrConstants.ang)-Fric);
+  G = 9.8*g;
+  GravF = m*G;
+  NormF = GravF*Math.cos(ang);
+  FricF = mu*NormF;
 
-  PigVelocity.x = PigVelocity.x + netForce*Math.cos(CurrConstants.ang) / CurrConstants.mass;
-  PigVelocity.y = PigVelocity.y + netForce*Math.sin(CurrConstants.ang) / CurrConstants.mass;
+  // calculating appropriate vector lengths
+  fdx = fdy = -.707*FricF/10;
+  gdy = +GravF/10;
+  ndy = -(ndx = NormF*.707/10)
+
+  netForce = Math.max(0, GravF*Math.sin(ang)-FricF);
+
+  vx = vx + netForce*Math.cos(ang) / m;
+  vy = vy + netForce*Math.sin(ang) / m;
   // v = dx/dt => dx = v
-  Pig.x = Pig.x + PigVelocity.x;
-  Pig.y = Pig.y + PigVelocity.y;
-  /*
-  // update the vector positions
-  FricVec.x = Pig.x;
-  FricVec.y = Pig.y;
+  px = px + vx;
+  py = py + vy;
 
-  NormVec.x = Pig.x;
-  NormVec.y = Pig.y;
-
-  GravVec.x = Pig.x;
-  GravVec.y = Pig.y;
-  */
-
-  // TODO - make ramp height actually change, possibly with interaction
-  //      - show force vectors with arrows
+  return { PX:px, PY:py, VX:vx, VY:vy, FDX:fdx,
+           FDY:fdy, GDY:gdy, NDX:ndx, NDY:ndy}
 }
 
+
+
+function update_drawing() {
+  Pig.x = PX.value;
+  Pig.y = PY.value;
+
+  FricVec.x = PX.value;
+  FricVec.y = PY.value;
+  FricVec.dx = FDX.value;
+  FricVec.dy = FDY.value;
+
+  NormVec.x = PX.value;
+  NormVec.y = PY.value;
+  NormVec.dx = NDX.value;
+  NormVec.dy = NDY.value;
+
+  GravVec.x = PX.value;
+  GravVec.y = PY.value;
+  GravVec.dx = GDX.value;
+  GravVec.dy = GDY.value;
+
+}
+
+
+
+
+
+function update_constraints() {
+  update_drawing(); 
+}
 function start() {
   tau.start();
 }
@@ -138,4 +221,11 @@ function stop() {
 }
 function reset() {
   tau.reset();
+}
+
+
+function on_release() {
+}
+
+function on_click() {
 }
