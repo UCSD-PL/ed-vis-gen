@@ -120,9 +120,27 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val equation = (expr <~ "=") ~ expr ^^ { case l ~ r ⇒ Eq(l,r) }
 
-  def tryParsing[T](start: PackratParser[T])(input: String) : T = parseAll(start, input) match {
-    case Success(res, _) ⇒ res
-    case failure: NoSuccess ⇒ scala.sys.error(failure.msg)
+  // programs look like:
+  // VARS(ident (, ident)*);
+  // SHAPES(shape (, shape)*);
+  // EQUATIONS(eq (, eq)*);
+
+  type SP[T] = Parser[Set[T]]
+  lazy val vars: SP[Variable] = rep1sep(ident, ",") ^^ {
+    is ⇒ is.map(Variable(_)).toSet
+  }
+  lazy val shps: SP[Shape] = rep1sep(shp, ",") ^^ {_.toSet}
+  lazy val eqs: SP[Eq]     = rep1sep(equation, ",") ^^ {_.toSet}
+
+  lazy val program =
+    (("VARS(" ~> vars <~ ");") ~ ("SHAPES(" ~> shps <~ ");") ~
+    ("EQUATIONS(" ~> eqs <~ ");")) ^^ {
+      case vs ~ ss ~ es ⇒ Program(vs, Set(), ss, es)
+    }
+
+  def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {
+    case Success(p, _) ⇒ Some(p)
+    case failure: NoSuccess ⇒ None
   }
 
   // external parsing interface
@@ -130,6 +148,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
   def parseEq(input:String) = tryParsing(equation)(input)
   def parseExpr(input:String) = tryParsing(expr)(input)
   def parseIP(input:String) = tryParsing(ipoint)(input)
-  def apply(input: String) = parseShp(input)
+  def parseProg(input:String) = tryParsing(program)(input)
+  def apply(input: String) = parseProg(input)
 
 }

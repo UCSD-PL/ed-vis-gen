@@ -102,7 +102,7 @@ object PointGeneration {
 
 // synthesis of positional interactions
 // in general, take a program as input and produce a set of programs as output
-//
+
 object Positional {
   // simple translations
   // given a shape, return points s.t. dragging the point results in a translation.
@@ -124,12 +124,4 @@ object Positional {
       candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2))
     }
   }
-}
-
-object Tester extends App {
-  // the magic of implicit conversions :)
-  val p1 = ("foo", "bar")
-  val p2 = ("baz", "boo")
-  val shp = Circle(p1, "radius")
-  println(Positional.Translate(shp))
 }
