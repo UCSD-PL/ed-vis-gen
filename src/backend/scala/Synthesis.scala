@@ -75,7 +75,7 @@ object PointGeneration {
     val midPoint = c.toIP()
     val midPointEqs = equalityEqs(midPoint, c)
 
-    // left
+    // @TODO: refactor...
     val leftPoint = c.toIP("L")
     val leftPointEqs = Set(Eq(leftPoint.x, c.x minus r), Eq(leftPoint.y, c.y))
 
@@ -103,21 +103,33 @@ object PointGeneration {
 // synthesis of positional interactions
 // in general, take a program as input and produce a set of programs as output
 //
-// object Positional {
-//   // simple translations
-//   // given a shape, return a set of programs encoding *just* the translations
-//   // e.g. Translate(Circle((a,b), c)) =>
-//   object Translate {
-//     def circ(c: Circle) = c match {
-//
-//     }
-//   }
-// }
+object Positional {
+  // simple translations
+  // given a shape, return points s.t. dragging the point results in a translation.
+  object Translate {
+    def apply(s: Shape) = {
+      // get mesh points for shape
+      val candidates = PointGeneration(s)
+      // get translation links
+      val newLinks = s match {
+        case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
+        case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
+        case Circle(Point(a,b), _) ⇒ Set(a,b)
+        case Image(Point(a,b), _, _) ⇒ Set(a,b)
+        case _ ⇒ throw Incomplete
+      }
+
+      // add translation links to each candidate IPoint. candidates has type
+      // Set[(IPoint, Set[Eq])]
+      candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2))
+    }
+  }
+}
 
 object Tester extends App {
   // the magic of implicit conversions :)
   val p1 = ("foo", "bar")
   val p2 = ("baz", "boo")
-  val lne = LineSegment(p1, p2)
-  println(PointGeneration(lne))
+  val shp = Circle(p1, "radius")
+  println(Positional.Translate(shp))
 }
