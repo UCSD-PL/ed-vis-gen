@@ -15,8 +15,19 @@ import scala.collection.immutable.{Map ⇒ Map, Set ⇒ Set}
 
 // constraint variables
 case class Variable(name:String)
-// convenience point class
-case class Point(x: Variable, y: Variable)
+// convenience point class, interaction points
+case class Point(x: Variable, y: Variable) {
+  def toIP(suffix:String = "") = {
+    val (newx, newy) = (Variable(x.name ++ "_IX" ++ suffix), Variable(y.name ++ "_IY" ++ suffix) )
+    IPoint(newx, newy)
+  }
+}
+case class IPoint(x: Variable, y: Variable, links: Set[Variable])
+
+object IPoint {
+  // constructor when just given variables
+  def apply(x: Variable, y: Variable):IPoint = IPoint(x, y, Set(x,y))
+}
 
 // primitive shapes
 sealed abstract class Shape
@@ -37,12 +48,25 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
     val strs = vars.mapValues(_.toString)
     "(" ++ strs.foldLeft(constant.toString())(each) ++ ")"
   }
+
+  // helper builders
+  def plus(that: Expr) = Expr(constant + that.constant, vars ++ that.vars)
+  def minus(that: Expr) = Expr(constant - that.constant,
+    vars ++ that.vars.mapValues(-1 * _))
+  def times(that: Double) = Expr(constant * that, vars.mapValues(that * _))
+  def div(that: Double) = times(1/that)
 }
 
 // lhs = rhs equation
 case class Eq(lhs: Expr, rhs: Expr) {
   override def toString() = Helpers.prettyPrint(lhs, "≡", rhs)
 }
+
+// for now, programs are sets of variables, ipoints, primitives, and equations.
+case class Program(
+  vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape], equations : Set[Eq]
+)
+
 
 
 // parsers for AST
@@ -62,9 +86,11 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val lne = "Line(" ~> ((pnt <~ ",") ~ pnt) <~ ")" ^^ {case l ~ r ⇒ LineSegment(l, r)}
 
-
   lazy val shp = crc | tri | rct | img | lne
 
+  // IPoints
+  // @TODO: parse links
+  lazy val ipoint = "IPoint(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ IPoint(l,r, Set())}
   // expressions and equations
   // allow numbers to be proceeded by a sign.
   override def decimalNumber = """-?(\d+(\.\d*)?|\d*\.\d+)""".r
@@ -94,15 +120,16 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val equation = (expr <~ "=") ~ expr ^^ { case l ~ r ⇒ Eq(l,r) }
 
+  def tryParsing[T](start: PackratParser[T])(input: String) : T = parseAll(start, input) match {
+    case Success(res, _) ⇒ res
+    case failure: NoSuccess ⇒ scala.sys.error(failure.msg)
+  }
+
   // external parsing interface
-  def tryParsing[T](start: PackratParser[T])(input: String) : T =
-    parseAll(start, input) match {
-      case Success(res, _) ⇒ res
-      case failure: NoSuccess ⇒ scala.sys.error(failure.msg)
-    }
   def parseShp(input:String) = tryParsing(shp)(input)
   def parseEq(input:String) = tryParsing(equation)(input)
   def parseExpr(input:String) = tryParsing(expr)(input)
+  def parseIP(input:String) = tryParsing(ipoint)(input)
   def apply(input: String) = parseShp(input)
 
 }
