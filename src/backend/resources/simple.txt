@@ -1,0 +1,4 @@
+VARS(PX, PY, PR, TX1, TY1, TX2, TY2);
+SHAPES(Circle((PX, PY), PR), Rectangle((TX1, TY1), (TX2, TY2)),
+Line((PX, PY), (TX1, TY1)));
+EQUATIONS(PX = 0.5 * TX1 + 0.5 * TX2, PY = 0.5 * TY1 + 0.5 * TY2);
