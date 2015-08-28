@@ -1,0 +1,52 @@
+<html>
+<script src="src/frontend/cassie/c.js"></script>
+<script src="src/frontend/cassie/HashTable.js"></script>
+<script src="src/frontend/cassie/HashSet.js"></script>
+<script src="src/frontend/cassie/Error.js"></script>
+<script src="src/frontend/cassie/SymbolicWeight.js"></script>
+<script src="src/frontend/cassie/Strength.js"></script>
+<script src="src/frontend/cassie/Variable.js"></script>
+<script src="src/frontend/cassie/Point.js"></script>
+<script src="src/frontend/cassie/Expression.js"></script>
+<script src="src/frontend/cassie/Constraint.js"></script>
+<script src="src/frontend/cassie/EditInfo.js"></script>
+<script src="src/frontend/cassie/Tableau.js"></script>
+<script src="src/frontend/cassie/SimplexSolver.js"></script>
+<script src="src/frontend/cassie/Timer.js"></script>
+
+
+<script src="src/frontend/eddie/helpers.js"> </script>
+<script src="src/frontend/eddie/primitives.js"></script>
+<script src="src/frontend/eddie/library.js"></script>
+<script src="src/frontend/eddie/common.js"></script>
+<script src="src/frontend/eddie/simple.js"></script>
+<script>
+  function main() {
+    common_init();
+    init();
+    global_redraw();
+  }
+</script>
+<head>
+    <title>Simple synthesis POC</title>
+
+    <div style="float:left; width:250px; margin-top: -20px;">
+      <h2> Simulation controls </h2>
+      <button onclick="start()">Start</button>
+      <button onclick="stop()">Stop</button>
+      <button onclick="reset()">Reset</button>
+      <div id="sliders"></div>
+    </div>
+
+</head>
+
+<body width="1200px" height="1200px" onload="main();">
+  <canvas id="mainCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:0; ">
+  </canvas>
+  <canvas id="incCanvas" width="100%" height="100%"
+  style="position:absolute; z-index:1; pointer-events:none; ">
+  </canvas>
+
+</body>
+</html>
