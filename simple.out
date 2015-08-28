@@ -1,0 +1,98 @@
+[0m[[0minfo[0m] [0mLoading project definition from /Users/john/ed-vis-gen/project[0m
+[0m[[0minfo[0m] [0mSet current project to ed-vis-gen (in build file:/Users/john/ed-vis-gen/)[0m
+original:
+VARIABLES:
+    PX; PY; PR;
+IPOINTS:
+    
+SHAPES:
+    Circle( PX, PY, PR );
+EQUATIONS:
+    
+interactive variants:
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PR = makeVariable("PR", 20.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IYB = makeVariable("PY_IYB", 70.0);
+    PX_IXB = makeVariable("PX_IXB", 50.0);
+//IPOINTS:
+    IP0 = InteractionPoint( PX_IXB, PY_IYB );
+    IP0.links = ["PX_IXB", "PY_IYB", "PX", "PY"];
+//SHAPES:
+    S1 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IYB).times(1.0)),
+        fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(1.0))));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IXB).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PX).times(1.0)));
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX_IXT = makeVariable("PX_IXT", 50.0);
+    PR = makeVariable("PR", 20.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IYT = makeVariable("PY_IYT", 30.0);
+//IPOINTS:
+    IP2 = InteractionPoint( PX_IXT, PY_IYT );
+    IP2.links = ["PX_IXT", "PY_IYT", "PX", "PY"];
+//SHAPES:
+    S3 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IYT).times(1.0)),
+        fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(-1.0))));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IXT).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PX).times(1.0)));
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PR = makeVariable("PR", 20.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IYL = makeVariable("PY_IYL", 50.0);
+    PX_IXL = makeVariable("PX_IXL", 30.0);
+//IPOINTS:
+    IP4 = InteractionPoint( PX_IXL, PY_IYL );
+    IP4.links = ["PX_IXL", "PY_IYL", "PX", "PY"];
+//SHAPES:
+    S5 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IXL).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(-1.0))));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IYL).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY).times(1.0)));
+//VARIABLES:
+    PX_IX = makeVariable("PX_IX", 50.0);
+    PY = makeVariable("PY", 50.0);
+    PR = makeVariable("PR", 20.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IY = makeVariable("PY_IY", 50.0);
+//IPOINTS:
+    IP6 = InteractionPoint( PX_IX, PY_IY );
+    IP6.links = ["PX_IX", "PY_IY", "PX", "PY"];
+//SHAPES:
+    S7 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY).times(1.0)));
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX_IXR = makeVariable("PX_IXR", 70.0);
+    PR = makeVariable("PR", 20.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IYR = makeVariable("PY_IYR", 50.0);
+//IPOINTS:
+    IP8 = InteractionPoint( PX_IXR, PY_IYR );
+    IP8.links = ["PX_IXR", "PY_IYR", "PX", "PY"];
+//SHAPES:
+    S9 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IXR).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(1.0))));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IYR).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY).times(1.0)));
+[0m[[32msuccess[0m] [0mTotal time: 1 s, completed Aug 28, 2015 12:00:51 PM[0m
