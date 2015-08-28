@@ -29,7 +29,12 @@ object Run {
       ), tup._3)
     )
 
-    newProgs.foreach(pr ⇒ println(LowLevel(pr._1, pr._2)))
+    var pcounter = 0
+    newProgs.foreach(pr ⇒ {
+      println("//prog" ++ pcounter.toString)
+      pcounter += 1
+      println(LowLevel(pr._1, pr._2) ++ "\n")}
+    )
     //println(Positional.Translate(shp))
   }
 

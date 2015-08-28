@@ -1,15 +1,17 @@
 [0m[[0minfo[0m] [0mLoading project definition from /Users/john/ed-vis-gen/project[0m
 [0m[[0minfo[0m] [0mSet current project to ed-vis-gen (in build file:/Users/john/ed-vis-gen/)[0m
+[0m[[0minfo[0m] [0mCompiling 1 Scala source to /Users/john/ed-vis-gen/target/scala-2.10/classes...[0m
 original:
 VARIABLES:
     PX; PY; PR;
 IPOINTS:
-    
+
 SHAPES:
     Circle( PX, PY, PR );
 EQUATIONS:
-    
+
 interactive variants:
+//prog0
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
     PR = makeVariable("PR", 20.0);
@@ -27,6 +29,8 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
         fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(1.0))));
     addEquation(    fromConst(0.0).plus(fromVar(PX_IXB).times(1.0)),
                     fromConst(0.0).plus(fromVar(PX).times(1.0)));
+
+//prog1
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
     PX_IXT = makeVariable("PX_IXT", 50.0);
@@ -44,6 +48,8 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
         fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(-1.0))));
     addEquation(    fromConst(0.0).plus(fromVar(PX_IXT).times(1.0)),
                     fromConst(0.0).plus(fromVar(PX).times(1.0)));
+
+//prog2
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
     PR = makeVariable("PR", 20.0);
@@ -61,6 +67,8 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
         fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(-1.0))));
     addEquation(    fromConst(0.0).plus(fromVar(PY_IYL).times(1.0)),
                     fromConst(0.0).plus(fromVar(PY).times(1.0)));
+
+//prog3
 //VARIABLES:
     PX_IX = makeVariable("PX_IX", 50.0);
     PY = makeVariable("PY", 50.0);
@@ -78,6 +86,8 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
         fromConst(0.0).plus(fromVar(PX).times(1.0)));
     addEquation(    fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
                     fromConst(0.0).plus(fromVar(PY).times(1.0)));
+
+//prog4
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
     PX_IXR = makeVariable("PX_IXR", 70.0);
@@ -95,4 +105,5 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
         fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(1.0))));
     addEquation(    fromConst(0.0).plus(fromVar(PY_IYR).times(1.0)),
                     fromConst(0.0).plus(fromVar(PY).times(1.0)));
-[0m[[32msuccess[0m] [0mTotal time: 1 s, completed Aug 28, 2015 12:00:51 PM[0m
+
+[0m[[32msuccess[0m] [0mTotal time: 8 s, completed Aug 28, 2015 12:16:36 PM[0m
