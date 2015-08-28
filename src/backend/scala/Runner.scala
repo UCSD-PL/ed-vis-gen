@@ -35,7 +35,6 @@ object Run {
       pcounter += 1
       println(LowLevel(pr._1, pr._2) ++ "\n")}
     )
-    //println(Positional.Translate(shp))
   }
 
   def usage() = {

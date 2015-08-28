@@ -5,7 +5,37 @@ import EDDIE.errors._
 import EDDIE.semantics._
 import org.kiama.output.PrettyPrinter
 import scala.collection.immutable.{Seq ⇒ Seq}
+import scala.collection.mutable.{HashMap ⇒ MMap}
 
+// allocator for javascript global variable names. maps objects which will be
+// stored in variables (Variables, IPoints, and Shapes) to names.
+
+// usage is through apply; apply extends the map if necessary and returns
+// an object's name.
+object Allocator {
+  // union type hack
+  sealed class VorIPorShp[T]
+  implicit object VWitness extends VorIPorShp[Variable]
+  implicit object IPWitness extends VorIPorShp[IPoint]
+  implicit object ShpWitness extends VorIPorShp[Shape]
+  trait Inner[T] extends MMap[T, String] {
+    var alloc = -1
+    override def default(key: T) = {
+      alloc += 1
+      this.+=(key → alloc.toString)
+      alloc.toString
+    }
+  }
+
+  object Variables extends Inner[Variable]
+  object IPoints extends Inner[IPoint]
+  object Shapes extends Inner[Shape]
+  def apply[T: VorIPorShp](v: T) = v match {
+    case v@Variable(_) ⇒ Variables(v)
+    case v@IPoint(_, _, _) ⇒ IPoints(v)
+    case v: Shape ⇒ Shapes(v)
+  }
+}
 
 trait Emitter extends PrettyPrinter {
   def TODO: Doc = "TODO"
@@ -87,16 +117,12 @@ object LowLevel extends Emitter {
   def shpPreamble = "//SHAPES:"
   def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> "//EQUATIONS:"
 
-  var varAlloc = -1;
-
   def printVar(v: Variable, σ:Store) =  {
-    v.name <+> "=" <+> "makeVariable" <> parens(
+    v.name <> Allocator(v) <+> "=" <+> "makeVariable" <> parens(
       dquotes(text(v.name)) <> comma <+> σ(v).toString) <> semi
   }
   def printShape(s: Shape) = {
-    // ugh mutable state
-    varAlloc += 1
-    "S" <> varAlloc.toString <+> "=" <+> {
+    "S" <> Allocator(s) <+> "=" <+> {
       val (ctor:String, args) = s match {
         case LineSegment(Point(a,b), Point(c,d)) ⇒ ("ClosedLine", Seq(a,b,c,d))
         case Rectangle(Point(a,b), Point(c,d)) ⇒ ("Rectangle", Seq(a,b,c,d))
@@ -138,8 +164,7 @@ object LowLevel extends Emitter {
   }}
   def printIP(p:IPoint) = p match {
     case IPoint(x, y, links) ⇒ {
-      varAlloc += 1
-      val vname = "IP" <> varAlloc.toString
+      val vname = "IP" <> Allocator(p)
       vname <+> "=" <+> printConstructor(
         "InteractionPoint", Seq(x, y).map(v ⇒ text(v.name))
       ) <@> vname <> ".links" <+> "=" <+> brackets(
@@ -147,4 +172,8 @@ object LowLevel extends Emitter {
       ) <> semi
     }
   }
+
+  // assumes the rest of the program has been emitted (i.e., that Allocator constraints
+  // the correct variable names)
+  //def printDrawUpdates
 }
