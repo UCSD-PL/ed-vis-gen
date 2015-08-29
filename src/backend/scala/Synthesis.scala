@@ -134,4 +134,26 @@ object Positional {
       candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2, v._3))
     }
   }
+  
+  // Stretch interaction on shapes
+  // given a shape, returns links that result in stretching
+  // can cause poorly definied operations
+  object Stretch {
+    def apply(s: Shape, σ: Store) = {
+      // get mesh points for shape
+      val candidates = PointGeneration(s, σ)
+      // get translation links
+      val newLinks = s match {
+        //case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
+        //case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
+        case Circle(_, c) ⇒ Set(c)
+        //case Image(Point(a,b), _, _) ⇒ Set(a,b)
+        case _ ⇒ throw Incomplete
+      }
+
+      // add translation links to each candidate IPoint. candidates has type
+      // Set[(IPoint, Set[Eq], Store)]
+      candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2, v._3))
+    }
+  }
 }
