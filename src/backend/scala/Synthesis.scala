@@ -5,6 +5,8 @@ import EDDIE.errors._
 import EDDIE.Conversions._
 import EDDIE.semantics._
 
+import scala.annotation.tailrec
+
 // interaction point placements: given a shape, return all possible ipoints and
 // their respective positional equations. e.g. Circle((a,b), c) => (a,b) + 8 points
 // on the circle
@@ -109,6 +111,50 @@ object PointGeneration {
     Set((ret, retEq, retσ))
   }
 }
+
+trait SynthesisPass {
+  // given a seed set of links and equations, return a set of links which results
+  // in a well-defined interaction. we enforce the invariant that every equation
+  // contains either 2 free variables, or no free variables.
+  def extendLinks(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
+    if (eqs.exists(e ⇒ e.count(links) > 2)) {
+      Set()
+    }
+    else {
+      extendLinkHelper(links,
+        eqs.filter(e ⇒ e.count(links) == 0),
+        eqs.filter(e ⇒ e.count(links) == 1),
+        eqs.filter(e ⇒ e.count(links) == 2))
+    }
+  }
+
+  // given a set of links, a set of equation containing no free variables,
+  // a set of equations containing one free variable, and a set of equations
+  // containing two free variables, return all valid collections of links.
+  //@tailrec
+  def extendLinkHelper(links: Set[Variable],
+    empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
+      if (semis.isEmpty) {
+        Set(links)
+      } else {
+        // for each equation e in semis, for each fixed variable x in e, if x
+        // respects the invariant, add x to links, adjust the sets, and recurse.
+        val candidates = semis.flatMap(e ⇒ e.remove(links)).filterNot(v ⇒
+          fullfilled.exists( e ⇒ e.count(Set(v)) == 1 ))
+        // candidates :: v ∈ Set[Variable] | v can be added to links
+        candidates.flatMap(v ⇒ {
+          // adding v might bump some empties to semis, but not to fullfilleds.
+          val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(Set(v)) == 0)
+          // ditto for semis to fulls
+          val (newSemi2, newFull) = semis.partition(e ⇒ e.count(Set(v)) == 1)
+          extendLinkHelper( links + v,
+            newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
+          )}
+        )
+      }
+    }
+}
+
 
 // synthesis of positional interactions
 // in general, take a program as input and produce a set of programs as output

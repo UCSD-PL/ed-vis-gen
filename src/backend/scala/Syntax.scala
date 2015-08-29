@@ -57,6 +57,9 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
 // lhs = rhs equation
 case class Eq(lhs: Expr, rhs: Expr) {
   override def toString() = Helpers.prettyPrint(lhs, "≡", rhs)
+  def count(vars: Set[Variable]) =
+    ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
+  def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
 }
 
 // for now, programs are sets of variables, ipoints, primitives, and equations.
