@@ -10,6 +10,7 @@ case class Store(vars: Map[Variable, Double]) {
   def get(v: Variable) = vars.applyOrElse(v, default)
   def put(v : Variable, d: Double) = this.+(v → d)
   def +(kv: (Variable, Double)) = Store(vars + kv)
+  def ++(that: Store) = Store(vars ++ that.vars)
 }
 
 object Store {

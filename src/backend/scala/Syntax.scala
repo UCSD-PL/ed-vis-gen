@@ -31,21 +31,22 @@ object IPoint {
 // trait for fancy pattern matching
 trait Boxy {
   def center: Point
-  def height: Variable
-  def width: Variable
+  // for ease of helper functions, store half the height/width
+  def hheight: Variable
+  def hwidth: Variable
 }
 
 object BoxLike {
     // extractor method
-    def unapply(b: Boxy) = Some((b.center, b.height, b.width))
+    def unapply(b: Boxy) = Some((b.center, b.hheight, b.hwidth))
 }
 
 
 sealed abstract class Shape
 case class Circle(center: Point, radius: Variable) extends Shape
 case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape
-case class Rectangle(center: Point, height: Variable, width: Variable) extends Shape with Boxy
-case class Image(center: Point, height: Variable, width: Variable) extends Shape with Boxy
+case class Rectangle(center: Point, hheight: Variable, hwidth: Variable) extends Shape with Boxy
+case class Image(center: Point, hheight: Variable, hwidth: Variable) extends Shape with Boxy
 case class LineSegment(begin: Point, end: Point) extends Shape
 
 // constraint equations and affine expressions
@@ -73,6 +74,11 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
     vars ++ that.vars.mapValues(-1 * _))
   def times(that: Double) = Expr(constant * that, vars.mapValues(that * _))
   def div(that: Double) = times(1/that)
+}
+
+object Expr {
+  def apply(c: Double): Expr = Expr(c, Map())
+  def apply(v: Variable): Expr = Expr(0.0, Map(v → 1.0))
 }
 
 // lhs = rhs equation

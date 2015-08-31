@@ -135,16 +135,16 @@ object LowLevel extends Emitter {
       case _ ⇒ (TODO, Seq())
     }
 
-    // transform rectangle args from (x, y, w, h) to (x-w/2, y-h/2, x+w/2, y+h/2)
+    // transform rectangle args from (x, y, w, h) to (x-hw, y-hh, x+hw, y+hh)
     // @TODO: disgusting...needs better design
     val inter = symbArgs.map(v ⇒ (v.name ++ ".value"))
     val strArgs = s match {
       // first, add "-" to the first two elements and "+" to the second two.
       // then, add "w/2"/"h/2" to the first two and "x"/"y" to the second two
       case _:Rectangle ⇒ inter.zipWithIndex.map( pr ⇒ if (pr._2 < 2) {
-        pr._1 ++ "-" ++ inter(pr._2+2) ++ "/2"
+        pr._1 ++ "-" ++ inter(pr._2+2)
       } else {
-        pr._1 ++"/2 +" ++ inter(pr._2-2)
+        pr._1 ++ "+" ++ inter(pr._2-2)
       })
       case _ ⇒ inter
     }

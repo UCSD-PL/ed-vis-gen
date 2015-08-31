@@ -8,7 +8,7 @@ import scala.language.implicitConversions
 
 
 object Conversions {
-  implicit def Var2Expr(v:Variable) = Expr(0, Map(v → 1.0))
+  implicit def Var2Expr(v:Variable) = Expr(v)
   implicit def Const2Expr(c:Double) = Expr(c, Map())
   implicit def Tup2Point(vs: Tuple2[Variable, Variable]) = Point(vs._1, vs._2)
   implicit def TS2Point(vs: Tuple2[String, String]) = Point(Variable(vs._1), Variable(vs._2))

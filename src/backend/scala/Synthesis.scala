@@ -11,9 +11,14 @@ import scala.annotation.tailrec
 // their respective positional equations. e.g. Circle((a,b), c) => (a,b) + 8 points
 // on the circle
 object PointGeneration {
-  def apply(s: Shape, σ: Store): Set[(IPoint, Set[Eq], Store)] = s match {
+  type IPConfig = (IPoint, Set[Eq], Store)
+  type VarConfig = (Variable, Set[Eq], Store)
+
+  def VC2IPC(x: VarConfig, y: VarConfig) =
+    (IPoint(x._1, y._1), x._2 ++ y._2, x._3 ++ y._3)
+  def apply(s: Shape, σ: Store): Set[IPConfig] = s match {
     case LineSegment(s, e) ⇒ line(s,e, σ)
-    //case BoxLike(c, h, w) ⇒ box(tl, h, w, σ)
+    case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
     case _ ⇒ throw Incomplete
   }
@@ -21,6 +26,18 @@ object PointGeneration {
   // helper function; link up an IP and a point by equality
   def equality(l: IPoint, r: Point, σ: Store) = {
     (Set(Eq(l.x, r.x), Eq(l.y, r.y)), σ + (l.x → σ(r.x)) + (l.y → σ(r.y)))
+  }
+  def ident(l: Variable, r: Variable, σ: Store): VarConfig = {
+    (l, Set(Eq(l, r)), σ + (l → σ(r)))
+  }
+  def plus(l: Variable, r: Variable, σ: Store) : VarConfig = {
+    val newVar = Variable(l.name ++ "P" ++ r.name)
+    (newVar, Set(Eq(newVar, Expr(l) plus Expr(r))), σ + (newVar → (σ(l) + σ(r))))
+  }
+
+  def minus(l: Variable, r: Variable, σ: Store) : VarConfig = {
+    val newVar = Variable(l.name ++ "M" ++ r.name)
+    (newVar, Set(Eq(newVar, Expr(l) minus Expr(r))), σ + (newVar → (σ(l) - σ(r))))
   }
   // helper function; link up an IP to the midpoint of two points
   def midPoint(ip: IPoint, l: Point, r: Point, σ: Store) = {
@@ -58,13 +75,18 @@ object PointGeneration {
   // *   *   *
   // |       |
   // * - * - *
-  def rect(topLeft: Point, botRight: Point, σ: Store) = {
-    // phantom points, valid because topLeft and botRight are already points
-    val topRight = Point(botRight.x, topLeft.y)
-    val botLeft  = Point(topLeft.x, botRight.y)
+  def box(center: Point, hheight: Variable, hwidth: Variable, σ: Store):Set[IPConfig] = {
+    for {
+      x <- Set(ident(center.toIP().x, center.x, σ),
+               plus(center.x, hwidth, σ),
+               minus(center.x, hwidth, σ))
+      y <- Set(ident(center.toIP().y, center.y, σ),
+               plus(center.y, hheight, σ),
+               minus(center.y, hheight, σ))
+    } yield (VC2IPC(x,y))
 
-    line(topLeft, topRight, σ) ++ line(botLeft, botRight, σ) ++
-      Set(makeMP(topLeft, botLeft, σ), makeMP(topRight, botRight, σ), makeMP(topLeft, botRight, σ))
+    // line(topLeft, topRight, σ) ++ line(botLeft, botRight, σ) ++
+    //   Set(makeMP(topLeft, botLeft, σ), makeMP(topRight, botRight, σ), makeMP(topLeft, botRight, σ))
   }
 
   // center, 4 points on radius. circle version of the rectangle projection.
