@@ -13,9 +13,8 @@ import scala.annotation.tailrec
 object PointGeneration {
   def apply(s: Shape, σ: Store): Set[(IPoint, Set[Eq], Store)] = s match {
     case LineSegment(s, e) ⇒ line(s,e, σ)
-    case Rectangle(tl, br) ⇒ rect(tl, br, σ)
+    //case BoxLike(c, h, w) ⇒ box(tl, h, w, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
-    case Image(center, height, width) ⇒ img(center, height, width, σ)
     case _ ⇒ throw Incomplete
   }
 
@@ -131,6 +130,7 @@ trait SynthesisPass {
   // given a set of links, a set of equation containing no free variables,
   // a set of equations containing one free variable, and a set of equations
   // containing two free variables, return all valid collections of links.
+  // @OPT: make this function tail-recursive
   //@tailrec
   def extendLinkHelper(links: Set[Variable],
     empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
@@ -169,9 +169,8 @@ object Positional {
       // get translation links
       val newLinks = s match {
         case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
-        case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
+        case BoxLike(Point(a,b), _, _)   ⇒ Set(a,b)
         case Circle(Point(a,b), _) ⇒ Set(a,b)
-        case Image(Point(a,b), _, _) ⇒ Set(a,b)
         case _ ⇒ throw Incomplete
       }
 
@@ -180,7 +179,7 @@ object Positional {
       candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2, v._3))
     }
   }
-  
+
   // Stretch interaction on shapes
   // given a shape, returns links that result in stretching
   // can cause poorly definied operations

@@ -1,85 +1,134 @@
 [0m[[0minfo[0m] [0mLoading project definition from /Users/john/ed-vis-gen/project[0m
 [0m[[0minfo[0m] [0mSet current project to ed-vis-gen (in build file:/Users/john/ed-vis-gen/)[0m
-[0m[[0minfo[0m] [0mCompiling 1 Scala source to /Users/john/ed-vis-gen/target/scala-2.10/classes...[0m
 original:
 VARIABLES:
-    PX; PY; PR;
+    PX; PY; PX2; PY2;
 IPOINTS:
-
+    
 SHAPES:
-    Circle( PX, PY, PR );
+    Rectangle( PX, PY, PX2, PY2 );
 EQUATIONS:
-
+    
 interactive variants:
 //prog0
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
-    PR = makeVariable("PR", 20.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
+    PY_PY_MPY = makeVariable("PY_PY_MPY", 50.0);
     PX = makeVariable("PX", 50.0);
-    PY_IYB = makeVariable("PY_IYB", 70.0);
-    PX_IXB = makeVariable("PX_IXB", 50.0);
+    PX_PX2_MPX = makeVariable("PX_PX2_MPX", 60.0);
 //IPOINTS:
-    IP0 = InteractionPoint( PX_IXB, PY_IYB );
-    IP0.links = ["PX_IXB", "PY_IYB", "PX", "PY"];
+    IP0 = InteractionPoint( PX_PX2_MPX, PY_PY_MPY );
+    IP0.links = ["PY", "PX2", "PY2", "PY_PY_MPY", "PX", "PX_PX2_MPX"];
 //SHAPES:
-    S1 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
-    addEquation(    fromConst(0.0).plus(fromVar(PY_IYB).times(1.0)),
-        fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(1.0))));
-    addEquation(    fromConst(0.0).plus(fromVar(PX_IXB).times(1.0)),
-                    fromConst(0.0).plus(fromVar(PX).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_PX2_MPX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(0.5).plus(fromVar(PX).times(0.5))));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_PY_MPY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY).times(1.0)));
 
 //prog1
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
-    PX_IXT = makeVariable("PX_IXT", 50.0);
-    PR = makeVariable("PR", 20.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
     PX = makeVariable("PX", 50.0);
-    PY_IYT = makeVariable("PY_IYT", 30.0);
+    PY_PY2_MPY = makeVariable("PY_PY2_MPY", 70.0);
+    PX_PX_MPX = makeVariable("PX_PX_MPX", 50.0);
 //IPOINTS:
-    IP2 = InteractionPoint( PX_IXT, PY_IYT );
-    IP2.links = ["PX_IXT", "PY_IYT", "PX", "PY"];
+    IP1 = InteractionPoint( PX_PX_MPX, PY_PY2_MPY );
+    IP1.links = ["PY", "PX2", "PY2", "PX", "PY_PY2_MPY", "PX_PX_MPX"];
 //SHAPES:
-    S3 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
-    addEquation(    fromConst(0.0).plus(fromVar(PY_IYT).times(1.0)),
-        fromConst(0.0).plus(fromVar(PY).times(1.0).plus(fromVar(PR).times(-1.0))));
-    addEquation(    fromConst(0.0).plus(fromVar(PX_IXT).times(1.0)),
-                    fromConst(0.0).plus(fromVar(PX).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_PX_MPX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_PY2_MPY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(0.5).plus(fromVar(PY).times(0.5))));
 
 //prog2
 //VARIABLES:
+    PX_IX = makeVariable("PX_IX", 50.0);
     PY = makeVariable("PY", 50.0);
-    PR = makeVariable("PR", 20.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
     PX = makeVariable("PX", 50.0);
-    PY_IYL = makeVariable("PY_IYL", 50.0);
-    PX_IXL = makeVariable("PX_IXL", 30.0);
+    PY2_IY = makeVariable("PY2_IY", 90.0);
 //IPOINTS:
-    IP4 = InteractionPoint( PX_IXL, PY_IYL );
-    IP4.links = ["PX_IXL", "PY_IYL", "PX", "PY"];
+    IP2 = InteractionPoint( PX_IX, PY2_IY );
+    IP2.links = ["PX_IX", "PY", "PX2", "PY2", "PX", "PY2_IY"];
 //SHAPES:
-    S5 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
-    addEquation(    fromConst(0.0).plus(fromVar(PX_IXL).times(1.0)),
-        fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(-1.0))));
-    addEquation(    fromConst(0.0).plus(fromVar(PY_IYL).times(1.0)),
-                    fromConst(0.0).plus(fromVar(PY).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY2_IY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(1.0)));
 
 //prog3
 //VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
+    PX = makeVariable("PX", 50.0);
+    PX_PX2_MPX = makeVariable("PX_PX2_MPX", 60.0);
+    PY_PY2_MPY = makeVariable("PY_PY2_MPY", 70.0);
+//IPOINTS:
+    IP3 = InteractionPoint( PX_PX2_MPX, PY_PY2_MPY );
+    IP3.links = ["PY", "PX2", "PY2", "PX", "PX_PX2_MPX", "PY_PY2_MPY"];
+//SHAPES:
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX_PX2_MPX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(0.5).plus(fromVar(PX).times(0.5))));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_PY2_MPY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(0.5).plus(fromVar(PY).times(0.5))));
+
+//prog4
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
+    PX = makeVariable("PX", 50.0);
+    PX2_PX2_MPX = makeVariable("PX2_PX2_MPX", 70.0);
+    PY_PY2_MPY = makeVariable("PY_PY2_MPY", 70.0);
+//IPOINTS:
+    IP4 = InteractionPoint( PX2_PX2_MPX, PY_PY2_MPY );
+    IP4.links = ["PY", "PX2", "PY2", "PX", "PX2_PX2_MPX", "PY_PY2_MPY"];
+//SHAPES:
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX2_PX2_MPX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_PY2_MPY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(0.5).plus(fromVar(PY).times(0.5))));
+
+//prog5
+//VARIABLES:
     PX_IX = makeVariable("PX_IX", 50.0);
     PY = makeVariable("PY", 50.0);
-    PR = makeVariable("PR", 20.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
     PX = makeVariable("PX", 50.0);
     PY_IY = makeVariable("PY_IY", 50.0);
 //IPOINTS:
-    IP6 = InteractionPoint( PX_IX, PY_IY );
-    IP6.links = ["PX_IX", "PY_IY", "PX", "PY"];
+    IP5 = InteractionPoint( PX_IX, PY_IY );
+    IP5.links = ["PX_IX", "PY", "PX2", "PY2", "PX", "PY_IY"];
 //SHAPES:
-    S7 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
     addEquation(    fromConst(0.0).plus(fromVar(PX_IX).times(1.0)),
@@ -87,23 +136,67 @@ init_stays(); // SUPER IMPORTANT NEED THIS CALL
     addEquation(    fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
                     fromConst(0.0).plus(fromVar(PY).times(1.0)));
 
-//prog4
+//prog6
 //VARIABLES:
     PY = makeVariable("PY", 50.0);
-    PX_IXR = makeVariable("PX_IXR", 70.0);
-    PR = makeVariable("PR", 20.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PX2_IX = makeVariable("PX2_IX", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
     PX = makeVariable("PX", 50.0);
-    PY_IYR = makeVariable("PY_IYR", 50.0);
+    PY2_IY = makeVariable("PY2_IY", 90.0);
 //IPOINTS:
-    IP8 = InteractionPoint( PX_IXR, PY_IYR );
-    IP8.links = ["PX_IXR", "PY_IYR", "PX", "PY"];
+    IP6 = InteractionPoint( PX2_IX, PY2_IY );
+    IP6.links = ["PY", "PX2", "PX2_IX", "PY2", "PX", "PY2_IY"];
 //SHAPES:
-    S9 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
-    addEquation(    fromConst(0.0).plus(fromVar(PX_IXR).times(1.0)),
-        fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(PR).times(1.0))));
-    addEquation(    fromConst(0.0).plus(fromVar(PY_IYR).times(1.0)),
+    addEquation(    fromConst(0.0).plus(fromVar(PX2_IX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY2_IY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(1.0)));
+
+//prog7
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
+    PY2_PY2_MPY = makeVariable("PY2_PY2_MPY", 90.0);
+    PX = makeVariable("PX", 50.0);
+    PX_PX2_MPX = makeVariable("PX_PX2_MPX", 60.0);
+//IPOINTS:
+    IP7 = InteractionPoint( PX_PX2_MPX, PY2_PY2_MPY );
+    IP7.links = ["PY", "PX2", "PY2", "PY2_PY2_MPY", "PX", "PX_PX2_MPX"];
+//SHAPES:
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX_PX2_MPX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(0.5).plus(fromVar(PX).times(0.5))));
+    addEquation(    fromConst(0.0).plus(fromVar(PY2_PY2_MPY).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PY2).times(1.0)));
+
+//prog8
+//VARIABLES:
+    PY = makeVariable("PY", 50.0);
+    PX2 = makeVariable("PX2", 70.0);
+    PX2_IX = makeVariable("PX2_IX", 70.0);
+    PY2 = makeVariable("PY2", 90.0);
+    PX = makeVariable("PX", 50.0);
+    PY_IY = makeVariable("PY_IY", 50.0);
+//IPOINTS:
+    IP8 = InteractionPoint( PX2_IX, PY_IY );
+    IP8.links = ["PY", "PX2", "PX2_IX", "PY2", "PX", "PY_IY"];
+//SHAPES:
+    S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+        "black" );
+init_stays(); // SUPER IMPORTANT NEED THIS CALL
+//EQUATIONS:
+    addEquation(    fromConst(0.0).plus(fromVar(PX2_IX).times(1.0)),
+        fromConst(0.0).plus(fromVar(PX2).times(1.0)));
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
                     fromConst(0.0).plus(fromVar(PY).times(1.0)));
 
-[0m[[32msuccess[0m] [0mTotal time: 8 s, completed Aug 28, 2015 12:16:36 PM[0m
+[0m[[32msuccess[0m] [0mTotal time: 1 s, completed Aug 31, 2015 11:52:46 AM[0m

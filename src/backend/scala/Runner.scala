@@ -14,11 +14,14 @@ object Run {
   def main(args: Array[String]) {
     val fle = fromURL(getClass.getResource("/" + args(0)))
     val (prog: Program, initσ: Store) = Parser(fle.mkString) match {
-      case Some(p) ⇒ p
-      case _ ⇒ println("cant parse file:" ++ args(0)); usage()
+      case Left(p) ⇒ p
+      case Right(msg) ⇒ println(msg); usage()
+      //case _ ⇒ println("can't parse file " ++ simple.txt); usage
     }
     println("original:")
     println(HighLevel(prog, initσ))
+    println("compiled version:")
+    println(LowLevel(prog, initσ))
     println("interactive variants:")
     // Set[(IPoint, Set[Eq])]
     val newProgs = prog.shapes.flatMap(Positional.Translate(_, initσ)).map( tup ⇒

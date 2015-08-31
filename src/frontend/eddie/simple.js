@@ -6,21 +6,27 @@ function init() {
   //VARIABLES:
       PX_IX = makeVariable("PX_IX", 50.0);
       PY = makeVariable("PY", 50.0);
-      PR = makeVariable("PR", 20.0);
+      PX2 = makeVariable("PX2", 70.0);
+      PY2 = makeVariable("PY2", 90.0);
       PX = makeVariable("PX", 50.0);
       PY_IY = makeVariable("PY_IY", 50.0);
   //IPOINTS:
       IP6 = InteractionPoint( PX_IX, PY_IY );
-      IP6.links = ["PX_IX", "PY_IY", "PX", "PY"];
+      IP6.links = ["PX_IX", "PX2", "PX", "PY", "PY2", "PY_IY"];
   //SHAPES:
-      S7 = Circle( PX.value, PY.value, PR.value, "rgba(0,0,0,0)", "black" );
+      S0 = Rectangle( PX.value, PY.value, PX2.value, PY2.value, "rgba(0,0,0,0)",
+          "black" );
+      S0W = makeVariable("S0W", 20);
+      S0H = makeVariable("S0H", 40);
   init_stays(); // SUPER IMPORTANT NEED THIS CALL
   //EQUATIONS:
       addEquation(    fromConst(0.0).plus(fromVar(PX_IX).times(1.0)),
           fromConst(0.0).plus(fromVar(PX).times(1.0)));
       addEquation(    fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
                       fromConst(0.0).plus(fromVar(PY).times(1.0)));
-  push(all_objects, IP6, S7);
+      addEquation(fromVar(S0W), fromVar(PX2).minus(fromVar(PX)));
+      addEquation(fromVar(S0H), fromVar(PY2).minus(fromVar(PY)));
+  push(all_objects, IP6, S0);
   push(drag_points, IP6);
 
   // initialize timer
@@ -40,9 +46,10 @@ function drag_update() {
 
 function update_constraints() {
 
-  S7.x = PX.value;
-  S7.y = PY.value;
-  S7.r = PR.value;
+  S0.x1 = PX.value;
+  S0.y1 = PY.value;
+  S0.x2 = PX2.value;
+  S0.y2 = PY2.value;
 
 }
 

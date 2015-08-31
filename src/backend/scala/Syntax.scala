@@ -27,11 +27,25 @@ object IPoint {
 }
 
 // primitive shapes
+
+// trait for fancy pattern matching
+trait Boxy {
+  def center: Point
+  def height: Variable
+  def width: Variable
+}
+
+object BoxLike {
+    // extractor method
+    def unapply(b: Boxy) = Some((b.center, b.height, b.width))
+}
+
+
 sealed abstract class Shape
 case class Circle(center: Point, radius: Variable) extends Shape
 case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape
-case class Rectangle(topLeft: Point, botRight: Point) extends Shape
-case class Image(center: Point, height: Variable, width: Variable) extends Shape
+case class Rectangle(center: Point, height: Variable, width: Variable) extends Shape with Boxy
+case class Image(center: Point, height: Variable, width: Variable) extends Shape with Boxy
 case class LineSegment(begin: Point, end: Point) extends Shape
 
 // constraint equations and affine expressions
@@ -47,7 +61,14 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
   }
 
   // helper builders
-  def plus(that: Expr) = Expr(constant + that.constant, vars ++ that.vars)
+  // if the rhs contains a variable, sum the cofficients
+  def plus(that: Expr) = Expr(constant + that.constant,
+    vars.foldLeft(that.vars)((acc, nxt) ⇒ {
+      if (acc.contains(nxt._1))
+        acc + (nxt._1 → (acc(nxt._1) + nxt._2))
+      else
+        acc + nxt
+    }))
   def minus(that: Expr) = Expr(constant - that.constant,
     vars ++ that.vars.mapValues(-1 * _))
   def times(that: Double) = Expr(constant * that, vars.mapValues(that * _))

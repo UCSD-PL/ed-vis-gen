@@ -19,7 +19,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
   lazy val tri = "Triangle(" ~> ((pnt <~ ",") ~ (pnt <~ ",") ~ pnt) <~ ")" ^^ {
     case p1 ~ p2 ~ p3 ⇒ Triangle(p1, p2, p3)
   }
-  lazy val rct = "Rectangle(" ~> ((pnt <~ ",") ~ pnt) <~ ")" ^^ {case l ~ r ⇒ Rectangle(l, r)}
+  lazy val rct = "Rectangle(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {case c ~ h ~ w ⇒ Rectangle(c, h, w)}
   lazy val img = "Image(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
     case c ~ h ~ w ⇒ Image(c, h, w)
   }
@@ -79,8 +79,8 @@ object Parser extends JavaTokenParsers with PackratParsers {
     }
 
   def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {
-    case Success(p, _) ⇒ Some(p)
-    case failure: NoSuccess ⇒ None
+    case Success(p, _) ⇒ Left(p)
+    case f: NoSuccess ⇒ Right(f.msg)
   }
 
   // external parsing interface

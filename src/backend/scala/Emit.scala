@@ -22,8 +22,13 @@ object Allocator {
     var alloc = -1
     override def default(key: T) = {
       alloc += 1
-      this.+=(key → alloc.toString)
-      alloc.toString
+      val prefix = key match {
+        case Variable(nme) ⇒ nme
+        case v:IPoint ⇒ "IP"
+        case v:Shape ⇒ "S"
+      }
+      this.+=(key → (prefix ++ alloc.toString))
+      prefix ++ alloc.toString
     }
   }
 
@@ -86,7 +91,7 @@ object HighLevel extends Emitter {
   def printShape(s: Shape) = {
     val (cname: String, args) = s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
-      case Rectangle(Point(a,b), Point(c,d)) ⇒ ("Rectangle", Seq(a,b,c,d))
+      case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,h,w))
       case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
       case _ ⇒ (TODO, Seq())
@@ -118,24 +123,37 @@ object LowLevel extends Emitter {
   def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> "//EQUATIONS:"
 
   def printVar(v: Variable, σ:Store) =  {
-    v.name <> Allocator(v) <+> "=" <+> "makeVariable" <> parens(
+    text(v.name) <+> "=" <+> "makeVariable" <> parens(
       dquotes(text(v.name)) <> comma <+> σ(v).toString) <> semi
   }
-  def printShape(s: Shape) = {
-    "S" <> Allocator(s) <+> "=" <+> {
-      val (ctor:String, args) = s match {
-        case LineSegment(Point(a,b), Point(c,d)) ⇒ ("ClosedLine", Seq(a,b,c,d))
-        case Rectangle(Point(a,b), Point(c,d)) ⇒ ("Rectangle", Seq(a,b,c,d))
-        case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
-        case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
-        case _ ⇒ (TODO, Seq())
-      }
-
-      // fetch values from variables and append style options
-      printConstructor(ctor, args.map(v ⇒ text(v.name ++ ".value")) ++
-        Seq("rgba(0,0,0,0)", "black").map(s ⇒ dquotes(text(s)))
-      )
+  def printShape(s: Shape) = Allocator(s) <+> "=" <+> {
+    val (ctor:String, symbArgs) = s match {
+      case LineSegment(Point(a,b), Point(c,d)) ⇒ ("ClosedLine", Seq(a,b,c,d))
+      case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,w,h)) // ugh....
+      case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
+      case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
+      case _ ⇒ (TODO, Seq())
     }
+
+    // transform rectangle args from (x, y, w, h) to (x-w/2, y-h/2, x+w/2, y+h/2)
+    // @TODO: disgusting...needs better design
+    val inter = symbArgs.map(v ⇒ (v.name ++ ".value"))
+    val strArgs = s match {
+      // first, add "-" to the first two elements and "+" to the second two.
+      // then, add "w/2"/"h/2" to the first two and "x"/"y" to the second two
+      case _:Rectangle ⇒ inter.zipWithIndex.map( pr ⇒ if (pr._2 < 2) {
+        pr._1 ++ "-" ++ inter(pr._2+2) ++ "/2"
+      } else {
+        pr._1 ++"/2 +" ++ inter(pr._2-2)
+      })
+      case _ ⇒ inter
+    }
+
+
+    // fetch values from variables and append style options
+    printConstructor(ctor, strArgs.map(text(_)) ++
+      Seq("rgba(0,0,0,0)", "black").map(s ⇒ dquotes(text(s)))
+    )
   }
 
   def printEquation(e: Eq) = {
@@ -164,10 +182,10 @@ object LowLevel extends Emitter {
   }}
   def printIP(p:IPoint) = p match {
     case IPoint(x, y, links) ⇒ {
-      val vname = "IP" <> Allocator(p)
-      vname <+> "=" <+> printConstructor(
+      val iname = Allocator(p)
+      iname <+> "=" <+> printConstructor(
         "InteractionPoint", Seq(x, y).map(v ⇒ text(v.name))
-      ) <@> vname <> ".links" <+> "=" <+> brackets(
+      ) <@> iname <> ".links" <+> "=" <+> brackets(
         fillsep( links.map(v ⇒ dquotes(text(v.name)))(collection.breakOut), comma)
       ) <> semi
     }

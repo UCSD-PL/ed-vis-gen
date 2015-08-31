@@ -1,5 +1,7 @@
 VARS(
-  PX = 50, PY = 50, PR = 20
+  PX = 50, PY = 50, W = 70, H = 90
 );
-SHAPES(Circle((PX, PY), PR));
+SHAPES(
+  Rectangle((PX, PY), H, W)
+);
 EQUATIONS();
