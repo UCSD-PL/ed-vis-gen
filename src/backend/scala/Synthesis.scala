@@ -17,22 +17,12 @@ object PointGeneration {
 
   def VC2IPC(x: VarConfig, y: VarConfig) =
     (IPoint(x._1, y._1), x._2 ++ y._2, x._3 ++ y._3)
-  def apply(s: Shape, σ: Store): Set[(IPConfig, IPConfig, IPConfig)] = (s match {
+  def apply(s: Shape, σ: Store): Set[IPConfig] = (s match {
     case LineSegment(s, e) ⇒ line(s,e, σ)
     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
     case _ ⇒ throw Incomplete
-  }).map(expandDimensions(_))
-
-  // given a configuration, with IP free in both x and y dimensions, returns their
-  // same configuration and also versions constrained in x and y dimensions.
-  // the ordering is: (x-dim, y-dim, both)
-  def expandDimensions(c:IPConfig): (IPConfig, IPConfig, IPConfig) = {
-    dprintln("expanding " + c._1.toString)
-    val xDim = c.copy(_1 = IPoint(c._1.x, c._1.y, c._1.links - c._1.x))
-    val yDim = c.copy(_1 = IPoint(c._1.x, c._1.y, c._1.links - c._1.y))
-    (xDim, yDim, c)
-  }
+  })
 
   // helper function; link up an IP and a point by equality
   def equality(l: IPoint, r: Point, σ: Store) = {
@@ -107,7 +97,7 @@ object PointGeneration {
           //   =         =
           //     =  *  =
           //
-  def circ(c: Point, r: Variable, σ: Store) = {
+  def circ(c: Point, r: Variable, σ: Store): Set[IPConfig] = {
     val midPoint = c.toIP()
     val (midPointEqs, midPointσ) = equality(midPoint, c, σ)
 
@@ -195,27 +185,22 @@ trait SynthesisPass {
   // return new links for a specific interaction, in the form
   // (xdim, ydim, x-and-y-dim)
   def getLinks(s: Shape): (Set[Variable], Set[Variable], Set[Variable])
-  // default external interface for simple translations and stretches, which
-  // only rely on links.
+
+  // given an IP, return 3 valid seed configurations for extendLinks:
+  // IP.x, IP.y, {IP.x, IP.y}
+  def validSeeds(i:IPoint): Set[Set[Variable]] =
+    Set(Set(i.x), Set(i.y), Set(i.x, i.y))
+
   // given a shape, return valid configurations s.t. dragging the point results
   // in an interaction.
   def apply(s: Shape, σ: Store) = {
     val candidates = PointGeneration(s, σ)
 
-    // get new links from the client, transitively extend along dependencies
-    // results in only well-defined interactions (i.e., every equation has 2/0
-    // free variables)
-    val (xLinks, yLinks, bothLinks) = getLinks(s)
-    // TODO: refactor
-    // TODO: seriously, refactor
-    val res = candidates.flatMap(v ⇒ Set(
-      (v._1._1.copy(links = v._1._1.links ++ xLinks), v._1._2, v._1._3),
-      (v._2._1.copy(links = v._2._1.links ++ yLinks), v._2._2, v._2._3),
-      (v._3._1.copy(links = v._3._1.links ++ bothLinks), v._3._2, v._3._3)
-    )).flatMap( pr ⇒ extendLinks(pr._1.links, pr._2).map( lnks ⇒
+    val res = candidates.flatMap( pr ⇒ {
+      validSeeds(pr._1).flatMap(extendLinks(_, pr._2).map( lnks ⇒
         (pr._1.copy(links = lnks), pr._2, pr._3)
       )
-    )
+    )})
 
     assert(res.forall(v ⇒ v._2.forall( e ⇒ e.count(v._1.links) <= 2)
     ))
