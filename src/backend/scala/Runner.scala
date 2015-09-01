@@ -24,20 +24,14 @@ object Run {
     println(LowLevel(prog, initσ))
     println("interactive variants:")
     // Set[(IPoint, Set[Eq])]
-    val newProgs = prog.shapes.flatMap(Positional.Stretch(_, initσ)).map( tup ⇒
-      (prog.copy(
-        vars = prog.vars ++ Set(tup._1.x, tup._1.y),
-        ipoints = prog.ipoints + tup._1,
-        equations = prog.equations ++ tup._2
-      ), tup._3)
-    )
+    val newProgs = Positional(prog, initσ)
 
     var pcounter = 0
-    newProgs.foreach(pr ⇒ {
+    newProgs.foreach{ case (prog, σ) ⇒ {
       println("//prog" ++ pcounter.toString)
       pcounter += 1
-      println(LowLevel(pr._1, pr._2) ++ "\n")}
-    )
+      println(LowLevel(prog, σ) ++ "\n")}
+    }
   }
 
   def usage() = {

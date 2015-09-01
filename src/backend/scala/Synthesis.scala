@@ -11,6 +11,7 @@ import scala.annotation.tailrec
 // interaction point placements: given a shape, return all possible ipoints and
 // their respective positional equations. e.g. Circle((a,b), c) => (a,b) + 8 points
 // on the circle
+// TODO: maybe also add inequalities for enforcing orientation?
 object PointGeneration {
   type IPConfig = (IPoint, Set[Eq], Store)
   type VarConfig = (Variable, Set[Eq], Store)
@@ -168,72 +169,54 @@ trait SynthesisPass {
         } else {
           candidates.flatMap(v ⇒ {
             // adding v might bump some empties to semis, but not to fullfilleds.
-            val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(links + v) == 0)
-            assert(newSemi.forall(e ⇒ e.count(links + v) == 1))
+            val newLinks = links + v
+            val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
+            assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
             // ditto for semis to fulls
-            val (newSemi2, newFull) = semis.partition(e ⇒ e.count(links + v) == 1)
-            assert(newFull.forall(e ⇒ e.count(links + v) == 2))
-            assert(fullfilled.forall(e ⇒ e.count(links + v) == 2))
-            extendLinkHelper( links + v,
+            val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
+            assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
+            assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
+            extendLinkHelper( newLinks,
               newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
             )}
           )
         }
       }
     }
-
-  // return new links for a specific interaction, in the form
-  // (xdim, ydim, x-and-y-dim)
-  def getLinks(s: Shape): (Set[Variable], Set[Variable], Set[Variable])
-
-  // given an IP, return 3 valid seed configurations for extendLinks:
-  // IP.x, IP.y, {IP.x, IP.y}
-  def validSeeds(i:IPoint): Set[Set[Variable]] =
-    Set(Set(i.x), Set(i.y), Set(i.x, i.y))
-
-  // given a shape, return valid configurations s.t. dragging the point results
-  // in an interaction.
-  def apply(s: Shape, σ: Store) = {
-    val candidates = PointGeneration(s, σ)
-
-    val res = candidates.flatMap( pr ⇒ {
-      validSeeds(pr._1).flatMap(extendLinks(_, pr._2).map( lnks ⇒
-        (pr._1.copy(links = lnks), pr._2, pr._3)
-      )
-    )})
-
-    assert(res.forall(v ⇒ v._2.forall( e ⇒ e.count(v._1.links) <= 2)
-    ))
-
-    res
-
-  }
 }
 
 
 // synthesis of positional interactions
-// in general, take a program as input and produce a set of programs as output
+object Positional extends SynthesisPass {
+  // given an IP, return valid seed configurations for extendLinks:
+  def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
 
-object Positional {
-  // simple translations
-  object Translate extends SynthesisPass {
-    def getLinks(s: Shape) = s match {
-      case LineSegment(Point(a,b), Point(c,d)) ⇒ (Set(b,d), Set(a,c), Set(a,b,c,d))
-      case BoxLike(Point(a,b), _, _)   ⇒ (Set(b), Set(a), Set(a,b))
-      case Circle(Point(a,b), _) ⇒ (Set(b), Set(a), Set(a,b))
-      case _ ⇒ throw Incomplete
-    }
-  }
 
-  // Stretch interaction on shapes
-  // given a shape, returns links that result in stretching
-  object Stretch extends SynthesisPass {
-    def getLinks(s:Shape) = s match {
-      //case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
-      //case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
-      case Circle(_, r) ⇒ (Set(r), Set(r), Set())
-      //case Image(Point(a,b), _, _) ⇒ Set(a,b)
-      case _ ⇒ throw Incomplete
+  // given a program and store, return all configurations (i.e., programs
+  // and stores) implementing positional interactions in one IPoint
+  def apply(p: Program, σ: Store): Set[(Program, Store)] = p match {
+    case Program(vars, ips, shapes, eqs) ⇒ shapes.flatMap { s ⇒ {
+      val candidates = PointGeneration(s, σ)
+
+      val res = candidates.flatMap { case (ip, es, δ) ⇒ {
+        validSeeds(ip).flatMap(
+          extendLinks(_, eqs ++ es).map( lnks ⇒ (ip.copy(links = lnks), eqs ++ es, δ))
+        )
+      }}
+
+      assert(
+        res.forall{ case (ip, eqs, _) ⇒ eqs.forall( e ⇒ e.count(ip.links) <= 2)
+      })
+
+      res
+    }}.map{ case(ip, es, δ) ⇒
+      (p.copy(
+        vars = vars ++ Set(ip.x, ip.y),
+        ipoints = ips + ip,
+        equations = eqs ++ es
+      ), δ)
     }
+
+
   }
 }
