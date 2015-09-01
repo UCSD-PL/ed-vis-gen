@@ -5,6 +5,7 @@ import EDDIE.errors._
 import EDDIE.Conversions._
 import EDDIE.semantics._
 import EDDIE.Helpers._
+import EDDIE.Types._
 
 import scala.annotation.tailrec
 
@@ -13,9 +14,6 @@ import scala.annotation.tailrec
 // on the circle
 // TODO: maybe also add inequalities for enforcing orientation?
 object PointGeneration {
-  type IPConfig = (IPoint, Set[Eq], Store)
-  type VarConfig = (Variable, Set[Eq], Store)
-
   def VC2IPC(x: VarConfig, y: VarConfig) =
     (IPoint(x._1, y._1), x._2 ++ y._2, x._3 ++ y._3)
   def apply(s: Shape, σ: Store): Set[IPConfig] = (s match {
@@ -194,7 +192,7 @@ object Positional extends SynthesisPass {
 
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
-  def apply(p: Program, σ: Store): Set[(Program, Store)] = p match {
+  def apply(p: Program, σ: Store): Set[Configuration] = p match {
     case Program(vars, ips, shapes, eqs) ⇒ shapes.flatMap { s ⇒ {
       val candidates = PointGeneration(s, σ)
 

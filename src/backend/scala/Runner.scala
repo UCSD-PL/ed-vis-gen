@@ -6,6 +6,7 @@ import EDDIE.parser._
 import EDDIE.synthesis._
 import EDDIE.emit._
 import EDDIE.errors._
+import EDDIE.ranking._
 
 import scala.io.Source._
 
@@ -23,8 +24,8 @@ object Run {
     println("compiled version:")
     println(LowLevel(prog, initσ))
     println("interactive variants:")
-    // Set[(IPoint, Set[Eq])]
-    val newProgs = Positional(prog, initσ)
+    // Set[Configuration]
+    val newProgs = LinkLength(Positional(prog, initσ))
 
     var pcounter = 0
     newProgs.foreach{ case (prog, σ) ⇒ {
