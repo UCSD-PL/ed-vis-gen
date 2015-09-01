@@ -1,6 +1,6 @@
 package EDDIE.syntax
 
-import EDDIE.Helpers
+import EDDIE.Helpers._
 
 import scala.collection.immutable.{Map ⇒ Map, Set ⇒ Set}
 
@@ -83,9 +83,13 @@ object Expr {
 
 // lhs = rhs equation
 case class Eq(lhs: Expr, rhs: Expr) {
-  override def toString() = Helpers.prettyPrint(lhs, "≡", rhs)
-  def count(vars: Set[Variable]) =
-    ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
+  override def toString() = prettyPrint(lhs, "≡", rhs)
+  def count(vars: Set[Variable]) = {
+    val res = ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
+    dprintln("counting " ++ (lhs.vars.keySet ++ rhs.vars.keySet).toString ++
+             " versus " ++ vars.toString ++ " as " ++ res.toString)
+    res
+  }
   def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
 }
 

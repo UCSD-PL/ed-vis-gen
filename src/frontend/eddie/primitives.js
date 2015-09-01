@@ -123,7 +123,7 @@ function Text(x, y, text, font) { // font is an optional parameter
 
 // Circle primitive. Fill controls the color of the interior, while stroke controls
 // the color of the border.
-function Circle (x, y, r, fill, stroke) {
+function Circle (x, y, r, stroke, fill) {
   return {
     x: x,
     y: y,

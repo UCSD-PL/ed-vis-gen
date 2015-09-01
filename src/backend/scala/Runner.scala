@@ -24,7 +24,7 @@ object Run {
     println(LowLevel(prog, initσ))
     println("interactive variants:")
     // Set[(IPoint, Set[Eq])]
-    val newProgs = prog.shapes.flatMap(Positional.Translate(_, initσ)).map( tup ⇒
+    val newProgs = prog.shapes.flatMap(Positional.Stretch(_, initσ)).map( tup ⇒
       (prog.copy(
         vars = prog.vars ++ Set(tup._1.x, tup._1.y),
         ipoints = prog.ipoints + tup._1,

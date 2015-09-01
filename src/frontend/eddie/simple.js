@@ -3,27 +3,28 @@ function init() {
   drag_points = [];
   inc_objects = [];
 
+  //prog19
   //VARIABLES:
     PY = makeVariable("PY", 50.0);
-    PYPH = makeVariable("PYPH", 70.0);
     W = makeVariable("W", 10.0);
     PX = makeVariable("PX", 50.0);
-    PXMW = makeVariable("PXMW", 40.0);
+    PY_IYB = makeVariable("PY_IYB", 70.0);
     H = makeVariable("H", 20.0);
+    PX_IXB = makeVariable("PX_IXB", 50.0);
 //IPOINTS:
-    IP8 = InteractionPoint( PXMW, PYPH );
-    IP8.links = ["PXMW", "PYPH", "PX", "PY"];
+    IP14 = InteractionPoint( PX_IXB, PY_IYB );
+    IP14.links = ["PX_IXB", "PX"];
 //SHAPES:
-    S0 = Rectangle( PX.value-W.value, PY.value-H.value, W.value+PX.value, H.value+PY.value,
-        "rgba(0,0,0,0)", "black" );
+    S0 = Circle( PX.value, PY.value, H.value, "black", "rgba(0,0,0,0)" );
 init_stays(); // SUPER IMPORTANT NEED THIS CALL
 //EQUATIONS:
-    addEquation(    fromConst(0.0).plus(fromVar(PXMW).times(1.0)),
-        fromConst(0.0).plus(fromVar(PX).times(1.0).plus(fromVar(W).times(-1.0))));
-    addEquation(    fromConst(0.0).plus(fromVar(PYPH).times(1.0)),
-                    fromConst(0.0).plus(fromVar(H).times(1.0).plus(fromVar(PY).times(1.0))));
-  push(all_objects, IP8, S0);
-  push(drag_points, IP8);
+    addEquation(    fromConst(0.0).plus(fromVar(PY_IYB).times(1.0)),
+        fromConst(0.0).plus(fromVar(H).times(1.0).plus(fromVar(PY).times(1.0))));
+    addEquation(    fromConst(0.0).plus(fromVar(PX_IXB).times(1.0)),
+                    fromConst(0.0).plus(fromVar(PX).times(1.0)));
+
+  push(all_objects, IP14, S0);
+  push(drag_points, IP14);
 
   // initialize timer
 
@@ -42,10 +43,15 @@ function drag_update() {
 
 function update_constraints() {
 
+  // rectangle
   S0.x1 = PX.value - W.value;
   S0.y1 = PY.value - H.value;
   S0.x2 = PX.value + W.value;
   S0.y2 = PY.value + H.value;
+  // circle
+  S0.x = PX.value;
+  S0.y = PY.value;
+  S0.r = H.value;
 
 }
 

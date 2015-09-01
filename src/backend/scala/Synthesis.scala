@@ -4,6 +4,7 @@ import EDDIE.syntax._
 import EDDIE.errors._
 import EDDIE.Conversions._
 import EDDIE.semantics._
+import EDDIE.Helpers._
 
 import scala.annotation.tailrec
 
@@ -16,11 +17,21 @@ object PointGeneration {
 
   def VC2IPC(x: VarConfig, y: VarConfig) =
     (IPoint(x._1, y._1), x._2 ++ y._2, x._3 ++ y._3)
-  def apply(s: Shape, σ: Store): Set[IPConfig] = s match {
+  def apply(s: Shape, σ: Store): Set[(IPConfig, IPConfig, IPConfig)] = (s match {
     case LineSegment(s, e) ⇒ line(s,e, σ)
     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
     case _ ⇒ throw Incomplete
+  }).map(expandDimensions(_))
+
+  // given a configuration, with IP free in both x and y dimensions, returns their
+  // same configuration and also versions constrained in x and y dimensions.
+  // the ordering is: (x-dim, y-dim, both)
+  def expandDimensions(c:IPConfig): (IPConfig, IPConfig, IPConfig) = {
+    dprintln("expanding " + c._1.toString)
+    val xDim = c.copy(_1 = IPoint(c._1.x, c._1.y, c._1.links - c._1.x))
+    val yDim = c.copy(_1 = IPoint(c._1.x, c._1.y, c._1.links - c._1.y))
+    (xDim, yDim, c)
   }
 
   // helper function; link up an IP and a point by equality
@@ -84,9 +95,6 @@ object PointGeneration {
                plus(center.y, hheight, σ),
                minus(center.y, hheight, σ))
     } yield (VC2IPC(x,y))
-
-    // line(topLeft, topRight, σ) ++ line(botLeft, botRight, σ) ++
-    //   Set(makeMP(topLeft, botLeft, σ), makeMP(topRight, botRight, σ), makeMP(topLeft, botRight, σ))
   }
 
   // center, 4 points on radius. circle version of the rectangle projection.
@@ -124,13 +132,6 @@ object PointGeneration {
         (rightPoint, rightPointEqs, rightPointσ), (topPoint, topPointEqs, topPointσ),
         (botPoint, botPointEqs, botPointσ))
   }
-
-  // for now, just the center
-  def img(c: Point, h: Variable, w: Variable, σ: Store) = {
-    val ret = c.toIP()
-    val (retEq, retσ) = equality(ret, c, σ)
-    Set((ret, retEq, retσ))
-  }
 }
 
 trait SynthesisPass {
@@ -138,10 +139,12 @@ trait SynthesisPass {
   // in a well-defined interaction. we enforce the invariant that every equation
   // contains either 2 free variables, or no free variables.
   def extendLinks(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
+    dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
     if (eqs.exists(e ⇒ e.count(links) > 2)) {
       Set()
     }
     else {
+      dprintln("valid case")
       extendLinkHelper(links,
         eqs.filter(e ⇒ e.count(links) == 0),
         eqs.filter(e ⇒ e.count(links) == 1),
@@ -157,24 +160,69 @@ trait SynthesisPass {
   def extendLinkHelper(links: Set[Variable],
     empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
       if (semis.isEmpty) {
+        assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
         Set(links)
       } else {
         // for each equation e in semis, for each fixed variable x in e, if x
         // respects the invariant, add x to links, adjust the sets, and recurse.
-        val candidates = semis.flatMap(e ⇒ e.remove(links)).filterNot(v ⇒
-          fullfilled.exists( e ⇒ e.count(Set(v)) == 1 ))
+        val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
+          fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
+
+        dprintln("candidates:" ++ candidates.toString)
+
         // candidates :: v ∈ Set[Variable] | v can be added to links
-        candidates.flatMap(v ⇒ {
-          // adding v might bump some empties to semis, but not to fullfilleds.
-          val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(Set(v)) == 0)
-          // ditto for semis to fulls
-          val (newSemi2, newFull) = semis.partition(e ⇒ e.count(Set(v)) == 1)
-          extendLinkHelper( links + v,
-            newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
-          )}
-        )
+        if (candidates.isEmpty) {
+          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+          Set(links)
+
+        } else {
+          candidates.flatMap(v ⇒ {
+            // adding v might bump some empties to semis, but not to fullfilleds.
+            val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(links + v) == 0)
+            assert(newSemi.forall(e ⇒ e.count(links + v) == 1))
+            // ditto for semis to fulls
+            val (newSemi2, newFull) = semis.partition(e ⇒ e.count(links + v) == 1)
+            assert(newFull.forall(e ⇒ e.count(links + v) == 2))
+            assert(fullfilled.forall(e ⇒ e.count(links + v) == 2))
+            extendLinkHelper( links + v,
+              newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
+            )}
+          )
+        }
       }
     }
+
+  // return new links for a specific interaction, in the form
+  // (xdim, ydim, x-and-y-dim)
+  def getLinks(s: Shape): (Set[Variable], Set[Variable], Set[Variable])
+  // default external interface for simple translations and stretches, which
+  // only rely on links.
+  // given a shape, return valid configurations s.t. dragging the point results
+  // in an interaction.
+  def apply(s: Shape, σ: Store) = {
+    val candidates = PointGeneration(s, σ)
+
+    // get new links from the client, transitively extend along dependencies
+    // results in only well-defined interactions (i.e., every equation has 2/0
+    // free variables)
+    val (xLinks, yLinks, bothLinks) = getLinks(s)
+    // TODO: refactor
+    // TODO: seriously, refactor
+    val res = candidates.flatMap(v ⇒ Set(
+      (v._1._1.copy(links = v._1._1.links ++ xLinks), v._1._2, v._1._3),
+      (v._2._1.copy(links = v._2._1.links ++ yLinks), v._2._2, v._2._3),
+      (v._3._1.copy(links = v._3._1.links ++ bothLinks), v._3._2, v._3._3)
+    )).flatMap( pr ⇒ extendLinks(pr._1.links, pr._2).map( lnks ⇒
+        (pr._1.copy(links = lnks), pr._2, pr._3)
+      )
+    )
+
+    assert(res.forall(v ⇒ v._2.forall( e ⇒ e.count(v._1.links) <= 2)
+    ))
+
+    res
+
+  }
 }
 
 
@@ -183,44 +231,24 @@ trait SynthesisPass {
 
 object Positional {
   // simple translations
-  // given a shape, return points s.t. dragging the point results in a translation.
-  object Translate {
-    def apply(s: Shape, σ: Store) = {
-      // get mesh points for shape
-      val candidates = PointGeneration(s, σ)
-      // get translation links
-      val newLinks = s match {
-        case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
-        case BoxLike(Point(a,b), _, _)   ⇒ Set(a,b)
-        case Circle(Point(a,b), _) ⇒ Set(a,b)
-        case _ ⇒ throw Incomplete
-      }
-
-      // add translation links to each candidate IPoint. candidates has type
-      // Set[(IPoint, Set[Eq], Store)]
-      candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2, v._3))
+  object Translate extends SynthesisPass {
+    def getLinks(s: Shape) = s match {
+      case LineSegment(Point(a,b), Point(c,d)) ⇒ (Set(b,d), Set(a,c), Set(a,b,c,d))
+      case BoxLike(Point(a,b), _, _)   ⇒ (Set(b), Set(a), Set(a,b))
+      case Circle(Point(a,b), _) ⇒ (Set(b), Set(a), Set(a,b))
+      case _ ⇒ throw Incomplete
     }
   }
 
   // Stretch interaction on shapes
   // given a shape, returns links that result in stretching
-  // can cause poorly definied operations
-  object Stretch {
-    def apply(s: Shape, σ: Store) = {
-      // get mesh points for shape
-      val candidates = PointGeneration(s, σ)
-      // get translation links
-      val newLinks = s match {
-        //case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
-        //case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
-        case Circle(_, c) ⇒ Set(c)
-        //case Image(Point(a,b), _, _) ⇒ Set(a,b)
-        case _ ⇒ throw Incomplete
-      }
-
-      // add translation links to each candidate IPoint. candidates has type
-      // Set[(IPoint, Set[Eq], Store)]
-      candidates.map(v ⇒ (v._1.copy(links = v._1.links ++ newLinks), v._2, v._3))
+  object Stretch extends SynthesisPass {
+    def getLinks(s:Shape) = s match {
+      //case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
+      //case Rectangle(Point(a,b), Point(c,d))   ⇒ Set(a,b,c,d)
+      case Circle(_, r) ⇒ (Set(r), Set(r), Set())
+      //case Image(Point(a,b), _, _) ⇒ Set(a,b)
+      case _ ⇒ throw Incomplete
     }
   }
 }

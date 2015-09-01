@@ -2,6 +2,6 @@ VARS(
   PX = 50, PY = 50, W = 10, H = 20
 );
 SHAPES(
-  Rectangle((PX, PY), H, W)
+  Circle((PX, PY), H)
 );
 EQUATIONS();

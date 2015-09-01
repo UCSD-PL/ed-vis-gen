@@ -152,7 +152,7 @@ object LowLevel extends Emitter {
 
     // fetch values from variables and append style options
     printConstructor(ctor, strArgs.map(text(_)) ++
-      Seq("rgba(0,0,0,0)", "black").map(s ⇒ dquotes(text(s)))
+      Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
     )
   }
 
