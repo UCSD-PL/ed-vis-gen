@@ -61,20 +61,22 @@ trait Emitter extends PrettyPrinter {
     ) <> space) <> semi
   }
 
-  def apply(p: Program, initσ: Store): String = {
-    val doc = p match {
-      case Program(vs, ps, ss, es) ⇒ {
-        vcat(Seq(varPreamble <@> indent(
-          sep(vs.map(printVar(_, initσ))(collection.breakOut))
-        ), ipPreamble <@> indent(
-          sep(ps.map(printIP(_))(collection.breakOut))
-        ), shpPreamble <@> indent(
-          sep(ss.map(printShape(_))(collection.breakOut))
-        ), eqPreamble <@> indent(
-          sep(es.map(printEquation(_))(collection.breakOut))
-        )))
-      }
+  def emitProg(p: Program, σ: Store): Doc = p match {
+    case Program(vs, ps, ss, es) ⇒ {
+      vcat(Seq(varPreamble <@> indent(
+        sep(vs.map(printVar(_, σ))(collection.breakOut))
+      ), ipPreamble <@> indent(
+        sep(ps.map(printIP(_))(collection.breakOut))
+      ), shpPreamble <@> indent(
+        sep(ss.map(printShape(_))(collection.breakOut))
+      ), eqPreamble <@> indent(
+        sep(es.map(printEquation(_))(collection.breakOut))
+      )))
     }
+  }
+
+  def apply(p: Program, σ: Store): String = {
+    val doc = emitProg(p, σ)
     pretty(doc)
   }
 }
@@ -191,7 +193,52 @@ object LowLevel extends Emitter {
     }
   }
 
+
+  // helper function: convert a shape into a set of tuples of the form (field, value) :: (Doc, Doc)
+  def fieldsAndVars(s: Shape): Set[(Doc, Doc)] = {
+    val inter = (s match {
+      case LineSegment(Point(a,b), Point(c,d)) ⇒
+        Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d))
+      case Rectangle(Point(x,y), h, w) ⇒
+        Seq(("x1", x), ("y1", y), ("x2", h), ("y2", w)) // again, ugh...
+      case Circle(Point(x,y), r) ⇒ Seq(("x", x), ("y", y), ("r", r))
+      case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒
+        Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d), ("x3", e), ("y3", f))
+      case _ ⇒ Seq()
+    }).map{case (f, v) ⇒ (f, v.name ++ ".value")}
+
+    val strArgs = s match {
+      // first, add "-" to the first two elements and "+" to the second two.
+      // then, add "w"/"h" to the first two and "x"/"y" to the second two
+      case _:Rectangle ⇒ inter.zipWithIndex.map{ case ((f, v), i) ⇒ if (i < 2) {
+        (f, v ++ "-" ++ inter(i+2)._2)
+      } else {
+        (f, v ++ "+" ++ inter(i-2)._2)
+      }}
+      case _ ⇒ inter
+    }
+
+    strArgs.map{case (f, v) ⇒ (text(f), text(v))}(collection.breakOut)
+
+  }
   // assumes the rest of the program has been emitted (i.e., that Allocator constraints
   // the correct variable names)
-  //def printDrawUpdates
+  def printDrawUpdates(shapes: Set[Shape]): Doc = {
+    sep(
+      shapes.map(s ⇒
+        sep(fieldsAndVars(s).map{case (f, v) ⇒
+          Allocator(s) <> "." <> f <+> "=" <+> v <> semi
+        }(collection.breakOut))
+      )(collection.breakOut)
+    )
+  }
+
+  override def emitProg(p: Program, σ: Store): Doc = {
+    vsep(
+      Seq(super.emitProg(p, σ),
+      "// update_constraints",
+      printDrawUpdates(p.shapes))
+    )
+
+  }
 }
