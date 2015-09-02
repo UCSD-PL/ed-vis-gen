@@ -56,22 +56,20 @@ trait Emitter extends PrettyPrinter {
 
   // extract values from variable arguments and append style arguments
   def printConstructor(name:String, args:Seq[Doc] ) = {
-    name <> parens( space <> nest(fillsep( args ,
+    name <> parens( nest(lsep( args ,
       ",")
-    ) <> space) <> semi
+    ) <> line) <> semi
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
     case Program(vs, ps, ss, es) ⇒ {
-      vcat(Seq(varPreamble <@> indent(
-        sep(vs.map(printVar(_, σ))(collection.breakOut))
-      ), ipPreamble <@> indent(
-        sep(ps.map(printIP(_))(collection.breakOut))
-      ), shpPreamble <@> indent(
+      vcat(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
+      , ipPreamble <@> sep(ps.map(printIP(_))(collection.breakOut))
+      , shpPreamble <@>
         sep(ss.map(printShape(_))(collection.breakOut))
-      ), eqPreamble <@> indent(
+      , eqPreamble <@>
         sep(es.map(printEquation(_))(collection.breakOut))
-      )))
+      ))
     }
   }
 
@@ -124,6 +122,11 @@ object LowLevel extends Emitter {
   def shpPreamble = "//SHAPES:"
   def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> "//EQUATIONS:"
 
+  def emitFunc(name: String, args: Seq[Doc], body: Doc): Doc = {
+    "function" <+> name <+> parens(fillsep(args, ",")) <+> nest(braces(
+      line <> body <> line))
+  }
+
   def printVar(v: Variable, σ:Store) =  {
     text(v.name) <+> "=" <+> "makeVariable" <> parens(
       dquotes(text(v.name)) <> comma <+> σ(v).toString) <> semi
@@ -160,9 +163,9 @@ object LowLevel extends Emitter {
 
   def printEquation(e: Eq) = {
     "addEquation" <> parens (
-      indent( vsep(
+      nest( line <> vsep(
         Seq(printExpr(e.lhs), printExpr(e.rhs)), comma
-      ))
+      )) <> line
     ) <> semi
   }
 
@@ -223,7 +226,7 @@ object LowLevel extends Emitter {
   }
   // assumes the rest of the program has been emitted (i.e., that Allocator constraints
   // the correct variable names)
-  def printDrawUpdates(shapes: Set[Shape]): Doc = {
+  def emitDrawUpdates(shapes: Set[Shape]): Doc = {
     sep(
       shapes.map(s ⇒
         sep(fieldsAndVars(s).map{case (f, v) ⇒
@@ -237,7 +240,7 @@ object LowLevel extends Emitter {
     vsep(
       Seq(super.emitProg(p, σ),
       "// update_constraints",
-      printDrawUpdates(p.shapes))
+      emitFunc("update_constraints", Seq(), emitDrawUpdates(p.shapes)))
     )
 
   }
