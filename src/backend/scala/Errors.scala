@@ -7,3 +7,7 @@ object Incomplete extends RuntimeException {
 object Usage extends RuntimeException {
   override def getMessage = "bad arguments"
 }
+
+object IllformedProgram extends RuntimeException {
+  override def getMessage = "error in source program"
+}

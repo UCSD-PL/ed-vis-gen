@@ -1,7 +1,12 @@
 VARS(
-  PX = 50, PY = 50, W = 10, H = 20
+  CX = 50, CY = 50, R = 20,
+  RX = 100, RY = 100, RH = 30, RW = 20
 );
 SHAPES(
-  Rectangle((PX, PY), H, W)
+  Circle((CX, CY), R),
+  Rectangle((RX, RY), RH, RW)
 );
-EQUATIONS();
+EQUATIONS(
+  CX = -50 + RX,
+  CY = -50 + RY
+);

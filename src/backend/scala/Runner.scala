@@ -7,6 +7,7 @@ import EDDIE.synthesis._
 import EDDIE.emit._
 import EDDIE.errors._
 import EDDIE.ranking._
+import EDDIE.validation._
 
 import scala.io.Source._
 
@@ -19,6 +20,7 @@ object Run {
       case Right(msg) ⇒ println(msg); usage()
       //case _ ⇒ println("can't parse file " ++ simple.txt); usage
     }
+    Validate(prog, initσ)
     println("original:")
     println(HighLevel(prog, initσ))
     println("compiled version:")
