@@ -1,4 +1,4 @@
-//prog18
+//prog20
 function init () {
     all_objects = [];
     drag_points = [];
@@ -9,21 +9,21 @@ function init () {
     PY = makeVariable("PY", 150.0);
     SY = makeVariable("SY", 200.0);
     SX = makeVariable("SX", 250.0);
-    PYPPH = makeVariable("PYPPH", 160.0);
     PH = makeVariable("PH", 10.0);
     BY = makeVariable("BY", 250.0);
     PX = makeVariable("PX", 250.0);
     DX = makeVariable("DX", 0.0);
     BX = makeVariable("BX", 250.0);
+    PY_IY = makeVariable("PY_IY", 150.0);
     BH = makeVariable("BH", 50.0);
     DY = makeVariable("DY", -50.0);
     BW = makeVariable("BW", 100.0);
     //IPOINTS:
-    IP18 = InteractionPoint(
+    IP20 = InteractionPoint(
         PX_IX,
-        PYPPH
+        PY_IY
     );
-    IP18.links = ["PYPPH", "PY", "DY"];
+    IP20.links = ["PY_IY", "PY", "DY"];
     //SHAPES:
     S0 = Rectangle(
         BX.value-BW.value,
@@ -61,10 +61,10 @@ function init () {
         fromConst(0.0).plus(fromVar(PX).times(1.0)));
     addEquation(fromConst(0.0).plus(fromVar(PX).times(1.0)),
         fromConst(0.0).plus(fromVar(SX).times(1.0).plus(fromVar(DX).times(1.0))));
-    addEquation(fromConst(0.0).plus(fromVar(PYPPH).times(1.0)),
-        fromConst(0.0).plus(fromVar(PH).times(1.0).plus(fromVar(PY).times(1.0))));
-    push(all_objects, S0, S1, S2, IP18);
-    push(drag_points, IP18);
+    addEquation(fromConst(0.0).plus(fromVar(PY_IY).times(1.0)),
+        fromConst(0.0).plus(fromVar(PY).times(1.0)));
+    push(all_objects, S0, S1, S2, IP20);
+    push(drag_points, IP20);
     tau = Timer(
         20,
         function  (t) {
@@ -72,6 +72,7 @@ function init () {
             global_redraw();
         },
         function  () {
+            resetCVs();
             update_constraints();
             global_redraw();
         }

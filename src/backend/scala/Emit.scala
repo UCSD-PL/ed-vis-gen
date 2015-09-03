@@ -123,10 +123,11 @@ object LowLevel extends Emitter {
     vsep(Seq("all_objects", "drag_points", "inc_objects").map(s ⇒ text(s ++ " = [];")))
   def timestep = text("20")
   def initEpilogue = {
-    val timerBody = emitFCall("update_constraints", Seq()) <@> emitFCall("global_redraw", Seq())
+    val timerEnd = emitFCall("update_constraints", Seq()) <@> emitFCall("global_redraw", Seq())
     "tau =" <+> printConstructor("Timer", Seq(timestep, // update frequency
-      emitFunc("", Seq(text("t")), timerBody), // onTick
-      emitFunc("", Seq(), timerBody))) // onReset
+      emitFunc("", Seq(text("t")), timerEnd), // onTick
+      emitFunc("", Seq(),
+        emitFCall("resetCVs", Seq()) <@> timerEnd))) // onReset
   }
   // for some reason, the library doesn't define it...
   def sep(ds: Seq[Doc], sep: Doc) = group(vsep(ds, sep))
@@ -268,11 +269,7 @@ object LowLevel extends Emitter {
   }
 
   override def emitProg(p: Program, σ: Store): Doc = {
-    // vsep(
-    //   Seq(super.emitProg(p, σ),
-    //   "// update_constraints",
-    //   emitFunc("update_constraints", Seq(), emitDrawUpdates(p.shapes)))
-    // )
+
 
     // emit init
     // rely on superclass for most of the gruntwork. in addition to variable declarations,
