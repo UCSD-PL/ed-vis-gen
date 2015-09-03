@@ -19,8 +19,8 @@ object PointGeneration {
   def apply(s: Shape, σ: Store): Set[IPConfig] = (s match {
     case LineSegment(s, e) ⇒ line(s,e, σ)
     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
+    case VecLike(c, dx, dy) ⇒ vec(c, dx, dy, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
-    case _ ⇒ throw Incomplete
   })
 
   // helper function; link up an IP and a point by equality
@@ -30,14 +30,14 @@ object PointGeneration {
   def ident(l: Variable, r: Variable, σ: Store): VarConfig = {
     (l, Set(Eq(l, r)), σ + (l → σ(r)))
   }
-  def plus(l: Variable, r: Variable, σ: Store) : VarConfig = {
+  def plus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
     val newVar = Variable(l.name ++ "P" ++ r.name)
-    (newVar, Set(Eq(newVar, Expr(l) plus Expr(r))), σ + (newVar → (σ(l) + σ(r))))
+    (newVar, Set(Eq(newVar, Expr(l) plus (Expr(r) times coeff))), σ + (newVar → (σ(l) + coeff * σ(r))))
   }
 
-  def minus(l: Variable, r: Variable, σ: Store) : VarConfig = {
+  def minus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
     val newVar = Variable(l.name ++ "M" ++ r.name)
-    (newVar, Set(Eq(newVar, Expr(l) minus Expr(r))), σ + (newVar → (σ(l) - σ(r))))
+    (newVar, Set(Eq(newVar, Expr(l) minus (Expr(r) times coeff))), σ + (newVar → (σ(l) - coeff*σ(r))))
   }
   // helper function; link up an IP to the midpoint of two points
   def midPoint(ip: IPoint, l: Point, r: Point, σ: Store) = {
@@ -84,6 +84,16 @@ object PointGeneration {
                plus(center.y, hheight, σ),
                minus(center.y, hheight, σ))
     } yield (VC2IPC(x,y))
+  }
+
+  // center and both ends
+  // * - * - *>
+  def vec(base: Point, dx: Variable, dy: Variable, σ: Store):Set[IPConfig] = {
+    Set(
+      (ident(base.toIP().x, base.x, σ), ident(base.toIP().y, base.y, σ)),
+      (plus(base.x, dx, σ), plus(base.y, dy, σ)),
+      (plus(base.x, dx, σ, 0.5), plus(base.y, dy, σ, 0.5))
+    ).map{case (x,y) ⇒ VC2IPC(x,y)}
   }
 
   // center, 4 points on radius. circle version of the rectangle projection.

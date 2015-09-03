@@ -11,21 +11,28 @@ import scala.util.parsing.combinator.PackratParsers
 // parsers for AST + initial store
 object Parser extends JavaTokenParsers with PackratParsers {
   // variables, points, and shapes
+  lazy val str = stringLiteral
   lazy val vrbl = ident ^^ {Variable(_)}
   lazy val pnt = "(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ Point(l,r)}
 
   // @TODO: factor out parens into a trait
+  // @TODO: other refactoring...
   lazy val crc = "Circle(" ~> ((pnt <~ ",") ~ vrbl) <~ ")" ^^ {case l ~ r ⇒ Circle(l, r)}
   lazy val tri = "Triangle(" ~> ((pnt <~ ",") ~ (pnt <~ ",") ~ pnt) <~ ")" ^^ {
     case p1 ~ p2 ~ p3 ⇒ Triangle(p1, p2, p3)
   }
   lazy val rct = "Rectangle(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {case c ~ h ~ w ⇒ Rectangle(c, h, w)}
-  lazy val img = "Image(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
-    case c ~ h ~ w ⇒ Image(c, h, w)
+  lazy val img = "Image(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ (vrbl <~ ",") ~ str) <~ ")" ^^ {
+    case c ~ h ~ w ~ s ⇒ Image(c, h, w, s)
   }
   lazy val lne = "Line(" ~> ((pnt <~ ",") ~ pnt) <~ ")" ^^ {case l ~ r ⇒ LineSegment(l, r)}
-
-  lazy val shp = crc | tri | rct | img | lne
+  lazy val spr = "Spring(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
+    case c ~ h ~ w ⇒ Spring(c, h, w)
+  }
+  lazy val arr = "Arrow(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
+    case c ~ h ~ w ⇒ Arrow(c, h, w)
+  }
+  lazy val shp = crc | tri | rct | img | lne | spr | arr
 
   // IPoints
   // @TODO: parse links

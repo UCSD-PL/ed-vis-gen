@@ -13,7 +13,7 @@ object Validate {
     case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ Set(a,b,c,d,e,f)
     case BoxLike(Point(x,y), h, w) ⇒ Set(x,y,h,w)
     case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
-    case _ ⇒ throw Incomplete
+    case VecLike(Point(x,y), dx, dy) ⇒ Set(x,y,dx,dy)
   }
   def getVars(ip: IPoint): Set[Variable] = Set(ip.x, ip.y) ++ ip.links
   def getVars(e: Eq): Set[Variable] = e.lhs.vars.keySet ++ e.rhs.vars.keySet

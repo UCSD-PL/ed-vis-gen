@@ -92,9 +92,11 @@ object HighLevel extends Emitter {
     val (cname: String, args) = s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
       case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,h,w))
+      case Image(Point(a,b), h, w, _) ⇒ ("Image", Seq(a,b,h,w))
       case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
-      case _ ⇒ (TODO, Seq())
+      case Spring(Point(a,b), dx, dy) ⇒ ("Spring", Seq(a,b,dx,dy))
+      case Arrow(Point(a,b), dx, dy) ⇒ ("Arrow", Seq(a,b,dx,dy))
     }
     printConstructor(cname, args.map(v ⇒ text(v.name)))
   }
@@ -150,31 +152,35 @@ object LowLevel extends Emitter {
   def printShape(s: Shape) = Allocator(s) <+> "=" <+> {
     val (ctor:String, symbArgs) = s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒ ("ClosedLine", Seq(a,b,c,d))
-      case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,w,h)) // ugh....
       case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
-      case _ ⇒ (TODO, Seq())
+      case Image(Point(a,b), h, w, _) ⇒ ("Image", Seq(a,b,h,w))
+      case Spring(Point(a,b), dx, dy) ⇒ ("Spring", Seq(a,b,dx,dy))
+      case Arrow(Point(a,b), dx, dy) ⇒ ("Arrow", Seq(a,b,dx,dy))
+      // ugh. this is hackish as hell for rectangles, but it works...
+      case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,w,h))
     }
 
-    // transform rectangle args from (x, y, w, h) to (x-hw, y-hh, x+hw, y+hh)
+    // transform centered args from (x, y, dx, dy) to (x-dx, y-dy, x+dx, y+dy)
     // @TODO: disgusting...needs better design
     val inter = symbArgs.map(v ⇒ (v.name ++ ".value"))
     val strArgs = s match {
       // first, add "-" to the first two elements and "+" to the second two.
-      // then, add "w/2"/"h/2" to the first two and "x"/"y" to the second two
-      case _:Rectangle ⇒ inter.zipWithIndex.map( pr ⇒ if (pr._2 < 2) {
-        pr._1 ++ "-" ++ inter(pr._2+2)
+      // then, add "w"/"h" to the first two and "x"/"y" to the second two
+      case _:Rectangle ⇒ inter.zipWithIndex.map{ case (v, i) ⇒ if (i < 2) {
+        v ++ "-" ++ inter(i+2)
       } else {
-        pr._1 ++ "+" ++ inter(pr._2-2)
-      })
+        v ++ "+" ++ inter(i-2)
+      }}
       case _ ⇒ inter
     }
 
-
-    // fetch values from variables and append style options
-    printConstructor(ctor, strArgs.map(text(_)) ++
-      Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
-    )
+    // add style options and image filename (if necessary)
+    val docArgs = strArgs.map(text(_)) ++ (s match {
+      case i: Image ⇒ Seq(dquotes(i.fname))
+      case _        ⇒ Seq()
+    }) ++ Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
+    printConstructor(ctor, docArgs)
   }
 
   def printEquation(e: Eq) = {
@@ -216,12 +222,17 @@ object LowLevel extends Emitter {
     val inter = (s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒
         Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d))
-      case Rectangle(Point(x,y), h, w) ⇒
-        Seq(("x1", x), ("y1", y), ("x2", w), ("y2", h)) // again, ugh...
       case Circle(Point(x,y), r) ⇒ Seq(("x", x), ("y", y), ("r", r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒
         Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d), ("x3", e), ("y3", f))
-      case _ ⇒ Seq()
+      // assumes filename field should never be changed
+      case Image(Point(x,y), h, w, _) ⇒
+        Seq(("x", x), ("y", y), ("h", h), ("w", w))
+      // and it remains gross. this is why we can't have nice things -.-
+      case VecLike(Point(x,y), dx, dy) ⇒
+        Seq(("x", x), ("y", y), ("dx", dx), ("dy", dy))
+      case Rectangle(Point(x,y), h, w) ⇒
+        Seq(("x1", x), ("y1", y), ("x2", w), ("y2", h))
     }).map{case (f, v) ⇒ (f, v.name ++ ".value")}
 
     val strArgs = s match {

@@ -8,6 +8,10 @@ object Usage extends RuntimeException {
   override def getMessage = "bad arguments"
 }
 
+object ParseError extends RuntimeException {
+  override def getMessage = "illformed source program"
+}
+
 object IllformedProgram extends RuntimeException {
   override def getMessage = "error in source program"
 }

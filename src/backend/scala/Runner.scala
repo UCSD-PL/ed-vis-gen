@@ -17,7 +17,7 @@ object Run {
     val fle = fromURL(getClass.getResource("/" + args(0)))
     val (prog: Program, initσ: Store) = Parser(fle.mkString) match {
       case Left(p) ⇒ p
-      case Right(msg) ⇒ println(msg); usage()
+      case Right(msg) ⇒ println(msg); throw ParseError
       //case _ ⇒ println("can't parse file " ++ simple.txt); usage
     }
     Validate(prog, initσ)
