@@ -1,0 +1,16 @@
+VARS(
+  XA = 150, YA = 150, RA = 5, 
+  XS = 150, YS = 150, XE = 350 , YE =150,
+  XB = 350, YB = 150, RB = 20
+);
+SHAPES(
+  Circle((XA, YA), RA), 
+  Line((XS, YS), (XE, YE)),
+  Circle((XB, YB), RB)
+);
+EQUATIONS(
+  XA = XS,
+  YA = YS,
+  XB = XE,
+  YB = YE
+);
