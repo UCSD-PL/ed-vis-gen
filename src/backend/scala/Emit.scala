@@ -43,6 +43,9 @@ object Allocator {
 }
 
 trait Emitter extends PrettyPrinter {
+  // for some reason, the library doesn't define it...
+  def sep(ds: Seq[Doc], sep: Doc) = group(vsep(ds, sep))
+
   def TODO: Doc = "TODO"
   def varPreamble: Doc
   def ipPreamble: Doc
@@ -56,20 +59,20 @@ trait Emitter extends PrettyPrinter {
 
   // extract values from variable arguments and append style arguments
   def printConstructor(name:String, args:Seq[Doc] ) = {
-    name <> parens( nest(lsep( args ,
+    name <> parens( nest(sep( args ,
       ",")
-    ) <> line) <> semi
+    )) <> semi
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
     case Program(vs, ps, ss, es) ⇒ {
-      vcat(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
+      vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
       , ipPreamble <@> sep(ps.map(printIP(_))(collection.breakOut))
       , shpPreamble <@>
         sep(ss.map(printShape(_))(collection.breakOut))
       , eqPreamble <@>
         sep(es.map(printEquation(_))(collection.breakOut))
-      ))
+      ), line)
     }
   }
 
@@ -123,28 +126,31 @@ object LowLevel extends Emitter {
     vsep(Seq("all_objects", "drag_points", "inc_objects").map(s ⇒ text(s ++ " = [];")))
   def timestep = text("20")
   def initEpilogue = {
-    val timerEnd = emitFCall("update_constraints", Seq()) <@> emitFCall("global_redraw", Seq())
+    val timerEnd = emitFCall("update_constraints") <@> emitFCall("global_redraw")
     "tau =" <+> printConstructor("Timer", Seq(timestep, // update frequency
-      emitFunc("", Seq(text("t")), timerEnd), // onTick
-      emitFunc("", Seq(),
-        emitFCall("resetCVs", Seq()) <@> timerEnd))) // onReset
+      emitFunc("", timerEnd, Seq(text("t"))), // onTick
+      emitFunc("", emitFCall("resetCVs")) <@> timerEnd)) // onReset
   }
-  // for some reason, the library doesn't define it...
-  def sep(ds: Seq[Doc], sep: Doc) = group(vsep(ds, sep))
+
 
   def varPreamble = "//VARIABLES:"
   def ipPreamble = "//IPOINTS:"
   def shpPreamble = "//SHAPES:"
-  def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> "//EQUATIONS:"
+  def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> line <> "//EQUATIONS:"
 
-  def emitFunc(name: String, args: Seq[Doc], body: Doc): Doc = {
-    "function" <+> name <+> parens(fillsep(args, ",")) <+> "{" <@>
-      nest(indent(body)) <@> "}"
+  def emitFunc(name: String, body: Doc = empty, args: Seq[Doc] = Seq()): Doc = {
+    "function" <> ( if (name.length > 0) {space <> name} else empty) <+>
+      parens(sep(args, ",")) <+> "{" <>
+        ( if (pretty(body) == "") {
+          "}"
+        } else {
+          line <> nest(indent(body)) <@> "}"
+        })
+
   }
 
-  def emitFCall(name: String, args: Seq[Doc]) = {
-    name <> parens(nest(sep(args, ","))) <> semi
-  }
+  def emitFCall(name: String, args: Seq[Doc] = Seq()) = printConstructor(name, args)
+
 
   def printVar(v: Variable, σ:Store) =  {
     text(v.name) <+> "=" <+>
@@ -178,7 +184,7 @@ object LowLevel extends Emitter {
 
     // add style options and image filename (if necessary)
     val docArgs = strArgs.map(text(_)) ++ (s match {
-      case i: Image ⇒ Seq(dquotes(i.fname))
+      case i: Image ⇒ Seq(text(i.tagname))
       case _        ⇒ Seq()
     }) ++ Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
     printConstructor(ctor, docArgs)
@@ -234,7 +240,14 @@ object LowLevel extends Emitter {
         Seq(("x", x), ("y", y), ("dx", dx), ("dy", dy))
       case Rectangle(Point(x,y), h, w) ⇒
         Seq(("x1", x), ("y1", y), ("x2", w), ("y2", h))
-    }).map{case (f, v) ⇒ (f, v.name ++ ".value")}
+    }).map{
+      case (f, v) ⇒ (f, v.name ++ ".value")
+    }.map {
+      case (f, v) ⇒ s match {
+        case _:Image ⇒ (f, "2*" ++ v)
+        case _ ⇒ (f, v)
+      }
+    }
 
     val strArgs = s match {
       // first, add "-" to the first two elements and "+" to the second two.
@@ -263,8 +276,8 @@ object LowLevel extends Emitter {
   }
 
   def emitInit(body: Doc): Doc = {
-    emitFunc("init", Seq(), vsep(Seq(
-      initPreamble, body, initEpilogue))
+    emitFunc("init", vsep(Seq(
+      initPreamble, body, initEpilogue), line)
     )
   }
 
@@ -278,22 +291,21 @@ object LowLevel extends Emitter {
     val ipoints = p.ipoints.map(Allocator(_))
     val objects = Seq("all_objects") ++ p.shapes.map(Allocator(_)) ++ ipoints
     val initBody =
-      super.emitProg(p, σ) <@>
+      super.emitProg(p, σ) <@> line <>
       emitFCall("push", objects.map(text(_))) <@>
       emitFCall("push", (Seq("drag_points") ++ ipoints).map(text _))
-
     vsep(Seq(
       emitInit(initBody),
       // emit update_constraints
-      emitFunc("update_constraints", Seq(), emitDrawUpdates(p.shapes)),
+      emitFunc("update_constraints", emitDrawUpdates(p.shapes)),
       // emit remaining stubs
-      emitFunc("drag_update", Seq(), emitFCall("update_constraints", Seq())),
-      emitFunc("start", Seq(), text("tau.start();")),
-      emitFunc("stop", Seq(), text("tau.stop();")),
-      emitFunc("reset", Seq(), text("tau.reset();")),
-      emitFunc("on_release", Seq(), empty),
-      emitFunc("on_click", Seq(), empty)
-    ))
+      emitFunc("drag_update", emitFCall("update_constraints", Seq())),
+      emitFunc("start", text("tau.start();")),
+      emitFunc("stop", text("tau.stop();")),
+      emitFunc("reset", text("tau.reset();")),
+      emitFunc("on_release", empty),
+      emitFunc("on_click", empty)
+    ), line)
 
   }
 }

@@ -57,7 +57,7 @@ sealed abstract class Shape
 case class Circle(center: Point, radius: Variable) extends Shape
 case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape
 case class Rectangle(center: Point, hheight: Variable, hwidth: Variable) extends Shape with Boxy
-case class Image(center: Point, hheight: Variable, hwidth: Variable, fname: String) extends Shape with Boxy
+case class Image(center: Point, hheight: Variable, hwidth: Variable, tagname: String) extends Shape with Boxy
 case class LineSegment(begin: Point, end: Point) extends Shape
 case class Spring(base: Point, dx: Variable, dy: Variable) extends Shape with Vecty
 case class Arrow(base: Point, dx: Variable, dy: Variable) extends Shape with Vecty

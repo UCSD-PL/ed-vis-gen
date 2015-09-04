@@ -1,16 +1,20 @@
 VARS(
   BX = 250, BY = 250, BH = 50, BW = 100,
   SX = 250, SY = 200, DX = 0, DY = -50,
-  PX = 250, PY = 150, PH = 10, PW = 20
+  PX = 250, PY = 150, PH = 10, PW = 20,
+  IX = 250, IY = 130, IH = 10, IW = 10
 );
 SHAPES(
   Rectangle((BX, BY), BH, BW),
   Spring((SX, SY), DX, DY),
-  Rectangle((PX, PY), PH, PW)
+  Rectangle((PX, PY), PH, PW),
+  Image((IX, IY), IH, IW, "iron")
 );
 EQUATIONS(
   SX = BX,
   SY = BY + -1 * BH,
   PX = SX + DX,
-  PY = SY + DY
+  PY = SY + DY,
+  IX = PX,
+  IY = PY + -1 * IH + -1 * PH
 );
