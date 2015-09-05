@@ -25,16 +25,16 @@ object Run {
     println(HighLevel(prog, initσ))
     println("compiled version:")
     println(LowLevel(prog, initσ))
-    println("interactive variants:")
-    // Set[Configuration]
-    val newProgs = LinkLength(Positional(prog, initσ))
-
-    var pcounter = 0
-    newProgs.foreach{ case (prog, σ) ⇒ {
-      println("//prog" ++ pcounter.toString)
-      pcounter += 1
-      println(LowLevel(prog, σ) ++ "\n")}
-    }
+    // println("interactive variants:")
+    // // Set[Configuration]
+    // val newProgs = LinkLength(Positional(prog, initσ))
+    //
+    // var pcounter = 0
+    // newProgs.foreach{ case (prog, σ) ⇒ {
+    //   println("// prog" ++ pcounter.toString)
+    //   pcounter += 1
+    //   println(LowLevel(prog, σ) ++ "\n")}
+    // }
   }
 
   def usage() = {

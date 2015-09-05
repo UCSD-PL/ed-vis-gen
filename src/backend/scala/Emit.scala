@@ -59,7 +59,9 @@ trait Emitter extends PrettyPrinter {
 
   // extract values from variable arguments and append style arguments
   def printConstructor(name:String, args:Seq[Doc] ) = {
-    name <> parens( nest(sep( args ,
+    name <> parens(
+      if (args.isEmpty) empty else
+        nest(sep( args ,
       ",")
     )) <> semi
   }
@@ -218,7 +220,7 @@ object LowLevel extends Emitter {
       iname <+> "=" <+> printConstructor(
         "InteractionPoint", Seq(x, y).map(v ⇒ text(v.name))
       ) <@> iname <> ".links" <+> "=" <+> brackets(
-        fillsep( links.map(v ⇒ dquotes(text(v.name)))(collection.breakOut), comma)
+        sep( links.map(v ⇒ dquotes(text(v.name)))(collection.breakOut), comma)
       ) <> semi
     }
   }
