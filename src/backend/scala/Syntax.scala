@@ -106,7 +106,37 @@ case class Eq(lhs: Expr, rhs: Expr) {
   def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
 }
 
-// for now, programs are sets of variables, ipoints, primitives, and equations.
+// second order DEs, of the form
+// x'' = f(x') + g(x)
+// internally represented as an expression for RHS plus variable bindings for
+// x'', x', and x, respectively
+
+case class DE(equation: Expression, subject: Variable, derivative: Variable, plain: Variable)
+
+// arithmetic expression grammar, plus function calls. at the moment, only sine/cosine are implemented.
+sealed abstract class Expression
+case class Const(v: Double) extends Expression
+case class Var(v: Variable) extends Expression
+case class BinOp(lhs: Expression, rhs: Expression, op: BOP) extends Expression
+case class UnOp(inner: Expression, op: UOP) extends Expression
+case class App(func: String, arg: Expression) extends Expression
+
+// binary operations
+// +,-,*,/
+sealed abstract class BOP
+object ⨁ extends BOP
+object ⊖ extends BOP
+object ⨂ extends BOP
+object ⨸ extends BOP
+// unary operations
+// parens and negation
+sealed abstract class UOP
+object Paren extends UOP
+object ¬ extends UOP
+
+// for now, programs are sets of variables, ipoints, primitives, constraint equations,
+// differential equations.
 case class Program(
-  vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape], equations : Set[Eq]
+  vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
+  equations : Set[Eq] /*, diffEquations : Set[DE]*/
 )

@@ -66,6 +66,46 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val equation = (expr <~ "=") ~ expr ^^ { case l ~ r ⇒ Eq(l,r) }
 
+  // differential equations and expressions
+  // standard arithmetic expression grammar + function apps
+
+  // terminal values, unops, and fcalls
+  type EP = Parser[Expression]
+  lazy val efactor: EP = vrbl ^^ {Var(_)} | decimalNumber ^^ {s ⇒ Const(s.toDouble)} |
+    "(" ~> expression <~ ")" ^^ {UnOp(_, Paren)} |
+    "-" ~> expression ^^ {UnOp(_, ¬)} |
+    ident ~ ("(" ~> expression <~ ")") ^^ {
+      case f ~ arg ⇒ App(f, arg)
+    }
+
+  // products of factors, adapted from regexparser documentation
+  lazy val eterm: EP = efactor ~ rep( "*" ~ efactor | "/" ~ efactor) ^^ {
+    case e ~ es ⇒ es.foldLeft(e) {
+      case (l, "*" ~ r) ⇒ BinOp(l, r, ⨂)
+      case (l, "/" ~ r) ⇒ BinOp(l, r, ⨸)
+    }
+  }
+
+  // sum of products, adapted from regexparser documentation
+  lazy val expression: EP = eterm ~ rep( "+" ~ eterm | "-" ~ eterm) ^^ {
+    case e ~ es ⇒ es.foldLeft(e) {
+      case (l, "+" ~ r) ⇒ BinOp(l, r, ⨁)
+      case (l, "-" ~ r) ⇒ BinOp(l, r, ⊖)
+    }
+  }
+  // <Exp> ::= <Exp> + <Term> |
+  // <Exp> - <Term> |
+  // <Term>
+
+  //
+  // <Term> ::= <Term> * <Factor> |
+  // <Term> / <Factor> |
+  // <Factor>
+  //
+  // <Factor> ::= x | y | ... |
+  // ( <Exp> ) |
+  // - <Factor>
+
   // programs look like:
   // VARS(ident (, ident)*);
   // SHAPES(shape (, shape)*);
