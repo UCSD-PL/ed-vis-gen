@@ -13,6 +13,7 @@ import scala.collection.mutable.{HashMap ⇒ MMap}
 // usage is through apply; apply extends the map if necessary and returns
 // an object's name.
 object Allocator {
+
   // union type hack
   sealed class VorIPorShp[T]
   implicit object VWitness extends VorIPorShp[Variable]
@@ -131,7 +132,7 @@ object LowLevel extends Emitter {
     val timerEnd = emitFCall("update_constraints") <@> emitFCall("global_redraw")
     "tau =" <+> printConstructor("Timer", Seq(timestep, // update frequency
       emitFunc("", timerEnd, Seq(text("t"))), // onTick
-      emitFunc("", emitFCall("resetCVs")) <@> timerEnd)) // onReset
+      emitFunc("", emitFCall("resetCVs") <@> timerEnd))) // onReset
   }
 
 
@@ -180,6 +181,12 @@ object LowLevel extends Emitter {
         v ++ "-" ++ inter(i+2)
       } else {
         v ++ "+" ++ inter(i-2)
+      }}
+
+      case _:Image ⇒ inter.zipWithIndex.map{ case (v, i) ⇒ if (i < 2) {
+        v
+      } else {
+        "2*" ++ v
       }}
       case _ ⇒ inter
     }
@@ -244,9 +251,9 @@ object LowLevel extends Emitter {
         Seq(("x1", x), ("y1", y), ("x2", w), ("y2", h))
     }).map{
       case (f, v) ⇒ (f, v.name ++ ".value")
-    }.map {
-      case (f, v) ⇒ s match {
-        case _:Image ⇒ (f, "2*" ++ v)
+    }.zipWithIndex.map {
+      case ((f, v), i) ⇒ (s, i>1) match {
+        case (_:Image, true) ⇒ (f, "2*" ++ v)
         case _ ⇒ (f, v)
       }
     }
