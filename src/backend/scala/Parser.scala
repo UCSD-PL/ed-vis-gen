@@ -93,23 +93,18 @@ object Parser extends JavaTokenParsers with PackratParsers {
       case (l, "-" ~ r) ⇒ BinOp(l, r, ⊖)
     }
   }
-  // <Exp> ::= <Exp> + <Term> |
-  // <Exp> - <Term> |
-  // <Term>
 
-  //
-  // <Term> ::= <Term> * <Factor> |
-  // <Term> / <Factor> |
-  // <Factor>
-  //
-  // <Factor> ::= x | y | ... |
-  // ( <Exp> ) |
-  // - <Factor>
+  // DE declarations look like:
+  // DE(expression, x'', x', x)
+  lazy val de = "DE(" ~> ((expression <~ ",") ~ (vrbl <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
+    case e ~ xpp ~ xp ~ x ⇒ DE(e, xpp, xp, x)
+  }
 
   // programs look like:
   // VARS(ident (, ident)*);
   // SHAPES(shape (, shape)*);
   // EQUATIONS(eq (, eq)*);
+  // PHYSICS(de, (, de)*);
 
   type SP[T] = Parser[Set[T]]
   lazy val vars = repsep(ident ~ ("=" ~> decimalNumber), ",") ^^ { is ⇒
@@ -118,11 +113,12 @@ object Parser extends JavaTokenParsers with PackratParsers {
   }
   lazy val shps: SP[Shape] = repsep(shp, ",") ^^ {_.toSet}
   lazy val eqs: SP[Eq]     = repsep(equation, ",") ^^ {_.toSet}
+  lazy val des: SP[DE]     = repsep(de, ",") ^^ {_.toSet}
 
   lazy val program =
     (("VARS(" ~> vars <~ ");") ~ ("SHAPES(" ~> shps <~ ");") ~
-    ("EQUATIONS(" ~> eqs <~ ");")) ^^ {
-      case (vs, σ) ~ ss ~ es ⇒ (Program(vs, Set(), ss, es), σ)
+    ("EQUATIONS(" ~> eqs <~ ");") ~ ("PHYSICS(" ~> des <~ ");")) ^^ {
+      case (vs, σ) ~ ss ~ es ~ des ⇒ (Program(vs, Set(), ss, es, des), σ)
     }
 
   def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {

@@ -52,11 +52,14 @@ trait Emitter extends PrettyPrinter {
   def ipPreamble: Doc
   def shpPreamble: Doc
   def eqPreamble: Doc
+  def dePreamble: Doc
 
   def printVar(v: Variable, initσ: Store): Doc
   def printIP(p: IPoint): Doc
   def printShape(s: Shape): Doc
   def printEquation(e: Eq): Doc
+  def printDE(e: DE): Doc
+  def emitExpr(e: Expression): Doc = TODO
 
   // extract values from variable arguments and append style arguments
   def printConstructor(name:String, args:Seq[Doc] ) = {
@@ -68,13 +71,15 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es) ⇒ {
+    case Program(vs, ps, ss, es, des) ⇒ {
       vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
       , ipPreamble <@> sep(ps.map(printIP(_))(collection.breakOut))
       , shpPreamble <@>
         sep(ss.map(printShape(_))(collection.breakOut))
       , eqPreamble <@>
         sep(es.map(printEquation(_))(collection.breakOut))
+      , dePreamble <@>
+          sep(des.map(printDE(_))(collection.breakOut))
       ), line)
     }
   }
@@ -91,6 +96,14 @@ object HighLevel extends Emitter {
   def ipPreamble = "IPOINTS:"
   def shpPreamble = "SHAPES:"
   def eqPreamble = "EQUATIONS:"
+
+  def dePreamble = "DIFFERENTIAL EQUATIONS:"
+
+  def printDE(e: DE) = e match {
+    case DE(expr, xpp, xp, x) ⇒
+      xpp.name <+> "=" <+> emitExpr(expr) <> comma <+> xp.name <> comma <+> x.name
+  }
+
 
   def printVar(v: Variable, σ: Store) = v.name <> semi
 
@@ -125,6 +138,9 @@ object HighLevel extends Emitter {
 // print out a low-level javascript version of the program
 object LowLevel extends Emitter {
   override def TODO = "//@TODO"
+  // don't print out DEs in init
+  def dePreamble = empty
+  def printDE(e: DE) = empty
   def initPreamble =
     vsep(Seq("all_objects", "drag_points", "inc_objects").map(s ⇒ text(s ++ " = [];")))
   def timestep = text("20")

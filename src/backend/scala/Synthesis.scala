@@ -204,7 +204,7 @@ object Positional extends SynthesisPass {
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(p: Program, σ: Store): Set[Configuration] = p match {
-    case Program(vars, ips, shapes, eqs) ⇒ shapes.flatMap { s ⇒ {
+    case Program(vars, ips, shapes, eqs, _) ⇒ shapes.flatMap { s ⇒ {
       val candidates = PointGeneration(s, σ)
 
       val res = candidates.flatMap { case (ip, es, δ) ⇒ {

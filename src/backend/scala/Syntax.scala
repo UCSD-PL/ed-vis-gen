@@ -138,5 +138,5 @@ object ¬ extends UOP
 // differential equations.
 case class Program(
   vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
-  equations : Set[Eq] /*, diffEquations : Set[DE]*/
+  equations : Set[Eq], diffEquations : Set[DE]
 )

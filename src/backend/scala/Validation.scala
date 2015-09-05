@@ -8,19 +8,26 @@ import EDDIE.errors._
 object Validate {
   // make sure every variable used in the program has a corresponding declaration
   // helper functions to collect variables
-  def getVars(s: Shape): Set[Variable] = s match {
+  type SV = Set[Variable]
+  def getVars(s: Shape): SV = s match {
     case Circle(Point(x,y), r) ⇒ Set(x,y,r)
     case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ Set(a,b,c,d,e,f)
     case BoxLike(Point(x,y), h, w) ⇒ Set(x,y,h,w)
     case LineSegment(Point(a,b), Point(c,d)) ⇒ Set(a,b,c,d)
     case VecLike(Point(x,y), dx, dy) ⇒ Set(x,y,dx,dy)
   }
-  def getVars(ip: IPoint): Set[Variable] = Set(ip.x, ip.y) ++ ip.links
-  def getVars(e: Eq): Set[Variable] = e.lhs.vars.keySet ++ e.rhs.vars.keySet
+  def getVars(ip: IPoint): SV = Set(ip.x, ip.y) ++ ip.links
+  def getVars(e: Eq): SV = e.lhs.vars.keySet ++ e.rhs.vars.keySet
+  // TODO
+  def getVars(e: Expression): SV = e match {
+    case _ ⇒ Set()
+  }
+  def getVars(de: DE): SV = getVars(de.equation) + de.subject + de.derivative + de.plain
   def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs) ⇒ {
+    case Program(vars, ips, shapes, eqs, des) ⇒ {
       val allUses =
-        ips.flatMap(getVars(_)) ++ shapes.flatMap(getVars(_)) ++ eqs.flatMap(getVars(_))
+        ips.flatMap(getVars(_)) ++ shapes.flatMap(getVars(_)) ++
+        eqs.flatMap(getVars(_)) ++ des.flatMap(getVars(_))
       if ((allUses diff vars).nonEmpty) {
         println("error: undefined variables " ++ (allUses diff vars).toString)
         throw IllformedProgram
