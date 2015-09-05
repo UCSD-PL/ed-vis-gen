@@ -21,9 +21,9 @@ object Run {
       //case _ ⇒ println("can't parse file " ++ simple.txt); usage
     }
     Validate(prog, initσ)
-    println("original:")
-    println(HighLevel(prog, initσ))
-    println("compiled version:")
+    // println("original:")
+    // println(HighLevel(prog, initσ))
+    //println("// compiled version:")
     println(LowLevel(prog, initσ))
     // println("interactive variants:")
     // // Set[Configuration]

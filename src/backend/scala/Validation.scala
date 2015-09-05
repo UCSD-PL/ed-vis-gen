@@ -18,11 +18,16 @@ object Validate {
   }
   def getVars(ip: IPoint): SV = Set(ip.x, ip.y) ++ ip.links
   def getVars(e: Eq): SV = e.lhs.vars.keySet ++ e.rhs.vars.keySet
-  // TODO
+  // @OPT: make tailrec
   def getVars(e: Expression): SV = e match {
-    case _ ⇒ Set()
+    case Const(_) ⇒ Set()
+    case Var(v) ⇒ Set(v)
+    case BinOp(l, r, _) ⇒ getVars(l) ++ getVars(r)
+    case UnOp(i, _) ⇒ getVars(i)
+    case App(_, arg) ⇒ getVars(arg)
   }
   def getVars(de: DE): SV = getVars(de.equation) + de.subject + de.derivative + de.plain
+
   def checkVarDecls(p:Program) { p match {
     case Program(vars, ips, shapes, eqs, des) ⇒ {
       val allUses =

@@ -104,6 +104,17 @@ object HighLevel extends Emitter {
       xpp.name <+> "=" <+> emitExpr(expr) <> comma <+> xp.name <> comma <+> x.name
   }
 
+  override def emitExpr(e: Expression): Doc = e match {
+    case Const(c) ⇒ text(c.toString)
+    case Var(v) ⇒ text(v.name)
+    case BinOp(l, r, op) ⇒ sep(Seq(emitExpr(l), emitExpr(r)), op.toString)
+    case UnOp(i, op) ⇒ op match {
+      case ¬ ⇒ "-" <> emitExpr(i)
+      case Paren ⇒ parens(emitExpr(i))
+    }
+    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)))
+  }
+
 
   def printVar(v: Variable, σ: Store) = v.name <> semi
 
