@@ -1,0 +1,7 @@
+VARS(
+  PX = 100, PY = 100, DX = 0, DY = 25
+);
+SHAPES(
+  Spring((PX, PY), DX, DY)
+);
+EQUATIONS();

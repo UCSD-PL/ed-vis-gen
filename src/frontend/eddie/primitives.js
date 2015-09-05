@@ -123,7 +123,7 @@ function Text(x, y, text, font) { // font is an optional parameter
 
 // Circle primitive. Fill controls the color of the interior, while stroke controls
 // the color of the border.
-function Circle (x, y, r, fill, stroke) {
+function Circle (x, y, r, stroke, fill) {
   return {
     x: x,
     y: y,
@@ -213,23 +213,33 @@ function Timer (freq, work, done) {
   }
 }
 
+// x and y are assumed to be cassowary constraint variables (i.e., instances of
+// c.Variable)
 function InteractionPoint (x,y) {
+  // c.assert(x instanceof c.Variable && y instanceof c.Variable,
+  //   "InteractionPoint requires c.Variable arguments");
+  // backwards compatible interface
+  if (! (x instanceof c.Variable) ) {
+    x = new c.Variable({value: x});
+  }
+
+  if (! (y instanceof c.Variable) ) {
+    y = new c.Variable({value: y});
+  }
   return {
     x: x,
     y: y,
     cr: 2,
     r: 20,
     fill: "black",
-    links: [], // linked objects for translations
+    links: [], // transitive cassowary data dependencies,
+               // need to be keys in constrained_vars.
     translate: function(dx, dy) {
-			with (this) {
-				x += dx;
-				y += dy;
-			}
+			c.assert(false, "translation interface not supported");
 		},
     draw: function(ctx) {
       with (this) {
-        Circle(x, y, cr, fill).draw(ctx);
+        Circle(x.value, y.value, cr, fill).draw(ctx);
       }
     }
   }
@@ -306,6 +316,7 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
 // ranges: object mapping view names to view min and max values. e.g. {x: {mn: 0, mx: 100}}
 // stroke: color of plotted points
 // resolution: number of points kept as history.
+// simple: whether to draw axes and labels
 
 // Exports member functions:
 // setView(x,y), setXView, setYView: change the views to input parameters.
@@ -319,17 +330,17 @@ function Trace (x, y, h, w, stroke, resolution, orientation) {
 // xStart: x-coordinate for "current" point.
 // yStart: y-coordinate for "current" point.
 
-// TODO: make ranges adjustable on the fly
-function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
+function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution, simple) {
   var initVals = {};
   for (var d in ranges) {
     initVals[d] = [];
   }
   return {
     x: x, // since we're drawing incrementally, these shouldn't be directly edited.
-    y: y, // intead, call "moveTo"
+    y: y, // intead, call "moveTo" for translations and "resize" for resizing.
     h: h,
     w: w,
+    ranges: ranges,
     xStart: x+w/2, // coordinates of first value in plot
     yStart: y+h/2,
     res: resolution,
@@ -356,6 +367,17 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
       _needToClear = true;
       x = newx;
       y = newy;
+    }},
+
+    resize: function (neww, newh) { with (this) {
+      var hRat = newh/h; // assumes h = w
+      h = newh;
+      w = neww;
+      for (k in ranges) {
+        ranges[k].mn *= hRat;
+        ranges[k].mx *= hRat;
+      }
+      _needToClear = true;
     }},
 
     // Change the coordinate axes. This changes the x and y starting values,
@@ -461,6 +483,9 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution) {
     }},
     // draws the axes and labels.
     draw: function (ctx) { with (this) {
+      if (simple) {
+        return;
+      }
       ctx.save();
       ctx.fillStyle = stroke;
       ctx.beginPath();

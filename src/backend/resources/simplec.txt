@@ -1,0 +1,7 @@
+VARS(
+  PX = 50, PY = 50, R = 20
+);
+SHAPES(
+  Circle((PX, PY), R)
+);
+EQUATIONS();
