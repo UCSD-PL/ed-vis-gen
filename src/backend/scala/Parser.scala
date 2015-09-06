@@ -10,6 +10,7 @@ import scala.util.parsing.combinator.PackratParsers
 
 // parsers for AST + initial store
 object Parser extends JavaTokenParsers with PackratParsers {
+  protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
   // variables, points, and shapes
   lazy val str = stringLiteral
   lazy val vrbl = ident ^^ {Variable(_)}
