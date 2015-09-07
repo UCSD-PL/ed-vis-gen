@@ -68,7 +68,7 @@ function Arrow(x, y, dx, dy, color) {
 		},
 		draw: function (ctx) {
   		with (this) {
-  			Line([x,y,x+dx,y+dy], color).draw(ctx);
+  			Line([x,y,x+dx,y+dy], color, color).draw(ctx);
 
         // arrows are hard, adapted from here:
         // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html

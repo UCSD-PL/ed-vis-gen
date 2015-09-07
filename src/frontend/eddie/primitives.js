@@ -23,7 +23,7 @@ function ClosedLine (points, stroke, fill) {
 // Line primitive. Points is an array of (x,y) pairs, stroke specifies the
 // color of the line stroke, and dash specifies whether to use a dashed line
 // or not.
-function Line (points, stroke, dash) {
+function Line (points, stroke, fill, dash) {
   return {
     points : points,
     stroke: stroke,
