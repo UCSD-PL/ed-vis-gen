@@ -352,9 +352,11 @@ object LowLevel extends Emitter {
 
   def emitRecConstraints(rs: Set[RecConstraint] ) : Doc = sep(
     rs.map { r ⇒
-      Allocator(r.lhs) <+> "=" <+> nest(emitExpr(r.rhs) <> semi)
+      "var" <+> (r.lhs.name ++ recLocalSuffix) <+> "=" <+> nest(emitExpr(r.rhs) <> semi)
     }(collection.breakOut)
-  )
+  ) <@> "return" <+> braces( sep(rs.map{ r ⇒
+    r.lhs.name <+> colon <+> (r.lhs.name ++ recLocalSuffix)
+  }(collection.breakOut), comma)) <> semi
 
 
   override def emitProg(p: Program, σ: Store): Doc = {

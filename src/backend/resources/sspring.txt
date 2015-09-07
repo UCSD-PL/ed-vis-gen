@@ -8,7 +8,7 @@ VARS(
   // image
   IX = 250, IY = 130, IH = 10, IW = 10,
   // physics simulation variables
-  M = 55, K = 2.75, C = 0.5, G = 0.98,
+  M = 55, K = 1.1, C = 2.5, G = 0.98,
   InitRL = 125, RL = 125, F = 0, V = 0, T = 0
 );
 SHAPES(
