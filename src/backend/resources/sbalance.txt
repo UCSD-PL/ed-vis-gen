@@ -1,0 +1,15 @@
+VARS(
+  SX = 100, SY = 150, EX = 500, EY = 150,
+  GAX = 0, GAY = 300, GBX = 600, GBY = 300,
+  TAX = 250, TAY = 300, TBX = 350, TBY = 300, TCX = 300, TCY = 150,
+  RAX = 50, RAY = 275, RAH = 25, RAW = 25,
+  RBX = 550, RBY = 275, RBH = 25, RBW = 25
+);
+SHAPES(
+  Line((SX, SY), (EX, EY)),
+  Line((GAX, GAY), (GBX, GBY)),
+  Triangle((TAX, TAY), (TBX, TBY), (TCX, TCY)),
+  Rectangle((RAX, RAY), RAH, RAW),
+  Rectangle((RBX, RBY), RBH, RBW)
+);
+EQUATIONS();

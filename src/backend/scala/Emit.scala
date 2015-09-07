@@ -221,7 +221,7 @@ object LowLevel extends Emitter {
   }
   def printShape(s: Shape) = Allocator(s) <+> "=" <+> {
     val (ctor:String, symbArgs) = s match {
-      case LineSegment(Point(a,b), Point(c,d)) ⇒ ("ClosedLine", Seq(a,b,c,d))
+      case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
       case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
       case Image(Point(a,b), h, w, _) ⇒ ("Image", Seq(a,b,h,w))
@@ -235,24 +235,25 @@ object LowLevel extends Emitter {
     // @TODO: disgusting...needs better design
     val inter = symbArgs.map(v ⇒ (v.name ++ ".value"))
     val strArgs = s match {
+      case _:LineSegment ⇒ Seq(brackets(sep(inter.map(text(_)), comma)))
       // first, add "-" to the first two elements and "+" to the second two.
       // then, add "w"/"h" to the first two and "x"/"y" to the second two
       case _:Rectangle ⇒ inter.zipWithIndex.map{ case (v, i) ⇒ if (i < 2) {
-        v ++ "-" ++ inter(i+2)
+        text(v ++ "-" ++ inter(i+2))
       } else {
-        v ++ "+" ++ inter(i-2)
+        text(v ++ "+" ++ inter(i-2))
       }}
 
       case _:Image ⇒ inter.zipWithIndex.map{ case (v, i) ⇒ if (i < 2) {
-        v
+        text(v)
       } else {
-        "2*" ++ v
+        text("2*" ++ v)
       }}
-      case _ ⇒ inter
+      case _ ⇒ inter.map(text(_))
     }
 
     // add style options and image filename (if necessary)
-    val docArgs = strArgs.map(text(_)) ++ (s match {
+    val docArgs = strArgs ++ (s match {
       case i: Image ⇒ Seq(text(i.tagname))
       case _        ⇒ Seq()
     }) ++ Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
@@ -296,8 +297,7 @@ object LowLevel extends Emitter {
   // helper function: convert a shape into a set of tuples of the form (field, value) :: (Doc, Doc)
   def fieldsAndVars(s: Shape): Set[(Doc, Doc)] = {
     val inter = (s match {
-      case LineSegment(Point(a,b), Point(c,d)) ⇒
-        Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d))
+      case LineSegment(Point(a,b), Point(c,d)) ⇒ throw Inconceivable
       case Circle(Point(x,y), r) ⇒ Seq(("x", x), ("y", y), ("r", r))
       case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒
         Seq(("x1", a), ("y1", b), ("x2", c), ("y2", d), ("x3", e), ("y3", f))
@@ -336,10 +336,15 @@ object LowLevel extends Emitter {
   // the correct variable names)
   def emitDrawUpdates(shapes: Set[Shape]): Doc = {
     sep(
-      shapes.map(s ⇒
-        sep(fieldsAndVars(s).map{case (f, v) ⇒
+      shapes.map(s ⇒ s match {
+        case LineSegment(Point(x1, y1), Point(x2, y2)) ⇒
+          Allocator(s) <> ".points = " <> brackets(sep(Seq(x1,y1,x2,y2).map{ v ⇒
+            text(v.name ++ ".value")
+          }, comma)) <> semi
+        case _ ⇒ sep(fieldsAndVars(s).map{case (f, v) ⇒
           Allocator(s) <> "." <> f <+> "=" <+> v <> semi
         }(collection.breakOut))
+      }
       )(collection.breakOut)
     )
   }
