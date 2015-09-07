@@ -60,7 +60,27 @@ trait Emitter extends PrettyPrinter {
   def printShape(s: Shape): Doc
   def printLinear(e: Eq): Doc
   def printNonlinear(e: RecConstraint): Doc
-  def emitExpr(e: Expression): Doc = TODO
+
+  def emitExpr(e: Expression): Doc = e match {
+    case Const(c) ⇒ text(c.toString)
+    case Var(v) ⇒ text(v.name)
+    case BinOp(l, r, op) ⇒ {
+      val opStr = op match {
+        case ⨁ ⇒ " +"
+        case ⊖ ⇒ " -"
+        case ⨂ ⇒ " *"
+        case ⨸ ⇒ " /"
+        case MOD ⇒ " %"
+      }
+
+      sep(Seq(emitExpr(l), emitExpr(r)), opStr)
+    }
+    case UnOp(i, op) ⇒ op match {
+      case ¬ ⇒ "-" <> emitExpr(i)
+      case Paren ⇒ parens(emitExpr(i))
+    }
+    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)), empty)
+  }
 
   def printFV(v: Variable, σ: Store) = printVar(v, σ)
 
@@ -105,28 +125,6 @@ object HighLevel extends Emitter {
 
   def printNonlinear(e: RecConstraint) = sep(Seq(text(e.lhs.name), emitExpr(e.rhs)), " <-")
 
-  override def emitExpr(e: Expression): Doc = e match {
-    case Const(c) ⇒ text(c.toString)
-    case Var(v) ⇒ text(v.name)
-    case BinOp(l, r, op) ⇒ {
-      val opStr = op match {
-        case ⨁ ⇒ " +"
-        case ⊖ ⇒ " -"
-        case ⨂ ⇒ " *"
-        case ⨸ ⇒ " ÷"
-        case MOD ⇒ " mod"
-      }
-
-      sep(Seq(emitExpr(l), emitExpr(r)), opStr)
-    }
-    case UnOp(i, op) ⇒ op match {
-      case ¬ ⇒ "-" <> emitExpr(i)
-      case Paren ⇒ parens(emitExpr(i))
-    }
-    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)), empty)
-  }
-
-
   def printVar(v: Variable, σ: Store) = v.name <> semi
 
   def printShape(s: Shape) = {
@@ -165,6 +163,7 @@ object LowLevel extends Emitter {
   def printNonlinear(e: RecConstraint) = empty
   def fvPreamble = empty
   def recFunName = "recursive_constraints"
+  def recLocalSuffix = "_local"
   override def printFV(v: Variable, σ: Store) = empty
 
   def emitRecs(p: Program) = emitFCall("update_rec_constraints", Seq(
@@ -181,6 +180,19 @@ object LowLevel extends Emitter {
     "tau =" <+> printConstructor("Timer", Seq(timestep, // update frequency
       emitFunc("", emitRecs(p) <@> timerEnd, Seq(text("t"))), // onTick
       emitFunc("", emitFCall("resetCVs") <@> timerEnd))) // onReset
+  }
+
+
+  override def emitExpr(e: Expression) = e match {
+    case Var(v) ⇒ "args." <> v.name
+    case App(f, arg) ⇒ {
+      val mathFuncs = Set("cos", "sin", "abs", "tan", "sqrt")
+      if (mathFuncs.contains(f))
+        "Math." <> f <> parens(emitExpr(arg))
+      else
+        println("unrecognized function " ++ f); throw IllformedProgram
+    }
+    case _ ⇒ super.emitExpr(e) // otherwise, the superclass is well-formed javascript
   }
 
 
@@ -338,8 +350,14 @@ object LowLevel extends Emitter {
     )
   }
 
-  override def emitProg(p: Program, σ: Store): Doc = {
+  def emitRecConstraints(rs: Set[RecConstraint] ) : Doc = sep(
+    rs.map { r ⇒
+      Allocator(r.lhs) <+> "=" <+> nest(emitExpr(r.rhs) <> semi)
+    }(collection.breakOut)
+  )
 
+
+  override def emitProg(p: Program, σ: Store): Doc = {
 
     // emit init
     // rely on superclass for most of the gruntwork. in addition to variable declarations,
@@ -355,6 +373,8 @@ object LowLevel extends Emitter {
       emitInit(p, σ, initBody),
       // emit update_constraints
       emitFunc("update_constraints", emitDrawUpdates(p.shapes)),
+      // emit recursive_constraints
+      emitFunc(recFunName, emitRecConstraints(p.recConstraints), Seq("args") ),
       // emit remaining stubs
       emitFunc("drag_update", emitFCall("update_constraints", Seq())),
       emitFunc("start", text("tau.start();")),

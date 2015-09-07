@@ -31,4 +31,6 @@ NONLINEAR(
   F <- (-K*(DY + RL) - (C*V))/M,
   V <- V + F,
   DY <- DY + V
-) WITH FREE(PY, IY);
+) WITH FREE(
+  PY, IY
+);
