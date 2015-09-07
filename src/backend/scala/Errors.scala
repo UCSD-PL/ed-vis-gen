@@ -15,3 +15,7 @@ object ParseError extends RuntimeException {
 object IllformedProgram extends RuntimeException {
   override def getMessage = "error in source program"
 }
+
+object Inconceivable extends RuntimeException {
+  override def getMessage = "dead code"
+}
