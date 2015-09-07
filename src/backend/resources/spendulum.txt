@@ -5,7 +5,7 @@ VARS(
 );
 SHAPES(
   Circle((XA, YA), RA), 
-  Line((XS, YS), (XE, YE)),
+  LineSegment((XS, YS), (XE, YE)),
   Circle((XB, YB), RB)
 );
 EQUATIONS(
