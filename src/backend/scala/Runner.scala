@@ -22,7 +22,7 @@ object Run {
     }
     Validate(prog, initσ)
     // println("original:")
-    // println(HighLevel(prog, initσ))
+    //println(HighLevel(prog, initσ))
     //println("// compiled version:")
     println(LowLevel(prog, initσ))
     // println("interactive variants:")

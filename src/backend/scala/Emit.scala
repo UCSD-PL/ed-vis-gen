@@ -52,34 +52,38 @@ trait Emitter extends PrettyPrinter {
   def ipPreamble: Doc
   def shpPreamble: Doc
   def eqPreamble: Doc
-  def dePreamble: Doc
+  def recPreamble: Doc
+  def fvPreamble: Doc
 
   def printVar(v: Variable, initσ: Store): Doc
   def printIP(p: IPoint): Doc
   def printShape(s: Shape): Doc
-  def printEquation(e: Eq): Doc
-  def printDE(e: DE): Doc
+  def printLinear(e: Eq): Doc
+  def printNonlinear(e: RecConstraint): Doc
   def emitExpr(e: Expression): Doc = TODO
 
+  def printFV(v: Variable, σ: Store) = printVar(v, σ)
+
   // extract values from variable arguments and append style arguments
-  def printConstructor(name:String, args:Seq[Doc] ) = {
+  def printConstructor(name:String, args:Seq[Doc], end: Doc = semi ) = {
     name <> parens(
       if (args.isEmpty) empty else
         nest(sep( args ,
       ",")
-    )) <> semi
+    )) <> end
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es, des) ⇒ {
+    case Program(vs, ps, ss, es, recs, rfvs) ⇒ {
       vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
       , ipPreamble <@> sep(ps.map(printIP(_))(collection.breakOut))
       , shpPreamble <@>
         sep(ss.map(printShape(_))(collection.breakOut))
       , eqPreamble <@>
-        sep(es.map(printEquation(_))(collection.breakOut))
-      , dePreamble <@>
-          sep(des.map(printDE(_))(collection.breakOut))
+        sep(es.map(printLinear(_))(collection.breakOut))
+      , recPreamble <@>
+          sep(recs.map(printNonlinear(_))(collection.breakOut))
+      , fvPreamble <@> sep(rfvs.map(printFV(_, σ))(collection.breakOut))
       ), line)
     }
   }
@@ -95,24 +99,31 @@ object HighLevel extends Emitter {
   def varPreamble = "VARIABLES:"
   def ipPreamble = "IPOINTS:"
   def shpPreamble = "SHAPES:"
-  def eqPreamble = "EQUATIONS:"
+  def eqPreamble = "LINEAR CONSTRAINTS:"
+  def recPreamble = "NONLINEAR CONSTRAINTS:"
+  def fvPreamble = "WITH FREE VARIABLES:"
 
-  def dePreamble = "DIFFERENTIAL EQUATIONS:"
-
-  def printDE(e: DE) = e match {
-    case DE(expr, xpp, xp, x) ⇒
-      xpp.name <+> "=" <+> emitExpr(expr) <> comma <+> xp.name <> comma <+> x.name
-  }
+  def printNonlinear(e: RecConstraint) = sep(Seq(text(e.lhs.name), emitExpr(e.rhs)), " <-")
 
   override def emitExpr(e: Expression): Doc = e match {
     case Const(c) ⇒ text(c.toString)
     case Var(v) ⇒ text(v.name)
-    case BinOp(l, r, op) ⇒ sep(Seq(emitExpr(l), emitExpr(r)), op.toString)
+    case BinOp(l, r, op) ⇒ {
+      val opStr = op match {
+        case ⨁ ⇒ " +"
+        case ⊖ ⇒ " -"
+        case ⨂ ⇒ " *"
+        case ⨸ ⇒ " ÷"
+        case MOD ⇒ " mod"
+      }
+
+      sep(Seq(emitExpr(l), emitExpr(r)), opStr)
+    }
     case UnOp(i, op) ⇒ op match {
       case ¬ ⇒ "-" <> emitExpr(i)
       case Paren ⇒ parens(emitExpr(i))
     }
-    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)))
+    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)), empty)
   }
 
 
@@ -131,7 +142,7 @@ object HighLevel extends Emitter {
     printConstructor(cname, args.map(v ⇒ text(v.name)))
   }
 
-  def printEquation(e: Eq) = {
+  def printLinear(e: Eq) = {
     text(e.lhs + " = " +  e.rhs)
   }
 
@@ -149,16 +160,26 @@ object HighLevel extends Emitter {
 // print out a low-level javascript version of the program
 object LowLevel extends Emitter {
   override def TODO = "//@TODO"
-  // don't print out DEs in init
-  def dePreamble = empty
-  def printDE(e: DE) = empty
+  // don't print out recursive constraints in body of init
+  def recPreamble = empty
+  def printNonlinear(e: RecConstraint) = empty
+  def fvPreamble = empty
+  def recFunName = "recursive_constraints"
+  override def printFV(v: Variable, σ: Store) = empty
+
+  def emitRecs(p: Program) = emitFCall("update_rec_constraints", Seq(
+    text(recFunName),
+    brackets(sep((p.freeRecVars ++ p.recConstraints.map(_.lhs)).map{ v ⇒
+      dquotes(v.name)
+    }(collection.breakOut), comma))
+  ))
   def initPreamble =
     vsep(Seq("all_objects", "drag_points", "inc_objects").map(s ⇒ text(s ++ " = [];")))
   def timestep = text("20")
-  def initEpilogue = {
+  def initEpilogue(p: Program, σ: Store) = {
     val timerEnd = emitFCall("update_constraints") <@> emitFCall("global_redraw")
     "tau =" <+> printConstructor("Timer", Seq(timestep, // update frequency
-      emitFunc("", timerEnd, Seq(text("t"))), // onTick
+      emitFunc("", emitRecs(p) <@> timerEnd, Seq(text("t"))), // onTick
       emitFunc("", emitFCall("resetCVs") <@> timerEnd))) // onReset
   }
 
@@ -226,7 +247,7 @@ object LowLevel extends Emitter {
     printConstructor(ctor, docArgs)
   }
 
-  def printEquation(e: Eq) = {
+  def printLinear(e: Eq) = {
     emitFCall("addEquation", Seq(
       printExpr(e.lhs), printExpr(e.rhs)
     ))
@@ -311,9 +332,9 @@ object LowLevel extends Emitter {
     )
   }
 
-  def emitInit(body: Doc): Doc = {
+  def emitInit(p: Program, σ: Store, body: Doc): Doc = {
     emitFunc("init", vsep(Seq(
-      initPreamble, body, initEpilogue), line)
+      initPreamble, body, initEpilogue(p, σ)), line)
     )
   }
 
@@ -331,7 +352,7 @@ object LowLevel extends Emitter {
       emitFCall("push", objects.map(text(_))) <@>
       emitFCall("push", (Seq("drag_points") ++ ipoints).map(text _))
     vsep(Seq(
-      emitInit(initBody),
+      emitInit(p, σ, initBody),
       // emit update_constraints
       emitFunc("update_constraints", emitDrawUpdates(p.shapes)),
       // emit remaining stubs

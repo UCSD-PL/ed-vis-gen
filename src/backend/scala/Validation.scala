@@ -26,13 +26,13 @@ object Validate {
     case UnOp(i, _) ⇒ getVars(i)
     case App(_, arg) ⇒ getVars(arg)
   }
-  def getVars(de: DE): SV = getVars(de.equation) + de.subject + de.derivative + de.plain
+  def getVars(e: RecConstraint): SV = getVars(e.rhs) + e.lhs
 
   def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs, des) ⇒ {
+    case Program(vars, ips, shapes, eqs, recs, rfvs) ⇒ {
       val allUses =
         ips.flatMap(getVars(_)) ++ shapes.flatMap(getVars(_)) ++
-        eqs.flatMap(getVars(_)) ++ des.flatMap(getVars(_))
+        eqs.flatMap(getVars(_)) ++ recs.flatMap(getVars(_)) ++ rfvs
       if ((allUses diff vars).nonEmpty) {
         println("error: undefined variables " ++ (allUses diff vars).toString)
         throw IllformedProgram

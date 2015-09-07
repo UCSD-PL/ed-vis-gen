@@ -1,20 +1,34 @@
 VARS(
+  // base
   BX = 250, BY = 250, BH = 50, BW = 100,
+  // spring
   SX = 250, SY = 200, DX = 0, DY = -50,
+  // platform
   PX = 250, PY = 150, PH = 10, PW = 20,
-  IX = 250, IY = 130, IH = 10, IW = 10
+  // image
+  IX = 250, IY = 130, IH = 10, IW = 10,
+  // physics simulation variables
+  M = 55, K = 2.75, C = 0.5, G = 0.98,
+  InitRL = 125, RL = 125, F = 0, V = 0, T = 0
 );
 SHAPES(
-  Rectangle((BX, BY), BH, BW),
-  Spring((SX, SY), DX, DY),
-  Rectangle((PX, PY), PH, PW),
-  Image((IX, IY), IH, IW, "iron")
+  Rectangle((BX, BY), BH, BW),    // base
+  Spring((SX, SY), DX, DY),       // spring
+  Rectangle((PX, PY), PH, PW),    // platform
+  Image((IX, IY), IH, IW, "iron") // image
 );
-EQUATIONS(
+LINEAR(
   SX = BX,
-  SY = BY + -1 * BH,
+  SY = BY + -1 * BH,   // spring starts at top-center of base
   PX = SX + DX,
-  PY = SY + DY,
+  PY = SY + DY,        // platform is at end of spring
   IX = PX,
-  IY = PY + -1 * IH + -1 * PH
+  IY = PY + -1 * IH + -1 * PH  // image is on top of platform
 );
+NONLINEAR(
+  T  <- (T + 0.01) % 100,
+  RL <- InitRL - M*G/K,
+  F <- (-K*(DY + RL) - (C*V))/M,
+  V <- V + F,
+  DY <- DY + V
+) WITH FREE(PY, IY);

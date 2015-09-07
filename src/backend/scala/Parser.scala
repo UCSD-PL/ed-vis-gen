@@ -10,6 +10,8 @@ import scala.util.parsing.combinator.PackratParsers
 
 // parsers for AST + initial store
 object Parser extends JavaTokenParsers with PackratParsers {
+  // ignore c-style comments (doesn't handle nesting properly, i don't think)
+  protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
   // variables, points, and shapes
   lazy val str = stringLiteral
   lazy val vrbl = ident ^^ {Variable(_)}
@@ -71,18 +73,19 @@ object Parser extends JavaTokenParsers with PackratParsers {
 
   // terminal values, unops, and fcalls
   type EP = Parser[Expression]
-  lazy val efactor: EP = vrbl ^^ {Var(_)} | decimalNumber ^^ {s ⇒ Const(s.toDouble)} |
+  lazy val efactor: EP = decimalNumber ^^ {s ⇒ Const(s.toDouble)} |
     "(" ~> expression <~ ")" ^^ {UnOp(_, Paren)} |
     "-" ~> expression ^^ {UnOp(_, ¬)} |
     ident ~ ("(" ~> expression <~ ")") ^^ {
       case f ~ arg ⇒ App(f, arg)
-    }
+    } | vrbl ^^ {Var(_)}
 
   // products of factors, adapted from regexparser documentation
-  lazy val eterm: EP = efactor ~ rep( "*" ~ efactor | "/" ~ efactor) ^^ {
+  lazy val eterm: EP = efactor ~ rep( "*" ~ efactor | "/" ~ efactor | "%" ~ efactor) ^^ {
     case e ~ es ⇒ es.foldLeft(e) {
       case (l, "*" ~ r) ⇒ BinOp(l, r, ⨂)
       case (l, "/" ~ r) ⇒ BinOp(l, r, ⨸)
+      case (l, "%" ~ r) ⇒ BinOp(l, r, MOD)
     }
   }
 
@@ -94,31 +97,34 @@ object Parser extends JavaTokenParsers with PackratParsers {
     }
   }
 
-  // DE declarations look like:
-  // DE(expression, x'', x', x)
-  lazy val de = "DE(" ~> ((expression <~ ",") ~ (vrbl <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
-    case e ~ xpp ~ xp ~ x ⇒ DE(e, xpp, xp, x)
+  // rec constraint declarations look like:
+  // x <- expression
+  lazy val rec = (vrbl <~ "<-") ~ expression ^^ {
+    case x ~ e ⇒ RecConstraint(x, e)
   }
 
   // programs look like:
   // VARS(ident (, ident)*);
   // SHAPES(shape (, shape)*);
-  // EQUATIONS(eq (, eq)*);
-  // PHYSICS(de, (, de)*);
+  // LINEAR(eq (, eq)*);
+  // NONLINEAR(rec, (, rec)*);
 
   type SP[T] = Parser[Set[T]]
   lazy val vars = repsep(ident ~ ("=" ~> decimalNumber), ",") ^^ { is ⇒
     val bndings = is.map(_ match {case v ~ d ⇒ (Variable(v) → d.toDouble)}).toMap
     (bndings.keySet, Store(bndings))
   }
-  lazy val shps: SP[Shape] = repsep(shp, ",") ^^ {_.toSet}
-  lazy val eqs: SP[Eq]     = repsep(equation, ",") ^^ {_.toSet}
-  lazy val des: SP[DE]     = repsep(de, ",") ^^ {_.toSet}
+  lazy val shps: SP[Shape]          = repsep(shp, ",") ^^ {_.toSet}
+  lazy val eqs: SP[Eq]              = repsep(equation, ",") ^^ {_.toSet}
+  lazy val recs: SP[RecConstraint]  = repsep(rec, ",") ^^ {_.toSet}
+  lazy val fvs: SP[Variable] = repsep(vrbl, ",") ^^ {_.toSet}
 
   lazy val program =
     (("VARS(" ~> vars <~ ");") ~ ("SHAPES(" ~> shps <~ ");") ~
-    ("EQUATIONS(" ~> eqs <~ ");") ~ ("PHYSICS(" ~> des <~ ");")) ^^ {
-      case (vs, σ) ~ ss ~ es ~ des ⇒ (Program(vs, Set(), ss, es, des), σ)
+    ("LINEAR(" ~> eqs <~ ");") ~ ("NONLINEAR(" ~> recs <~ ")") ~
+     ("WITH FREE(" ~> fvs <~ ");")) ^^ {
+      case (vs, σ) ~ ss ~ es ~ rcs ~ rfvs ⇒
+      (Program(vs, Set(), ss, es, rcs, rfvs), σ)
     }
 
   def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {

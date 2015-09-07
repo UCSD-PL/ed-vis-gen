@@ -106,12 +106,10 @@ case class Eq(lhs: Expr, rhs: Expr) {
   def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
 }
 
-// second order DEs, of the form
-// x'' = f(x') + g(x)
-// internally represented as an expression for RHS plus variable bindings for
-// x'', x', and x, respectively
+// recursive one-way constraints of the form
+// x <- e
 
-case class DE(equation: Expression, subject: Variable, derivative: Variable, plain: Variable)
+case class RecConstraint(lhs: Variable, rhs: Expression)
 
 // arithmetic expression grammar, plus function calls. at the moment, only sine/cosine are implemented.
 sealed abstract class Expression
@@ -128,6 +126,7 @@ object ⨁ extends BOP
 object ⊖ extends BOP
 object ⨂ extends BOP
 object ⨸ extends BOP
+object MOD extends BOP
 // unary operations
 // parens and negation
 sealed abstract class UOP
@@ -138,5 +137,6 @@ object ¬ extends UOP
 // differential equations.
 case class Program(
   vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
-  equations : Set[Eq], diffEquations : Set[DE]
+  equations : Set[Eq], recConstraints : Set[RecConstraint],
+  freeRecVars: Set[Variable]
 )
