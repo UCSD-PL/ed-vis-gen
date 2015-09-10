@@ -31,7 +31,21 @@ SHAPES(
 
 );
 EQUATIONS(
-  2 * BW = -1* LBLX + RBLX // rectangle endpoints define the width of the box
+  2 * BW = RBLX - LBLX, // rectangle endpoints define the width of the box
+  // left triangle side length equalities
+  LBLX - LTLX = LBRX - LBLX,
+  LBRX - LTRX = LTRX - LTLX,
+  LBRX - LTRX = LBRX - LBLX,
+  LBLY - LTLY = LBRY - LBLY,
+  LBRY - LTRY = LTRY - LTLY,
+  LBRY - LTRY = LBRY - LBLY,
+  // right triangle side equalities
+  RBLX - RTLX = RBRX - RBLX,
+  RBRX - RTRX = RTRX - RTLX,
+  RBRX - RTRX = RBRX - RBLX,
+  RBLY - RTLY = RBRY - RBLY,
+  RBRY - RTRY = RTRY - RTLY,
+  RBRY - RTRY = RBRY - RBLY
 );
 
 // TODO: make bottom rect into four triangles....can arbitrarily resize
