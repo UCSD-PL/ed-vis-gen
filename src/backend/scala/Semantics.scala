@@ -11,6 +11,7 @@ case class Store(vars: Map[Variable, Double]) {
   def put(v : Variable, d: Double) = this.+(v → d)
   def +(kv: (Variable, Double)) = Store(vars + kv)
   def ++(that: Store) = Store(vars ++ that.vars)
+  def restrict(vs: Set[Variable]) = Store(vars.filter{case (k, v) ⇒ vs.contains(k)})
 
   override def toString = "{" ++ vars.foldLeft(""){ case (str, (v, coeff)) ⇒
     str ++ (if (str.isEmpty) "" else ", ") ++ v.name ++ " → " ++ coeff.toString

@@ -91,7 +91,8 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
 
 object Expr {
   def apply(c: Double): Expr = Expr(c, Map())
-  def apply(v: Variable): Expr = Expr(0.0, Map(v → 1.0))
+  def apply(v: Variable): Expr = Expr((v → 1.0))
+  def apply(binding:(Variable, Double)): Expr = Expr(0.0, Map(binding))
 }
 
 // lhs = rhs equation
