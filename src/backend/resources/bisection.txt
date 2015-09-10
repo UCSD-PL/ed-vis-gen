@@ -1,0 +1,14 @@
+VARS(
+  P1X = 100, P1Y = 100, P1R = 70,
+  P2X = 150, P2Y = 150, P2R = 70
+);
+SHAPES(
+  Circle((P1X, P1Y), P1R),
+  Circle((P2X, P2Y), P2R),
+  Line((P1X, P1Y), (P2X, P2Y))
+);
+EQUATIONS(
+  P1R = P2R
+);
+
+// TODO: with nonlinear, add in calculations for bisector

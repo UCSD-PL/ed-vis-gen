@@ -1,0 +1,15 @@
+VARS(
+  BIGX = 300, BIGY = 300, BIGR = 180, // big circle
+  SMALLX = 420, SMALLY = 300, SMALLR = 60, // inner circle
+  PI = 3.14159, THETA = 0, OMEGA = 3.14159
+);
+SHAPES(
+  Circle((BIGX, BIGY), BIGR),
+  Circle((SMALLX, SMALLY), SMALLR)
+);
+EQUATIONS(
+  BIGR = 3 * SMALLR,
+  OMEGA = -2 * THETA + PI,
+  PI = 3.14159
+);
+// TODO: with nonlinear, add theta update and positional calculations

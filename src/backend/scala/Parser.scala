@@ -88,7 +88,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
 
   def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {
     case Success(p, _) ⇒ Left(p)
-    case f: NoSuccess ⇒ Right(f.msg)
+    case f:NoSuccess ⇒  Right(f.toString())
   }
 
   // external parsing interface

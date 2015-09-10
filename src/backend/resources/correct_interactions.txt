@@ -1,18 +1,26 @@
-sspring.txt, (IX, IY), {IY, DY, PY};
-  % working
-  % see spring.html
-spendulum.txt, (XB, YB), {XB, YB, XS, YS};
-  % working
-  % see pendulum.html
-sconcentration.txt, (MX, MY), {MX, MY}, (TX, TY), {TX, TY, XLS, YLS};
-  % working
-  % see https://phet.colorado.edu/sims/html/concentration/latest/concentration_en.html
-sbuoyancy.txt, (AX, AY), {AX, AY}, (BX, BY), {BX, BY}, (CX, CY), {CX, CY}, (DX, DY), {DX, DY};
-  % working
-  % https://phet.colorado.edu/sims/density-and-buoyancy/density_en.html
-storque.txt, (XT, DYT + YT), {DYT}, (XB, YB), {XB, YB};
-  % working
-  % https://phet.colorado.edu/en/simulation/torque
-sbalance.txt, (RAX, RAY), {RAX, RAY}, (RBX, RBY), {RBX, RBY};
-  % working
-  % https://phet.colorado.edu/en/simulation/balancing-act
+% initial POC examples
+spring.txt, (IX, IY), {IY, DY, PY};
+pendulum.txt, (XB, YB), {XB, YB, XS, YS};
+pig.txt, (PX, PY), {PX, PY};
+
+
+
+% phet
+% https://phet.colorado.edu/sims/html/concentration/latest/concentration_en.html
+concentration.txt, (MX, MY), {MX, MY}, (TX, TY), {TX, TY, XLS, YLS}, (RX, RY), {RX, RY, XLE, YLE};
+% https://phet.colorado.edu/sims/density-and-buoyancy/density_en.html
+buoyancy.txt, (AX, AY), {AX, AY}, (BX, BY), {BX, BY}, (CX, CY), {CX, CY}, (DX, DY), {DX, DY};
+% https://phet.colorado.edu/en/simulation/torque
+torque.txt, (XT, DYT + YT), {DYT}, (XB, YB), {XB, YB};
+% https://phet.colorado.edu/en/simulation/balancing-act
+balance.txt, (RAX, RAY), {RAX, RAY}, (RBX, RBY), {RBX, RBY};
+
+% geogebra
+% https://tube.geogebra.org/material/simple/id/294127
+bisection.txt, (P1X, P1Y), {P1X, P1Y}, (P2X, P2Y), {P2X, P2Y}, (P1X + P1R, P1Y), {P1R, P2R}, (P2X + P2R, P2Y), {P2R, P1R};
+% second IPoint, controlling theta, not synthesizable by our techniques
+% http://www.geogebra.org/material/show/id/109305
+deltoid.txt, (BIGX, BIGY - BIGR), {BIGR, SMALLR};
+% http://tube.geogebra.org/material/simple/id/106424
+% BROKEN
+pythagorean.txt, (LBLX, LBLY), {BW, LBLX};

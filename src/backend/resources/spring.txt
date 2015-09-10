@@ -18,3 +18,5 @@ EQUATIONS(
   IX = PX,
   IY = PY + -1 * IH + -1 * PH
 );
+
+// TODO: with nonlinear, add spring sim

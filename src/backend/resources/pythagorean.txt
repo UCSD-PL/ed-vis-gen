@@ -1,0 +1,39 @@
+VARS(
+  // implement slanted rectangles as a bunch of triangles...gross
+  // left rectangle
+  LTLX = 50, LTLY = 100, LTRX = 100, LTRY = 50,
+  LBLX = 100, LBLY = 150, LBRX = 150, LBRY = 100,
+  LCX = 100, LCY = 100,
+  // right rectangle
+  RTLX = 150, RTLY = 100, RTRX = 200, RTRY = 50,
+  RBLX = 200, RBLY = 150, RBRX = 250, RBRY = 100,
+  RCX = 200, RCY = 100,
+  // bottom rectangle params
+  BX = 150, BY = 200, BH = 50, BW = 50
+);
+SHAPES(
+  // left rectangle
+  Triangle((LTLX, LTLY), (LCX, LCY), (LTRX, LTRY)),
+  Triangle((LTRX, LTRY), (LCX, LCY), (LBRX, LBRY)),
+  Triangle((LBRX, LBRY), (LCX, LCY), (LBLX, LBLY)),
+  Triangle((LBLX, LBLY), (LCX, LCY), (LTLX, LTLY)),
+
+  // right rectangle
+  Triangle((RTLX, RTLY), (RCX, RCY), (RTRX, RTRY)),
+  Triangle((RTRX, RTRY), (RCX, RCY), (RBRX, RBRY)),
+  Triangle((RBRX, RBRY), (RCX, RCY), (RBLX, RBLY)),
+  Triangle((RBLX, RBLY), (RCX, RCY), (RTLX, RTLY)),
+
+  // middle triangle
+  Triangle((LBLX, LBLY), (LBRX, LBRY), (RBLX, RBLY)),
+  // bottom (normal) rectangle
+  Rectangle((BX, BY), BH, BW)
+
+);
+EQUATIONS(
+  2 * BW = -1* LBLX + RBLX // rectangle endpoints define the width of the box
+);
+
+// TODO: make bottom rect into four triangles....can arbitrarily resize
+// TODO: constraint is side-length of rectangle is identical for all sides. need to
+// calculate this value in nonlinear constraints + express equality in equations.

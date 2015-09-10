@@ -13,3 +13,5 @@ SHAPES(
   Rectangle((RBX, RBY), RBH, RBW)
 );
 EQUATIONS();
+
+// TODO: with nonlinear, add balancing physics + maybe theta

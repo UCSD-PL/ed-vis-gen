@@ -5,11 +5,14 @@ VARS(
   XR = 200, YR = 200, RH = 50, RW = 50
 );
 SHAPES(
-  Circle((WX, WY), WR), 
+  Circle((WX, WY), WR),
   Circle((XB, YB), RB),
   Arrow((XT, YT), DXT, DYT),
   Rectangle((XR, YR), RH, RW)
 );
 EQUATIONS(
-
+  YT = WY,
+  XT = WX + WR,
+  XR = WX, // i'm not sure what the rectangle symbolizes. should it be in the
+  YR = WY // middle of the circle?
 );

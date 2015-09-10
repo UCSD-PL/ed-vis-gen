@@ -1,0 +1,17 @@
+VARS(
+  PX = 100, PY = 100, // location of pig
+  PH = 20, PW = 20,
+  RTX = 50, RTY = 50, // top-left corner of ramp
+  RBX = 50, RBY = 250, // bot-left corner of ramp
+  RRX = 250, RRY = 250, // bot-right corner
+  M = 1 // slope of ramp
+);
+SHAPES(
+  Image((PX, PY), PH, PW, "pig"), // pig
+  Triangle((RTX, RTY), (RBX, RBY), (RRX, RRY)) // ramp
+);
+EQUATIONS(
+
+);
+
+// TODO: with nonlinear, add physics sim + vectors + slope
