@@ -9,7 +9,9 @@ VARS(
   RBLX = 200, RBLY = 150, RBRX = 250, RBRY = 100,
   RCX = 200, RCY = 100,
   // bottom rectangle params
-  BX = 150, BY = 200, BH = 50, BW = 50
+  BX = 150, BY = 200, BH = 50, BW = 50,
+  // helper variables
+  LDX = 50, LDY = -50, RDX = -50, RDY = -50
 );
 SHAPES(
   // left rectangle
@@ -23,31 +25,42 @@ SHAPES(
   Triangle((RTRX, RTRY), (RCX, RCY), (RBRX, RBRY)),
   Triangle((RBRX, RBRY), (RCX, RCY), (RBLX, RBLY)),
   Triangle((RBLX, RBLY), (RCX, RCY), (RTLX, RTLY)),
-
-  // middle triangle
-  Triangle((LBLX, LBLY), (LBRX, LBRY), (RBLX, RBLY)),
   // bottom (normal) rectangle
   Rectangle((BX, BY), BH, BW)
 
 );
 EQUATIONS(
   2 * BW = RBLX - LBLX, // rectangle endpoints define the width of the box
-  // left triangle side length equalities
-  LBLX - LTLX = LBRX - LBLX,
-  LBRX - LTRX = LTRX - LTLX,
-  LBRX - LTRX = LBRX - LBLX,
-  LBLY - LTLY = LBRY - LBLY,
-  LBRY - LTRY = LTRY - LTLY,
-  LBRY - LTRY = LBRY - LBLY,
-  // right triangle side equalities
-  RBLX - RTLX = RBRX - RBLX,
-  RBRX - RTRX = RTRX - RTLX,
-  RBRX - RTRX = RBRX - RBLX,
-  RBLY - RTLY = RBRY - RBLY,
-  RBRY - RTRY = RTRY - RTLY,
-  RBRY - RTRY = RBRY - RBLY
+  // rectangles touch in middle
+  LBRX = RTLX,
+  LBRY = RTLY,
+  LBLX = BX - BW,
+  LBLY = BY - BH,
+  RBLX = BX + BW,
+  RBLY = BY - BH,
+  // delta-y for LBR = - delta-x for LTL
+  LDY = LBRY - LBLY,
+  LDX = LBRX - LBLX,
+  LTLX - LBLX = LDY,
+  LTLY - LBLY = -1 * LDX,
+  // delta-y for RTL = - delta-x for RBR
+  RDY = RTLY - RBLY,
+  RDX = RTLX - RBLX,
+  RBRX - RBLX = -1 * RDY,
+  RBRY - RBLY = RDX,
+  // delta-xs sum to width
+  RDX - LDX = -2 * BW,
+  // LC lies between LBR, LTL
+  LCX = 0.5 * LBRX + 0.5 * LTLX,
+  LCY = 0.5 * LBRY + 0.5 * LTLY,
+  // also between LTR, LBL
+  LCX = 0.5 * LTRX + 0.5 * LBLX,
+  LCY = 0.5 * LTRY + 0.5 * LBLY,
+  // ditto for RC
+  RCX = 0.5 * RBRX + 0.5 * RTLX,
+  RCY = 0.5 * RBRY + 0.5 * RTLY,
+  RCX = 0.5 * RTRX + 0.5 * RBLX,
+  RCY = 0.5 * RTRY + 0.5 * RBLY
 );
 
 // TODO: make bottom rect into four triangles....can arbitrarily resize
-// TODO: constraint is side-length of rectangle is identical for all sides. need to
-// calculate this value in nonlinear constraints + express equality in equations.

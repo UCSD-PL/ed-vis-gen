@@ -21,7 +21,7 @@ object PointGeneration {
     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
     case VecLike(c, dx, dy) ⇒ vec(c, dx, dy, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
-    case _ ⇒ Set() // eh...triangles aren't usually interactive...
+    case _:Triangle ⇒ Set() // eh...triangles aren't usually interactive...
   })
 
   // helper function; link up an IP and a point by equality

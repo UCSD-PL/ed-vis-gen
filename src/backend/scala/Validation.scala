@@ -35,7 +35,8 @@ object Validate {
   }
   def checkEqValues(p: Program, σ: Store) { p.equations.foreach{ e ⇒
     if (evalExpr(e.lhs, σ) != evalExpr(e.rhs, σ)) {
-      println("error: variable declarations " ++ σ.toString)
+      val δ = σ.restrict(e.lhs.vars.keySet ++ e.rhs.vars.keySet)
+      println("error: variable declarations " ++ δ.toString)
       println("do not evaluate properly in "  ++ e.toString)
       println("specifically:")
       println(e.lhs.toString ++ " ⇒ " ++ evalExpr(e.lhs, σ).toString)

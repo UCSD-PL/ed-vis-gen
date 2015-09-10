@@ -22,5 +22,6 @@ bisection.txt, (P1X, P1Y), {P1X, P1Y}, (P2X, P2Y), {P2X, P2Y}, (P1X + P1R, P1Y),
 % http://www.geogebra.org/material/show/id/109305
 deltoid.txt, (BIGX, BIGY - BIGR), {BIGR, SMALLR};
 % http://tube.geogebra.org/material/simple/id/106424
-% BROKEN
-pythagorean.txt, (LBLX, LBLY), {BW, LBLX};
+% broken: the midpoint doesn't *actually* make a right-angle. this constraint is
+% nonlinear and we can't handle it.
+%pythagorean.txt, (LBLX, LBLY), {BW, LBLX};

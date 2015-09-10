@@ -46,23 +46,12 @@ object Parser extends JavaTokenParsers with PackratParsers {
     (decimalNumber <~ "*") ~ vrbl ^^ {case n ~ v ⇒ (v → n.toDouble)} |
     vrbl ^^ {_ → 1.0}
 
-  // holy one-liners batman. parse a sequence of either constants or terms,
-  // separated by additions
-  lazy val expr = rep1sep(
-    term ^^ {Left(_)} | decimalNumber ^^ {s ⇒ Right(s.toDouble)}, "+"
-    ).^^ {
-    lst ⇒ { val (c, mp) =
-      // keep a running sum of constants and a running map from variables to
-      // coefficients.
-      lst.foldLeft((0.0, Map[Variable, Double]()))(
-        // foreach constant/term, either add in the constant or extend the map
-        (acc, nxt) ⇒ nxt match {
-          case Left(kv) => (acc._1, acc._2 + kv)
-          case Right(n) => (acc._1 + n, acc._2)
-        }
-      )
-      // package the resultant sum and variable map in an expression
-      Expr(c, mp)
+  // parse a sequence of either constants or terms,
+  // separated by additions/subtractions
+  lazy val expr = term ~ rep( "+" ~ term | "-" ~ term) ^^ {
+    case e ~ es ⇒ es.foldLeft(Expr(e)) {
+      case (l, "+" ~ r) ⇒ l plus (Expr(r))
+      case (l, "-" ~ r) ⇒ l minus (Expr(r))
     }
   }
   lazy val equation = (expr <~ "=") ~ expr ^^ { case l ~ r ⇒ Eq(l,r) }
