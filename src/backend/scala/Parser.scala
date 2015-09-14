@@ -68,9 +68,10 @@ object Parser extends JavaTokenParsers with PackratParsers {
   lazy val efactor: EP = decimalNumber ^^ {s ⇒ Const(s.toDouble)} |
     "(" ~> expression <~ ")" ^^ {UnOp(_, Paren)} |
     "-" ~> expression ^^ {UnOp(_, ¬)} |
-    ident ~ ("(" ~> expression <~ ")") ^^ {
-      case f ~ arg ⇒ App(f, arg)
-    } | vrbl ^^ {Var(_)}
+    ident ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
+      case f ~ args ⇒ App(f, args)
+    } |
+    vrbl ^^ {Var(_)}
 
   // products of factors, adapted from regexparser documentation
   lazy val eterm: EP = efactor ~ rep( "*" ~ efactor | "/" ~ efactor | "%" ~ efactor) ^^ {

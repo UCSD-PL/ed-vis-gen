@@ -24,7 +24,7 @@ object Validate {
     case Var(v) ⇒ Set(v)
     case BinOp(l, r, _) ⇒ getVars(l) ++ getVars(r)
     case UnOp(i, _) ⇒ getVars(i)
-    case App(_, arg) ⇒ getVars(arg)
+    case App(_, args) ⇒ args.flatMap(getVars _)(collection.breakOut)
   }
   def getVars(e: RecConstraint): SV = getVars(e.rhs) + e.lhs
 

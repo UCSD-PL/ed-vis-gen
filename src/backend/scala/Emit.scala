@@ -79,7 +79,8 @@ trait Emitter extends PrettyPrinter {
       case ¬ ⇒ "-" <> emitExpr(i)
       case Paren ⇒ parens(emitExpr(i))
     }
-    case App(f, arg) ⇒ printConstructor(f, Seq(emitExpr(arg)), empty)
+    case App(f, args) ⇒ printConstructor(f,
+      args.map(emitExpr _)(collection.breakOut), empty)
   }
 
   def printFV(v: Variable, σ: Store) = printVar(v, σ)
@@ -185,14 +186,25 @@ object LowLevel extends Emitter {
 
   override def emitExpr(e: Expression) = e match {
     case Var(v) ⇒ "args." <> v.name
-    case App(f, arg) ⇒ {
-      val mathFuncs = Set("cos", "sin", "abs", "tan", "sqrt")
-      if (mathFuncs.contains(f))
-        "Math." <> f <> parens(emitExpr(arg))
-      else
-        println("unrecognized function " ++ f); throw IllformedProgram
-    }
+    case App(f, args) ⇒ printConstructor(emitFName(f),
+      args.map(emitExpr _)(collection.breakOut), empty)
     case _ ⇒ super.emitExpr(e) // otherwise, the superclass is well-formed javascript
+  }
+
+  // convert a function identifier to the appropriate javascript function
+  def emitFName(name: String): String = {
+    println(name == "cos")
+    val mathFuncs = Set("abs", "acos", "asin", "atan", "atan2", "ceil", "cos",
+         "exp", "floor", "log", "max", "min", "pow", "random", "round", "sin",
+         "sqrt", "tan")
+    val libFuncs = Set("intersection")
+    if (mathFuncs exists (_ == name))
+      "Math." ++ name
+    else if (libFuncs contains (name))
+      name
+    else {
+      println("undefined function: " ++ name); throw IllformedProgram
+    }
   }
 
 

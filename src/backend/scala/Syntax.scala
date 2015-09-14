@@ -118,7 +118,7 @@ case class Const(v: Double) extends Expression
 case class Var(v: Variable) extends Expression
 case class BinOp(lhs: Expression, rhs: Expression, op: BOP) extends Expression
 case class UnOp(inner: Expression, op: UOP) extends Expression
-case class App(func: String, arg: Expression) extends Expression
+case class App(func: String, args: Seq[Expression]) extends Expression
 
 // binary operations
 // +,-,*,/
