@@ -13,16 +13,21 @@ function common_init() {
   // and make everything dynamic live in the incremental canvas.
   var canvas = document.getElementById("mainCanvas");
   var ctx = canvas.getContext("2d");
-  ctx.canvas.width  = window.innerWidth-20;
-  ctx.canvas.height = window.innerHeight-20;
   global_ctx = ctx;
-  ctx = document.getElementById("incCanvas").getContext("2d");
   ctx.canvas.width  = window.innerWidth-20;
   ctx.canvas.height = window.innerHeight-20;
+  ctx = document.getElementById("incCanvas").getContext("2d");
   inc_ctx = ctx;
+  ctx.canvas.width  = window.innerWidth-20;
+  ctx.canvas.height = window.innerHeight-20;
   canvas.addEventListener("mousedown", doMouseDown);
   canvas.addEventListener("mouseup", doMouseUp);
   canvas.addEventListener("mousemove", doMouseMove);
+
+  resetState();
+}
+
+function resetState() {
   dragged_obj = null;
 
   solver = new c.SimplexSolver();
@@ -31,18 +36,22 @@ function common_init() {
   constrained_vars = {};
   constrained_inits = {};
   stay_equations = {};
+
+  all_objects = [];
+  drag_points = [];
+  inc_objects = [];
 }
 
-function doMouseDown(event) {
-  switch (event.button) {
+function doMouseDown(e) {
+  switch (e.button) {
     case 0: // left click
-      doLeftClick(event);
+      doLeftClick(e);
       break;
     case 2: // right click
-      doRightClick(event);
+      doRightClick(e);
       break;
     default:
-      alert(event.button);
+      alert(e.button);
   }
 }
 
@@ -86,22 +95,22 @@ function doLeftClick(event) {
   }
 }
 
-function doRightClick(event) {
+function doRightClick(e) {
   // if we clicked on a vector, prompt for the vector's magnitude
-  var x = event.layerX;
-  var y = event.layerY;
-  for (var i = 0; i < rightClick_points.length; ++i) {
-    if (withinRadius(x,y, rightClick_points[i])) {
-      var m = parseFloat(prompt("What should the magnitude be?", "50"));
-      rightClick_points[i].magnitude = m;
-      rightClick_update();
-      global_redraw();
-      break;
-    }
-  }
+  // var x = e.layerX;
+  // var y = e.layerY;
+  // for (var i = 0; i < rightClick_points.length; ++i) {
+  //   if (withinRadius(x,y, rightClick_points[i])) {
+  //     var m = parseFloat(prompt("What should the magnitude be?", "50"));
+  //     rightClick_points[i].magnitude = m;
+  //     rightClick_update();
+  //     global_redraw();
+  //     break;
+  //   }
+  // }
 }
 
-function doMouseUp(event) {
+function doMouseUp(e) {
   //drag_update();
   if (dragged_obj != null) {
     solver.endEdit();
@@ -120,11 +129,11 @@ function doMouseUp(event) {
 
 // precondition: stay equations are outdated
 // postcondition: stay equations are updated
-function doMouseMove(event) {
+function doMouseMove(e) {
   if (dragged_obj != null) {
 
-    solver.suggestValue(dragged_obj.x, event.layerX);
-    solver.suggestValue(dragged_obj.y, event.layerY);
+    solver.suggestValue(dragged_obj.x, e.layerX);
+    solver.suggestValue(dragged_obj.y, e.layerY);
 
     // console.log("before move");
     // console.log(solver.getDebugInfo());

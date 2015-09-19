@@ -1,0 +1,48 @@
+<html>
+<script src="cassie/c.js"></script>
+<script src="cassie/HashTable.js"></script>
+<script src="cassie/HashSet.js"></script>
+<script src="cassie/Error.js"></script>
+<script src="cassie/SymbolicWeight.js"></script>
+<script src="cassie/Strength.js"></script>
+<script src="cassie/Variable.js"></script>
+<script src="cassie/Point.js"></script>
+<script src="cassie/Expression.js"></script>
+<script src="cassie/Constraint.js"></script>
+<script src="cassie/EditInfo.js"></script>
+<script src="cassie/Tableau.js"></script>
+<script src="cassie/SimplexSolver.js"></script>
+<script src="cassie/Timer.js"></script>
+<script src="eddie/helpers.js"> </script>
+<script src="eddie/primitives.js"></script>
+<script src="eddie/library.js"></script>
+<script src="eddie/common.js"></script>
+<script src="main.js"></script>
+<head>
+    <title>EDDIE interactive diagram synthesis</title>
+</head>
+
+<body style="width:1200px; height:1600px;" onload="main();">
+
+    <div style="text-align:center">
+      <div>
+        <button onClick="loadMain();">Load file</button>
+        <input type="text" name="filename" id="filename" value="sspring.txt">
+      </div>
+      <iframe id="mainFrame" srcdoc="<html></html>"
+        style="height:300px; width:300px; border-style:solid;">
+      </iframe>
+    </div>
+
+  <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
+
+  <div id="exact" style="height:300px; width: 100%;">
+  </div>
+  <div id="inexact" style="height:300px; width: 100%;">
+  </div>
+  <div id="far" style="height:300px; width: 100%;">
+  </div>
+
+</body>
+
+</html>

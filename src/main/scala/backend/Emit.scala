@@ -1,8 +1,8 @@
-package EDDIE.emit
+package EDDIE.backend.emit
 
-import EDDIE.syntax._
-import EDDIE.errors._
-import EDDIE.semantics._
+import EDDIE.backend.syntax._
+import EDDIE.backend.errors._
+import EDDIE.backend.semantics._
 import org.kiama.output.PrettyPrinter
 import scala.collection.immutable.{Seq ⇒ Seq}
 import scala.collection.mutable.{HashMap ⇒ MMap}
@@ -170,7 +170,7 @@ object LowLevel extends Emitter {
   def emitRecs(p: Program) = emitFCall("update_rec_constraints", Seq(
     text(recFunName),
     brackets(sep((p.freeRecVars ++ p.recConstraints.map(_.lhs)).map{ v ⇒
-      dquotes(v.name)
+      squotes(v.name)
     }(collection.breakOut), comma))
   ))
   def initPreamble =
@@ -229,7 +229,7 @@ object LowLevel extends Emitter {
 
   def printVar(v: Variable, σ:Store) =  {
     text(v.name) <+> "=" <+>
-      emitFCall("makeVariable", Seq(dquotes(text(v.name)), text(σ(v).toString)))
+      emitFCall("makeVariable", Seq(squotes(text(v.name)), text(σ(v).toString)))
   }
   def printShape(s: Shape) = Allocator(s) <+> "=" <+> {
     val (ctor:String, symbArgs) = s match {
@@ -268,7 +268,7 @@ object LowLevel extends Emitter {
     val docArgs = strArgs ++ (s match {
       case i: Image ⇒ Seq(text(i.tagname))
       case _        ⇒ Seq()
-    }) ++ Seq( "black", "rgba(0,0,0,0)").map(s ⇒ dquotes(text(s)))
+    }) ++ Seq( "black", "rgba(0,0,0,0)").map(s ⇒ squotes(text(s)))
     printConstructor(ctor, docArgs)
   }
 
@@ -300,7 +300,7 @@ object LowLevel extends Emitter {
       iname <+> "=" <+> printConstructor(
         "InteractionPoint", Seq(x, y).map(v ⇒ text(v.name))
       ) <@> iname <> ".links" <+> "=" <+> brackets(
-        sep( links.map(v ⇒ dquotes(text(v.name)))(collection.breakOut), comma)
+        sep( links.map(v ⇒ squotes(text(v.name)))(collection.breakOut), comma)
       ) <> semi
     }
   }

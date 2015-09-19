@@ -5,5 +5,4 @@
 logLevel in run := Level.Warn
 
 scalacOptions += "-feature"
-
-libraryDependencies += "com.googlecode.kiama" %% "kiama" % "1.8.0"
+scalacOptions += "-deprecation"

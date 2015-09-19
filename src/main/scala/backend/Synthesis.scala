@@ -1,11 +1,11 @@
-package EDDIE.synthesis
+package EDDIE.backend.synthesis
 
-import EDDIE.syntax._
-import EDDIE.errors._
-import EDDIE.Conversions._
-import EDDIE.semantics._
-import EDDIE.Helpers._
-import EDDIE.Types._
+import EDDIE.backend.syntax._
+import EDDIE.backend.errors._
+import EDDIE.backend.Conversions._
+import EDDIE.backend.semantics._
+import EDDIE.backend.Helpers._
+import EDDIE.backend.Types._
 
 import scala.annotation.tailrec
 
@@ -135,17 +135,17 @@ object PointGeneration {
 }
 
 trait SynthesisPass {
-  // given a seed set of links and equations, return a set of links which results
-  // in a well-defined interaction. we enforce the invariant that every equation
+  // given a seed set of links and equations, return a set of all well-defined
+  // interaction links. we enforce the invariant that every equation
   // contains either 2 free variables, or no free variables.
-  def extendLinks(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
+  def extendLinksAll(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
     dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
     if (eqs.exists(e ⇒ e.count(links) > 2)) {
       Set()
     }
     else {
       dprintln("valid case")
-      extendLinkHelper(links,
+      exLinksAllH(links,
         eqs.filter(e ⇒ e.count(links) == 0),
         eqs.filter(e ⇒ e.count(links) == 1),
         eqs.filter(e ⇒ e.count(links) == 2))
@@ -157,7 +157,7 @@ trait SynthesisPass {
   // containing two free variables, return all valid collections of links.
   // @OPT: make this function tail-recursive
   //@tailrec
-  def extendLinkHelper(links: Set[Variable],
+  def exLinksAllH(links: Set[Variable],
     empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
       if (semis.isEmpty) {
         assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
@@ -185,10 +185,60 @@ trait SynthesisPass {
             val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
             assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
             assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
-            extendLinkHelper( newLinks,
+            exLinksAllH( newLinks,
               newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
             )}
           )
+        }
+      }
+    }
+
+  // given a set of links and equations, return a single well-defined interaction
+  // set of links. Returns None if no interaction exists.
+  def extendLinksOne(links: Set[Variable], eqs: Set[Eq]): Option[Set[Variable]] = {
+    if (eqs.exists(e ⇒ e.count(links) > 2)) {
+      None
+    } else {
+      exLinksOneH(links,
+        eqs.filter(e ⇒ e.count(links) == 0),
+        eqs.filter(e ⇒ e.count(links) == 1),
+        eqs.filter(e ⇒ e.count(links) == 2))
+    }
+  }
+
+  @tailrec
+  final def exLinksOneH(links: Set[Variable],
+    empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Option[Set[Variable]] = {
+      if (semis.isEmpty) {
+        Some(links)
+      } else {
+        // for each equation e in semis, for each fixed variable x in e, if x
+        // respects the invariant, add x to links, adjust the sets, and recurse.
+        val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
+          fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
+
+        dprintln("candidates:" ++ candidates.toString)
+
+        // candidates :: v ∈ Set[Variable] | v can be added to links
+        if (candidates.isEmpty) {
+          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+          Some(links)
+
+        } else {
+          val v = candidates.head
+
+          // adding v might bump some empties to semis, but not to fullfilleds.
+          val newLinks = links + v
+          val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
+          assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
+          // ditto for semis to fulls
+          val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
+          assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
+          assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
+          exLinksOneH( newLinks,
+            newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
+          )
+
         }
       }
     }
@@ -200,7 +250,7 @@ object Positional extends SynthesisPass {
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
 
-
+  
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(p: Program, σ: Store): Set[Configuration] = p match {
@@ -209,7 +259,7 @@ object Positional extends SynthesisPass {
 
       val res = candidates.flatMap { case (ip, es, δ) ⇒ {
         validSeeds(ip).flatMap(
-          extendLinks(_, eqs ++ es).map( lnks ⇒ (ip.copy(links = lnks), eqs ++ es, δ))
+          extendLinksAll(_, eqs ++ es).map( lnks ⇒ (ip.copy(links = lnks), eqs ++ es, δ))
         )
       }}
 
@@ -229,3 +279,5 @@ object Positional extends SynthesisPass {
 
   }
 }
+
+//

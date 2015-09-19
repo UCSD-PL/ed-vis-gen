@@ -1,6 +1,6 @@
-package EDDIE.syntax
+package EDDIE.backend.syntax
 
-import EDDIE.Helpers._
+import EDDIE.backend.Helpers._
 
 import scala.collection.immutable.{Map ⇒ Map, Set ⇒ Set}
 
@@ -34,6 +34,8 @@ trait Boxy {
   // for ease of helper functions, store half the height/width
   def hheight: Variable
   def hwidth: Variable
+
+  def toVars = Set(center.x, center.y, hheight, hwidth)
 }
 
 object BoxLike {
@@ -45,6 +47,8 @@ trait Vecty {
   def base: Point
   def dx: Variable
   def dy: Variable
+
+  def toVars = Set(base.x, base.y, dx, dy)
 }
 
 object VecLike {
@@ -53,12 +57,20 @@ object VecLike {
 }
 
 
-sealed abstract class Shape
-case class Circle(center: Point, radius: Variable) extends Shape
-case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape
+sealed abstract class Shape {
+  def toVars: Set[Variable]
+}
+case class Circle(center: Point, radius: Variable) extends Shape {
+  def toVars = Set(center.x, center.y, radius)
+}
+case class Triangle(p1: Point, p2: Point, p3: Point) extends Shape {
+  def toVars = Set(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y)
+}
 case class Rectangle(center: Point, hheight: Variable, hwidth: Variable) extends Shape with Boxy
 case class Image(center: Point, hheight: Variable, hwidth: Variable, tagname: String) extends Shape with Boxy
-case class LineSegment(begin: Point, end: Point) extends Shape
+case class LineSegment(begin: Point, end: Point) extends Shape {
+  def toVars = Set(begin.x, begin.y, end.x, end.y)
+}
 case class Spring(base: Point, dx: Variable, dy: Variable) extends Shape with Vecty
 case class Arrow(base: Point, dx: Variable, dy: Variable) extends Shape with Vecty
 
@@ -104,6 +116,7 @@ case class Eq(lhs: Expr, rhs: Expr) {
              " versus " ++ vars.toString ++ " as " ++ res.toString)
     res
   }
+  def contains(vars: Set[Variable]) = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
   def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
 }
 
@@ -141,3 +154,7 @@ case class Program(
   equations : Set[Eq], recConstraints : Set[RecConstraint],
   freeRecVars: Set[Variable]
 )
+
+object Program {
+  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set())
+}

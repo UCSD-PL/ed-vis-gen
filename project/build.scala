@@ -28,7 +28,10 @@ object MyExampleBuild extends Build {
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "ch.qos.logback" % "logback-classic" % "1.1.2" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "9.2.10.v20150310" % "container",
-        "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided"
+        "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
+        "org.scalatra" %% "scalatra-json" % "2.3.0",
+        "org.json4s"   %% "json4s-jackson" % "3.2.9",
+        "com.googlecode.kiama" %% "kiama" % "1.8.0"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

@@ -312,3 +312,12 @@ function print_stays() {
   }
   console.log(logstr);
 }
+
+// given a list of strings, return an enum object for the args
+function makeEnum(args) {
+  var ret = {};
+  for (var i = 0; i < args.length; ++i) {
+    ret[args[i]] = i+1;
+  }
+  return ret;
+}

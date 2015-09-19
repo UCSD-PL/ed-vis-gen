@@ -1,11 +1,11 @@
-package EDDIE.ranking
+package EDDIE.backend.ranking
 
-import EDDIE.syntax._
-import EDDIE.semantics._
-import EDDIE.errors._
-import EDDIE.synthesis._
-import EDDIE.Types._
-import EDDIE.Helpers._
+import EDDIE.backend.syntax._
+import EDDIE.backend.semantics._
+import EDDIE.backend.errors._
+import EDDIE.backend.synthesis._
+import EDDIE.backend.Types._
+import EDDIE.backend.Helpers._
 import scala.collection.Set
 
 // ranking functions for synthesis outputs

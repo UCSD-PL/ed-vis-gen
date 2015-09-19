@@ -1,6 +1,6 @@
-package EDDIE
+package EDDIE.backend
 
-import EDDIE.syntax._
+import EDDIE.backend.syntax._
 
 // with great power, comes great responsibility
 // or alternatively, results in compiler warnings

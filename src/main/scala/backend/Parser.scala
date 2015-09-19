@@ -1,7 +1,7 @@
-package EDDIE.parser
+package EDDIE.backend.parser
 
-import EDDIE.syntax._
-import EDDIE.semantics._
+import EDDIE.backend.syntax._
+import EDDIE.backend.semantics._
 import scala.collection.immutable.{Map ⇒ Map}
 
 
@@ -13,7 +13,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // ignore c-style comments (doesn't handle nesting properly, i don't think)
   protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
   // variables, points, and shapes
-  lazy val str = stringLiteral
+  lazy val str = """'([a-zA-Z0-9_-]*)'""".r //single-quote characters, nums
   lazy val vrbl = ident ^^ {Variable(_)}
   lazy val pnt = "(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ Point(l,r)}
 

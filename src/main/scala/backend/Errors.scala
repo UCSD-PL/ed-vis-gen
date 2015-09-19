@@ -1,4 +1,4 @@
-package EDDIE.errors
+package EDDIE.backend.errors
 
 object Incomplete extends RuntimeException {
   override def getMessage = "incomplete implementation"

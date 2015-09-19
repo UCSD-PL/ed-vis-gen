@@ -1,7 +1,7 @@
-package EDDIE
+package EDDIE.backend
 
-import EDDIE.syntax._
-import EDDIE.semantics._
+import EDDIE.backend.syntax._
+import EDDIE.backend.semantics._
 import scala.collection.immutable._
 
 // various helper functions and definitions

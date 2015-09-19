@@ -1,12 +1,12 @@
 VARS(
   // base
-  BX = 250, BY = 250, BH = 50, BW = 100,
+  BX = 150, BY = 200, BH = 30, BW = 100,
   // spring
-  SX = 250, SY = 200, DX = 0, DY = -50,
+  SX = 150, SY = 170, DX = 0, DY = -70,
   // platform
-  PX = 250, PY = 150, PH = 10, PW = 20,
+  PX = 150, PY = 100, PH = 10, PW = 20,
   // image
-  IX = 250, IY = 130, IH = 10, IW = 10,
+  IX = 150, IY = 80, IH = 10, IW = 10,
   // physics simulation variables
   M = 55, K = 1.1, C = 2.5, G = 0.98,
   InitRL = 125, RL = 125, F = 0, V = 0, T = 0
@@ -15,7 +15,7 @@ SHAPES(
   Rectangle((BX, BY), BH, BW),    // base
   Spring((SX, SY), DX, DY),       // spring
   Rectangle((PX, PY), PH, PW),    // platform
-  Image((IX, IY), IH, IW, "iron") // image
+  Image((IX, IY), IH, IW, 'iron') // image
 );
 LINEAR(
   SX = BX,

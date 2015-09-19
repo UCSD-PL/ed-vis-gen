@@ -1,8 +1,8 @@
-package EDDIE.validation
+package EDDIE.backend.validation
 
-import EDDIE.syntax._
-import EDDIE.semantics._
-import EDDIE.errors._
+import EDDIE.backend.syntax._
+import EDDIE.backend.semantics._
+import EDDIE.backend.errors._
 
 // simple static analysis passes
 object Validate {

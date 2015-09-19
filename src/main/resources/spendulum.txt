@@ -1,16 +1,17 @@
 VARS(
-  XA = 150, YA = 150, RA = 5, 
-  XS = 150, YS = 150, XE = 350 , YE =150,
-  XB = 350, YB = 150, RB = 20
+  XA = 50, YA = 50, RA = 5,
+  XS = 50, YS = 50, XE = 250 , YE =50,
+  XB = 250, YB = 50, RB = 20
 );
 SHAPES(
-  Circle((XA, YA), RA), 
-  LineSegment((XS, YS), (XE, YE)),
+  Circle((XA, YA), RA),
+  Line((XS, YS), (XE, YE)),
   Circle((XB, YB), RB)
 );
-EQUATIONS(
+LINEAR(
   XA = XS,
   YA = YS,
   XB = XE,
   YB = YE
 );
+NONLINEAR() WITH FREE();
