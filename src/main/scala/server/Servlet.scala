@@ -14,7 +14,7 @@ import EDDIE.backend.syntax._
 import EDDIE.backend.semantics._
 import EDDIE.backend.Types._
 import EDDIE.backend.synthesis._
-
+import EDDIE.backend.ranking._
 
 class Servlet extends Stack {
   object Mutables {
@@ -30,11 +30,12 @@ class Servlet extends Stack {
 
     // current variants:
     // same points, different link configurations
-    var likely: Stream[IPConfig] = Stream()
+    val ranker = LinkLength
+    var likely: Poset = Poset.empty(ranker)
     // same links, different points
-    var similar: Stream[IPConfig] = Stream()
+    var similar: Poset = Poset.empty(ranker)
     // all-new points and links
-    var different: Set[IPConfig] = Set()
+    var different: Poset = Poset.empty(ranker)
 
 
 
@@ -43,9 +44,9 @@ class Servlet extends Stack {
       Γ = Set()
       allConfigs = Set()
       allPoints = Set()
-      likely = Stream()
-      similar = Stream()
-      different = Set()
+      likely = Poset.empty(ranker)
+      similar = Poset.empty(ranker)
+      different = Poset.empty(ranker)
     }
   }
 
@@ -55,17 +56,21 @@ class Servlet extends Stack {
     def generateVariants {
       // populate variant streams with new members
       // TODO: likely and similar
+      // likely: given the existing points, try all variants on configurations.
+      val currProg = ζ.prog
+      likely = currProg.ipoints.map{p ⇒ (Positional.extendLinksAll(
+           Set(p.x, p.y), ζ.prog.equations
+        ), p)}.flatMap{ case (links, p) ⇒ {
+          val newPoints = currProg.ipoints - p
+          links.map(ls ⇒ currProg.copy(ipoints = newPoints + (p.copy(links = ls)))
+      )}}.map{p ⇒ ζ.copy(prog = p)
+      }.foldLeft(Poset.empty(ranker)){case (acc, prog) ⇒ acc + prog}
       // take the existing program, try all points + configs that aren't present
       different = allPoints.zip(allConfigs).flatMap{case ((ip, eqs, σ), lnks) ⇒ {
-        val newLinks = Positional.extendLinksOne(lnks + ip.x + ip.y, eqs ++ ζ.prog.equations)
-        val ret = newLinks.map(l ⇒ (ip.copy(links = l), eqs, σ))
-        if (!ret.isEmpty){
-          // println("we made it boyz")
-          // println(ret)
-        }
-        ret
-        }
-      } //.toStream
+        val newLinks = Positional.extendLinksOne(lnks + ip.x + ip.y, eqs ++ currProg.equations)
+        newLinks.map(l ⇒ (ip.copy(links = l), eqs, σ))
+      }}.map{State.merge(_, ζ)}.foldLeft(
+        Poset.empty(ranker)){case (acc, prog) ⇒ acc + prog}
 
       //println(different)
 
@@ -103,19 +108,15 @@ class Servlet extends Stack {
     }
 
     // return a (concrete) list of variants
-    def getDifferents(number: Int): Seq[IPConfig] = {
+    def getDifferents(number: Int): Seq[State] = {
       //println(different)
       different.take(number).toSeq
     }
-    def dropDifferents(number: Int) = {
-      different = different.drop(number)
+    def dropDifferents(bads: Seq[State]) = {
+      different = bads.foldLeft(different){case (acc, v) ⇒ acc - v}
     }
 
   }
-
-
-
-
 
   import Actions._
 
@@ -139,12 +140,10 @@ class Servlet extends Stack {
   // get the next n different variants
   get("/differents/:n/:h/:w") {
     val diffs = getDifferents(params("n").toInt).zipWithIndex.map{
-      case (v, k) ⇒ (k.toString → State.merge(v, Mutables.ζ))
+      case (v, k) ⇒ (k.toString → v)
     }.toMap
 
     assert(diffs.size == params("n").toInt)
-
-    println(diffs.keySet)
 
     diffs.mapValues{serveProgram(params, _)}
   }

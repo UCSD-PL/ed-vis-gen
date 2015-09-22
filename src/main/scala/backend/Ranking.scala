@@ -18,7 +18,7 @@ trait Ranker {
 
 // rank by aggregate length of links
 object LinkLength extends Ranker {
-  def eval(c: Configuration) = c._1.ipoints.foldLeft(0){case (sum, ip) ⇒ sum + ip.links.size}
+  def eval(c: Configuration) = c.prog.ipoints.foldLeft(0){case (sum, ip) ⇒ sum + ip.links.size}
 }
 
 // partially ordered set (poset) class over configurations

@@ -250,7 +250,7 @@ object Positional extends SynthesisPass {
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
 
-  
+
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(p: Program, σ: Store): Set[Configuration] = p match {
@@ -269,14 +269,12 @@ object Positional extends SynthesisPass {
 
       res
     }}.map{ case(ip, es, δ) ⇒
-      (p.copy(
+      State(p.copy(
         vars = vars ++ Set(ip.x, ip.y),
         ipoints = ips + ip,
         equations = eqs ++ es
       ), δ)
     }
-
-
   }
 }
 

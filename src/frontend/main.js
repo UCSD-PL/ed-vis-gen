@@ -10,13 +10,13 @@ function main() {
 
 
   getDifferents(3, 300, 300, function(diffs) {
-    var rDiffs = JSON.parse(diffs);
-    console.log(rDiffs);
+    var realDiffs = JSON.parse(diffs);
+    //console.log(realDiffs);
     //var realDiffs = Object.keys(JSON.parse(diffs)).map(function(k) { return diffs[k] });
-    console.log(rDiffs.length);
+    //console.log(realDiffs.length);
     var res = [];
-    for (var i in rDiffs) {
-      res.push(rDiffs[i]);
+    for (var i in realDiffs) {
+      res.push(realDiffs[i]);
     }
     addFramesToDiv(res, "far");
 

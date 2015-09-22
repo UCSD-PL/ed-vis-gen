@@ -19,7 +19,7 @@ object Helpers {
 // type aliases
 
 object Types {
-  type Configuration = (Program, Store)
+  type Configuration = State
   type IPConfig = (IPoint, Set[Eq], Store)
   type VarConfig = (Variable, Set[Eq], Store)
 }
