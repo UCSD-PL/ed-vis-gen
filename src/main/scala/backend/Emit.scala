@@ -361,9 +361,9 @@ object LowLevel extends Emitter {
     )
   }
 
-  def emitInit(p: Program, σ: Store, body: Doc): Doc = {
+  def emitInit(p: Program, σ: Store, body: Doc, end: Doc): Doc = {
     emitFunc("init", vsep(Seq(
-      initPreamble, body, initEpilogue(p, σ)), line)
+      initPreamble, body, initEpilogue(p, σ), end), line)
     )
   }
 
@@ -384,20 +384,21 @@ object LowLevel extends Emitter {
     // and foreach ip, we need to emit a call to push(drag_objects, ip)
     val ipoints = p.ipoints.map(Allocator(_))
     val objects = Seq("all_objects") ++ p.shapes.map(Allocator(_)) ++ ipoints
-    val initBody =
-      super.emitProg(p, σ) <@> line <>
+    val initBody = super.emitProg(p, σ)
+    val initEnd =
       emitFCall("push", objects.map(text(_))) <@>
-      emitFCall("push", (Seq("drag_points") ++ ipoints).map(text _))
+      emitFCall("push", (Seq("drag_points") ++ ipoints).map(text _)) <@>
+      emitFCall("push", (Seq("timers", "tau")).map(text _))
     vsep(Seq(
-      emitInit(p, σ, initBody),
+      emitInit(p, σ, initBody, initEnd),
       // emit update_constraints
       emitFunc("update_constraints", emitDrawUpdates(p.shapes)),
       // emit recursive_constraints
       emitFunc(recFunName, emitRecConstraints(p.recConstraints), Seq("args") ),
       // emit remaining stubs
       emitFunc("drag_update", emitFCall("update_constraints", Seq())),
-      emitFunc("start", text("tau.start();")),
-      emitFunc("stop", text("tau.stop();")),
+      emitFunc("start", text("tau.shouldRun = true; tau.start();")),
+      emitFunc("stop", text("tau.shouldRun = false; tau.stop();")),
       emitFunc("reset", text("tau.reset();")),
       emitFunc("on_release", empty),
       emitFunc("on_click", empty)

@@ -186,6 +186,7 @@ function Timer (freq, work, done) {
     work: work,
     done: done,
     started: false,
+    shouldRun: false,
     start: function () { with (this) {
       if (! started) {
         started = true;
@@ -207,6 +208,7 @@ function Timer (freq, work, done) {
         started = false;
         clearInterval(intID);
       }
+      shouldRun = false;
       t=0;
       done();
     }}

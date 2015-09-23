@@ -35,7 +35,8 @@ object State {
       ζ.copy( prog = ζ.prog.copy(
         vars = ζ.prog.vars ++ Set(ip.x, ip.y),
         ipoints = ζ.prog.ipoints + ip,
-        equations = ζ.prog.equations ++ eqs
+        equations = ζ.prog.equations ++ eqs,
+        freeRecVars = ζ.prog.freeRecVars + ip.x + ip.y // TODO: be more precise
         ),
         σ = ζ.σ ++ σ)
   }

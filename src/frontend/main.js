@@ -2,32 +2,12 @@ function main() {
   // common_init();
   // SHAPES = makeEnum(["RECTANGLE", "TRIANGLE", "ARROW", "CIRCLE"]);
   //sendGet("", loadPage);
-  loadMain();
-  loadFromSource("sspring.txt", "300", "300", function(h) {
-    addFramesToDiv([h,h,h], "exact");
-    addFramesToDiv([h,h,h], "inexact");
+  program_frames = {};
+  NUM_FRAMES = 9;
+  loadMain( function() {
+    // map program IDs to their containing frames, for ease of updating sources
+    initFrames();
   });
-
-
-  getDifferents(3, 300, 300, function(diffs) {
-    var realDiffs = JSON.parse(diffs);
-    //console.log(realDiffs);
-    //var realDiffs = Object.keys(JSON.parse(diffs)).map(function(k) { return diffs[k] });
-    //console.log(realDiffs.length);
-    var res = [];
-    for (var i in realDiffs) {
-      res.push(realDiffs[i]);
-    }
-    addFramesToDiv(res, "far");
-
-  });
-  // loadFromSource("spendulum.txt", "300", "300", function(h1) {
-  //   loadFromSource("spendulum.txt", "300", "300", function(h2) {
-  //     loadFromSource("spendulum.txt", "300", "300", function(h3) {
-  //       addFramesToDiv([h1,h2,h3], "far");
-  //     });
-  //   });
-  // });
 
 }
 
@@ -42,12 +22,47 @@ function updateVars(Κ) {
 function setMain(html) {
   updateFrame(html, "mainFrame");
 }
+
+function getDiv(i) {
+  var div = ""
+  if (i < NUM_FRAMES/3) {
+    div = "near"
+  } else if (i < 2* NUM_FRAMES/3) {
+    div = "medium"
+  } else {
+    div = "far"
+  }
+  return div;
+}
+function regenVariants() {
+  for (var i in program_frames) {
+    var div = getDiv(i);
+    populateFrame(i, div);
+  }
+}
+
+function initFrames() {
+  for (var i = 0; i < NUM_FRAMES; ++i) {
+    var div = getDiv(i);
+    initFrame(i, 100/(NUM_FRAMES/3)-1, div);
+    populateFrame(i, div);
+  }
+}
+
+function populateFrame(ident, type) {
+  getVariant(type, ident, 300, 300, function(html) {
+    program_frames[ident].srcdoc = html;
+  });
+}
 // load into the main display
-function loadMain(html) {
+function loadMain(Κ) {
   var h = "300";
   var w = "300";
-  html = html || document.getElementById("filename").value
-  loadFromSource(html, h, w, setMain);
+  var html = document.getElementById("filename").value
+  loadFromSource(html, h, w, function (h) {
+    setMain(h);
+    Κ()
+  });
 }
 
 function reset(Κ) {
@@ -64,34 +79,70 @@ function loadFromSource(name, h, w, Κ) {
   sendGet("loadfile/" + name + "/" + h + "/" + w, Κ);
 }
 
-// given a list of html sources and a div, add the sources to the div as frames
-function addFramesToDiv(htmls, divID) {
-  var width = (100.0/htmls.length)-1;
-  for (var i = 0; i < htmls.length; ++i) {
-    addFrameToDiv(htmls[i], width, divID);
-  }
-}
 
-// given some html source, make a new frame and add it to the end of some element
-function addFrameToDiv(html, widthP, divID) {
+function acceptVariant(ident) {
+  //console.log("accepting " + ident);
+  sendGet("accept-variant/" + ident, function (h) {
+    setMain(h);
+    regenVariants();
+    //console.log("accepted");
+  });
+}
+function rejectVariant(ident) {alert(ident);}
+
+// given an ident and width, make a new frame and add it to the end of some element
+function initFrame(ident, widthP, divID) {
+  var newContainer = document.createElement('div');
+  newContainer.id = divID + '_' + ident.toString();
   var newFrame = document.createElement('iframe');
-  newFrame.srcdoc = html;
+  var aButton = document.createElement('button');
+  aButton.id = newContainer.id + '_accept';
+  var rButton = document.createElement('button');
+  rButton.id = newContainer.id + '_reject';
+  newContainer.style.width = widthP.toString() + "%";
+  newContainer.style.float = 'left';
+  newContainer.style.height = "100%";
+  newContainer.style.borderStyle = 'solid';
+
+  aButton.onclick = function() {
+    acceptVariant(ident);
+  };
+
+  aButton.style = {float: 'right', color: '#00FF33'};
+  aButton.textContent = "Accept";
+
+  rButton.onclick = function() {rejectVariant(ident);};
+  rButton.style = {float: 'right', color: '#FF6600'};
+  rButton.textContent = "Reject";
+
+  newFrame.srcdoc = "";
   newFrame.style.height = "100%";
-  newFrame.style.width = widthP.toString() + "%";
+  newFrame.style.width = "100%";
   newFrame.style.borderStyle = "none";
-  document.getElementById(divID).appendChild(newFrame);
+
+  var parent = document.getElementById(divID);
+  newContainer.appendChild(aButton);
+  newContainer.appendChild(rButton);
+  newContainer.appendChild(newFrame);
+  parent.appendChild(newContainer);
+  program_frames[ident] = newFrame;
 }
 
-function getDifferents(n, h, w, Κ) {
-  sendGet("differents/" + n.toString() + "/" + h.toString() + "/" + w.toString(), Κ);
+function getVariant(type, n, h, w, Κ) {
+  var prefix = ["variants", type, n.toString(), h.toString(), w.toString()];
+  sendGet(prefix.join("/"), Κ);
 }
+
 // pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
 function sendGet(urlTail, Κ, resType) {
   var url = "http://localhost:8080/" + urlTail;
+  console.log('sending GET ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
-    if (req.readyState == 4 && req.status == 200)
+    if (req.readyState == 4 && req.status == 200) {
+      console.log("received response for " + urlTail);
       Κ(req.responseText);
+    }
   }
   req.open("GET", url, true); // true for asynchronous
   req.send(null);
@@ -101,10 +152,13 @@ function sendGet(urlTail, Κ, resType) {
 function sendPost(body, urlTail, Κ) {
   urlTail = urlTail || "";
   var url = "http://localhost:8080/" + urlTail;
+  console.log('sending POST ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
-    if (req.readyState == 4 && req.status == 200)
+    if (req.readyState == 4 && req.status == 200) {
+      console.log("received response for " + urlTail);
       Κ(req.responseText);
+    }
   }
   req.open("POST", url, true); // true for asynchronous
   // it turns out headers need to be set after opening the connection

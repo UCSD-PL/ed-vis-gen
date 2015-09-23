@@ -25,6 +25,23 @@ function common_init() {
   canvas.addEventListener("mousemove", doMouseMove);
 
   resetState();
+
+  document.body.onmouseover = function() {
+    timers.map(function(t) {
+      if (t.shouldRun) {
+        t.start();
+      }
+    });
+  };
+
+  document.body.onmouseout = function() {
+    timers.map(function(t) {
+      if (t.shouldRun) {
+        t.stop();
+      }
+    });
+  };
+
 }
 
 function resetState() {
@@ -40,6 +57,7 @@ function resetState() {
   all_objects = [];
   drag_points = [];
   inc_objects = [];
+  timers = [];
 }
 
 function doMouseDown(e) {
