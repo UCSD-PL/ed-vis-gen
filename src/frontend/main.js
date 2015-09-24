@@ -88,7 +88,12 @@ function acceptVariant(ident) {
     //console.log("accepted");
   });
 }
-function rejectVariant(ident) {alert(ident);}
+function rejectVariant(ident, type) {
+  // TODO: make server return next variant here
+  sendGet("reject-variant/" + ident, function () {
+    populateFrame(ident, type);
+  });
+}
 
 // given an ident and width, make a new frame and add it to the end of some element
 function initFrame(ident, widthP, divID) {
@@ -104,14 +109,12 @@ function initFrame(ident, widthP, divID) {
   newContainer.style.height = "100%";
   newContainer.style.borderStyle = 'solid';
 
-  aButton.onclick = function() {
-    acceptVariant(ident);
-  };
+  aButton.onclick = function() {acceptVariant(ident);};
 
   aButton.style = {float: 'right', color: '#00FF33'};
   aButton.textContent = "Accept";
 
-  rButton.onclick = function() {rejectVariant(ident);};
+  rButton.onclick = function() {rejectVariant(ident, divID);};
   rButton.style = {float: 'right', color: '#FF6600'};
   rButton.textContent = "Reject";
 

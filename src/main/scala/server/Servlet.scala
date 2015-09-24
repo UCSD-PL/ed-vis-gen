@@ -60,13 +60,18 @@ class Servlet extends Stack {
       // TODO: similar
       // likely: given the existing points, try all variants on configurations.
       val currProg = ζ.prog
-      likely = currProg.ipoints.map{p ⇒ (Positional.extendLinksAll(
-           Set(p.x, p.y), ζ.prog.equations
-        ), p)}.flatMap{ case (links, p) ⇒ {
+      likely = currProg.ipoints.flatMap{p ⇒ // point → Set[(Set[Set[Var]], point)]
+        Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
+          (Positional.extendLinksAll( ls, ζ.prog.equations), p)
+        }}.flatMap{ case (links, p) ⇒ { // (Set[Set[Var]], point) → Set[program]
           val newPoints = currProg.ipoints - p
-          links.map(ls ⇒ currProg.copy(ipoints = newPoints + (p.copy(links = ls)))
-      )}}.map{p ⇒ ζ.copy(prog = p)
-      }.foldLeft(Poset.empty(ranker)){case (acc, prog) ⇒ acc + prog}
+          links.map(ls ⇒ currProg.copy(ipoints = newPoints + (p.copy(links = ls))))
+        }
+      }.map{p ⇒ // p → state
+          ζ.copy(prog = p)
+      }.foldLeft(Poset.empty(ranker)) {
+        case (acc, prog) ⇒ acc + prog
+      }
 
 
       // take the existing program, try all points + configs that aren't present
@@ -75,8 +80,11 @@ class Servlet extends Stack {
           eqs.exists(_.contains(lnks)) // filter out spurious point/config combinations
       }.flatMap{
         case ((ip, eqs, σ), lnks) ⇒ {
-          val newLinks = Positional.extendLinksOne(lnks + ip.x + ip.y, eqs ++ currProg.equations)
-          newLinks.map(l ⇒ (ip.copy(links = l), eqs, σ))
+          Set(Set(ip.x), Set(ip.y), Set(ip.x, ip.y)).flatMap{ls ⇒
+            Positional.extendLinksOne(lnks ++ ls, eqs ++ currProg.equations).toSet
+          }.map(l ⇒
+            (ip.copy(links = l), eqs, σ)
+          )
       }}.map{
         State.merge(_, ζ)}.foldLeft(
         Poset.empty(ranker)){case (acc, prog) ⇒ acc + prog
@@ -124,6 +132,12 @@ class Servlet extends Stack {
       }
     }
 
+    // for now, just clear the entry in currVariants
+    def rejectVar(i: Int) {
+      currVariants = currVariants - i
+
+    }
+
     // clear calculated ipoints
     def reset = {
       Γ = Set()
@@ -169,5 +183,11 @@ class Servlet extends Stack {
       generateVariants
     }
     serveProgram
+  }
+  // given an index, clear the variant at that index and serve...nothing...
+  // assumes the client will ask for a new variant
+  get("/reject-variant/:n") {
+    rejectVar(params("n").toInt)
+    ()
   }
 }
