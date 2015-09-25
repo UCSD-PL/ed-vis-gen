@@ -57,9 +57,11 @@ class Servlet extends Stack {
 
     def generateVariants {
       // populate variant streams with new members
-      // TODO: similar
       // likely: given the existing points, try all variants on configurations.
       val currProg = ζ.prog
+      val σ = ζ.σ
+
+
       likely = currProg.ipoints.flatMap{p ⇒ // point → Set[(Set[Set[Var]], point)]
         Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
           (Positional.extendLinksAll( ls, ζ.prog.equations), p)
@@ -72,6 +74,30 @@ class Servlet extends Stack {
       }.foldLeft(Poset.empty(ranker)) {
         case (acc, prog) ⇒ acc + prog
       }
+
+      // for each existing point, try moving the point with the same configuration
+
+      similar = currProg.ipoints.flatMap { p ⇒
+        allPoints.filter{ case (np, _, γ) ⇒ // filter out identical point
+          (γ(np.x) != σ(p.x)) || (γ(np.y) != σ(p.y))
+        }.map { case (np, eqs, σ) ⇒ // add links to new point
+          (np.copy(links = (p.links - p.x - p.y + np.x + np.y)), eqs, σ) // TODO: validate links
+        }.map { case (np, eqs, σ) ⇒ // remove p from the currProg, add np in
+          // remove references to p in variables, points
+          val newVars =
+            (currProg.vars - p.x - p.y) + np.x + np.y
+          val newPoints = (currProg.ipoints - p) + np
+          // take out p's positional equations
+          val newEqs =
+            currProg.equations.filter{e ⇒ e.count(Set(p.x, p.y)) == 0} ++ eqs
+          // remove reference to p in freevars
+          val newRVs = currProg.freeRecVars - p.x - p.y + np.x + np.y
+          State(Program(newVars, newPoints, currProg.shapes, newEqs,
+            currProg.recConstraints, newRVs), ζ.σ - p.x - p.y ++ σ)
+        }}.foldLeft(Poset.empty(ranker)) {
+          case (acc, prog) ⇒ acc + prog
+        }
+
 
 
       // take the existing program, try all points + configs that aren't present

@@ -61,7 +61,7 @@ function loadMain(Κ) {
   var html = document.getElementById("filename").value
   loadFromSource(html, h, w, function (h) {
     setMain(h);
-    Κ()
+    Κ();
   });
 }
 

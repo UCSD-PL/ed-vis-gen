@@ -13,6 +13,8 @@ case class Store(vars: Map[Variable, Double]) extends Iterable[(Variable, Double
   def put(v : Variable, d: Double) = this.+(v → d)
   def +(kv: (Variable, Double)) = Store(vars + kv)
   def ++(that: Iterable[(Variable, Double)]) = that./:(this){case (σ, kv) ⇒ σ + kv}
+  def -(k: Variable) = Store(vars - k)
+  def --(that: Iterable[Variable]) = that./:(this){case (σ, k) ⇒ σ - k}
   def restrict(vs: Set[Variable]) = Store(vars.filter{case (k, v) ⇒ vs.contains(k)})
 
   override def toString = "{" ++ vars.foldLeft(""){ case (str, (v, coeff)) ⇒
