@@ -232,8 +232,8 @@ function InteractionPoint (x,y) {
     x: x,
     y: y,
     cr: 2,
-    r: 20,
-    fill: "black",
+    r: 10,
+    fill: "green",
     links: [], // transitive cassowary data dependencies,
                // need to be keys in constrained_vars.
     translate: function(dx, dy) {

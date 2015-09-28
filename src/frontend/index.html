@@ -18,31 +18,31 @@
 <script src="eddie/library.js"></script>
 <script src="eddie/common.js"></script>
 <script src="main.js"></script>
+
+<link href="style.css" type="text/css" rel="stylesheet"/>
 <head>
     <title>EDDIE interactive diagram synthesis</title>
 </head>
 
-<body style="width:1200px; height:1600px;" onload="main();">
-  <div id="loading" class="blackout">
-      <div style="text-align:center">
-        <div>
-          <button onClick="loadMain();">Load file</button>
-          <input type="text" name="filename" id="filename" value="sspring.txt">
-        </div>
-        <iframe id="mainFrame" srcdoc="<html></html>"
-          style="height:300px; width:300px; border-style:solid;">
-        </iframe>
-      </div>
-
-    <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
-
-    <div id="near" style="height:300px; width: 100%;">
+<body style="width:1200px; height:1300px;" onload="main();">
+  <div id="loading"> </div>
+  <div style="text-align:center">
+    <div>
+      <button onClick="loadMain();">Load file</button>
+      <input type="text" name="filename" id="filename" value="sspring.txt">
     </div>
-    <div id="medium" style="height:300px; width: 100%;">
-    </div>
-    <div id="far" style="height:300px; width: 100%;">
-    </div>
+    <iframe id="mainFrame" srcdoc="<html></html>"
+      style="height:300px; width:300px; border-style:solid;">
+    </iframe>
+  </div>
 
+  <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
+
+  <div id="near" style="height:300px; width: 100%;">
+  </div>
+  <div id="medium" style="height:300px; width: 100%;">
+  </div>
+  <div id="far" style="height:300px; width: 100%;">
   </div>
 
 </body>

@@ -61,6 +61,12 @@ class Servlet extends Stack {
       val currProg = ζ.prog
       val σ = ζ.σ
 
+      // extend configs with current ipoints in program
+      currProg.ipoints.foreach{ p ⇒
+        val (unchanged, outdated) = allConfigs.partition{c ⇒ (c & p.links).isEmpty}
+        allConfigs = unchanged ++ (outdated.map{c ⇒ c + p.x + p.y})
+      }
+
 
       likely = currProg.ipoints.flatMap{p ⇒ // point → Set[(Set[Set[Var]], point)]
         Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
@@ -78,10 +84,14 @@ class Servlet extends Stack {
       // for each existing point, try moving the point with the same configuration
 
       similar = currProg.ipoints.flatMap { p ⇒
-        allPoints.filter{ case (np, _, γ) ⇒ // filter out identical point
-          (γ(np.x) != σ(p.x)) || (γ(np.y) != σ(p.y))
+        allPoints.filter{ case (np, eqs, γ) ⇒
+          val valid = eqs.exists(_.count(p.links) > 0) // new point is linked to old config
+          // TODO
+          lazy val wellDefnd = true //Positional.wellDefined(np.links, eqs ++ currProg.equations)
+          lazy val unique = (γ(np.x) != σ(p.x)) || (γ(np.y) != σ(p.y)) // new point is in new position
+          valid && wellDefnd && unique
         }.map { case (np, eqs, σ) ⇒ // add links to new point
-          (np.copy(links = (p.links - p.x - p.y + np.x + np.y)), eqs, σ) // TODO: validate links
+          (np.copy(links = (p.links - p.x - p.y + np.x + np.y)), eqs, σ)
         }.map { case (np, eqs, σ) ⇒ // remove p from the currProg, add np in
           // remove references to p in variables, points
           val newVars =

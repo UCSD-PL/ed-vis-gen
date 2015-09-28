@@ -6,3 +6,6 @@ logLevel in run := Level.Warn
 
 scalacOptions += "-feature"
 scalacOptions += "-deprecation"
+
+javaOptions += "-XX:+UnlockCommercialFeatures"
+javaOptions += "-XX:+FlightRecorder"

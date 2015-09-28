@@ -82,11 +82,20 @@ function loadFromSource(name, h, w, Κ) {
 
 function acceptVariant(ident) {
   //console.log("accepting " + ident);
+  disableInterface();
   sendGet("accept-variant/" + ident, function (h) {
     setMain(h);
     regenVariants();
+    enableInterface();
     //console.log("accepted");
   });
+}
+
+function disableInterface() {
+  document.getElementById('loading').style.display = 'block';
+}
+function enableInterface() {
+  document.getElementById('loading').style.display = 'none';
 }
 function rejectVariant(ident, type) {
   // TODO: make server return next variant here

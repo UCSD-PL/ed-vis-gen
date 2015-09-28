@@ -250,6 +250,11 @@ object Positional extends SynthesisPass {
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
 
+  // returns true iff links are well-defined WRT eqs
+  def wellDefined(links: Set[Variable], eqs: Set[Eq]) : Boolean = {
+    !eqs.exists{e ⇒ (e.count(links) == 1) || (e.count(links) > 2)}
+  }
+
 
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint

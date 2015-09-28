@@ -34,9 +34,16 @@ object State {
   def empty = State(Program.empty, Store.empty)
   def merge(ipc: IPConfig, ζ: State): State = ipc match {
     case (ip, eqs, σ) ⇒
+      val newLinks = ζ.prog.ipoints.foldLeft(ip.links) { case (acc, oip) ⇒
+        if ((oip.links & acc).isEmpty) {
+          acc
+        } else {
+          acc + oip.x + oip.y
+        }
+      }
       ζ.copy( prog = ζ.prog.copy(
         vars = ζ.prog.vars ++ Set(ip.x, ip.y),
-        ipoints = ζ.prog.ipoints + ip,
+        ipoints = ζ.prog.ipoints + ip.copy(links = newLinks),
         equations = ζ.prog.equations ++ eqs,
         freeRecVars = ζ.prog.freeRecVars + ip.x + ip.y // TODO: be more precise
         ),
