@@ -1,6 +1,6 @@
 package EDDIE.backend.parser
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 import scala.collection.immutable.{Map ⇒ Map}
 

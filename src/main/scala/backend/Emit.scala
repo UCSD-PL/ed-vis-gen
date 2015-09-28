@@ -1,6 +1,6 @@
 package EDDIE.backend.emit
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.errors._
 import EDDIE.backend.semantics._
 import org.kiama.output.PrettyPrinter

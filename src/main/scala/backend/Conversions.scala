@@ -1,6 +1,6 @@
 package EDDIE.backend
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 
 // with great power, comes great responsibility
 // or alternatively, results in compiler warnings

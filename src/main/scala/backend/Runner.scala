@@ -1,6 +1,6 @@
 package EDDIE.backend.runner
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 import EDDIE.backend.parser._
 import EDDIE.backend.synthesis._

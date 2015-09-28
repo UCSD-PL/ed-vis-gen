@@ -4,7 +4,7 @@ import org.json4s.JsonDSL._
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s._
 import org.scalatra.json._
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 
 // helper conversions from JValue to collections

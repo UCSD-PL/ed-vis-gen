@@ -14,7 +14,7 @@ import org.json4s.JsonDSL._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 
-trait Stack extends ScalatraServlet with JacksonJsonSupport with ScalateSupport {
+trait Stack extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
   before() {
     contentType = formats("json")
   }

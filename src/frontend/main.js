@@ -1,37 +1,22 @@
 function main() {
-  // common_init();
-  // SHAPES = makeEnum(["RECTANGLE", "TRIANGLE", "ARROW", "CIRCLE"]);
-  //sendGet("", loadPage);
+
+  current_points = [];
   program_frames = {};
-  NUM_FRAMES = 9;
   loadMain( function() {
-    // map program IDs to their containing frames, for ease of updating sources
-    initFrames();
+    getPoints( function (payload) {
+      console.log(payload);
+    });
   });
 
 }
 
 function nop () {}
-function updateVars(Κ) {
-  var currValues = {};
-  for (var cv in constrained_vars) {
-    currValues[cv] = constrained_vars[cv].value;
-  }
-  sendPost(currValues, "updatevars", Κ);
-}
 function setMain(html) {
   updateFrame(html, "mainFrame");
 }
 
 function getDiv(i) {
-  var div = ""
-  if (i < NUM_FRAMES/3) {
-    div = "near"
-  } else if (i < 2* NUM_FRAMES/3) {
-    div = "medium"
-  } else {
-    div = "far"
-  }
+  var div = "variants";
   return div;
 }
 function regenVariants() {
@@ -42,15 +27,17 @@ function regenVariants() {
 }
 
 function initFrames() {
-  for (var i = 0; i < NUM_FRAMES; ++i) {
-    var div = getDiv(i);
-    initFrame(i, 100/(NUM_FRAMES/3)-1, div);
+
+  // TODO: ask for list of frames, populate each of them
+  // merge with populate frame
+
+    initFrame(i, 32.3, "variants");
     populateFrame(i, div);
-  }
+
 }
 
 function populateFrame(ident, type) {
-  getVariant(type, ident, 300, 300, function(html) {
+  getVariants(type, ident, 300, 300, function(html) {
     program_frames[ident].srcdoc = html;
   });
 }
@@ -97,12 +84,7 @@ function disableInterface() {
 function enableInterface() {
   document.getElementById('loading').style.display = 'none';
 }
-function rejectVariant(ident, type) {
-  // TODO: make server return next variant here
-  sendGet("reject-variant/" + ident, function () {
-    populateFrame(ident, type);
-  });
-}
+
 
 // given an ident and width, make a new frame and add it to the end of some element
 function initFrame(ident, widthP, divID) {
@@ -111,8 +93,6 @@ function initFrame(ident, widthP, divID) {
   var newFrame = document.createElement('iframe');
   var aButton = document.createElement('button');
   aButton.id = newContainer.id + '_accept';
-  var rButton = document.createElement('button');
-  rButton.id = newContainer.id + '_reject';
   newContainer.style.width = widthP.toString() + "%";
   newContainer.style.float = 'left';
   newContainer.style.height = "100%";
@@ -120,12 +100,8 @@ function initFrame(ident, widthP, divID) {
 
   aButton.onclick = function() {acceptVariant(ident);};
 
-  aButton.style = {float: 'right', color: '#00FF33'};
+  aButton.style = {float: 'right', background_color: '#00FF33'};
   aButton.textContent = "Accept";
-
-  rButton.onclick = function() {rejectVariant(ident, divID);};
-  rButton.style = {float: 'right', color: '#FF6600'};
-  rButton.textContent = "Reject";
 
   newFrame.srcdoc = "";
   newFrame.style.height = "100%";
@@ -134,17 +110,21 @@ function initFrame(ident, widthP, divID) {
 
   var parent = document.getElementById(divID);
   newContainer.appendChild(aButton);
-  newContainer.appendChild(rButton);
   newContainer.appendChild(newFrame);
   parent.appendChild(newContainer);
   program_frames[ident] = newFrame;
 }
 
-function getVariant(type, n, h, w, Κ) {
-  var prefix = ["variants", type, n.toString(), h.toString(), w.toString()];
+
+
+function getVariants(h, w, Κ) {
+  var prefix = ["variants", h.toString(), w.toString()];
   sendGet(prefix.join("/"), Κ);
 }
 
+function getPoints(Κ) {
+  sendGet("points", Κ);
+}
 // pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
 function sendGet(urlTail, Κ, resType) {
   var url = "http://localhost:8080/" + urlTail;

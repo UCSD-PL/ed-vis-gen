@@ -1,6 +1,6 @@
 package EDDIE.backend.validation
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 import EDDIE.backend.errors._
 

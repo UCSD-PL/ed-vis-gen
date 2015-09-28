@@ -1,6 +1,6 @@
 package EDDIE.backend.synthesis
 
-import EDDIE.backend.syntax._
+import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.errors._
 import EDDIE.backend.Conversions._
 import EDDIE.backend.semantics._
