@@ -242,6 +242,16 @@ trait SynthesisPass {
         }
       }
     }
+
+  // given a name map and IP, generate a name for the IP and extend the map
+  def nameIP(names: Map[String, Value], p: IPoint) = {
+    var prefix = "IP"
+    var suffix = 0
+    while (names.contains(prefix + suffix.toString)) {
+      suffix += 1
+    }
+    names + ((prefix + suffix.toString) → p)
+  }
 }
 
 
@@ -256,10 +266,11 @@ object Positional extends SynthesisPass {
   }
 
 
+
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(p: Program, σ: Store): Set[Configuration] = p match {
-    case Program(vars, ips, shapes, eqs, _, _) ⇒ shapes.flatMap { s ⇒ {
+    case Program(vars, ips, shapes, eqs, _, _, names) ⇒ shapes.flatMap { s ⇒ {
       val candidates = PointGeneration(s, σ)
 
       val res = candidates.flatMap { case (ip, es, δ) ⇒ {
@@ -277,7 +288,8 @@ object Positional extends SynthesisPass {
       State(p.copy(
         vars = vars ++ Set(ip.x, ip.y),
         ipoints = ips + ip,
-        equations = eqs ++ es
+        equations = eqs ++ es,
+        names = nameIP(names, ip)
       ), δ)
     }
   }

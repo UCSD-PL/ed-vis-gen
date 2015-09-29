@@ -103,21 +103,30 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // NONLINEAR(rec, (, rec)*);
 
   type SP[T] = Parser[Set[T]]
-  lazy val vars = repsep(ident ~ ("=" ~> decimalNumber), ",") ^^ { is ⇒
+
+  def decl[T](rhs: PackratParser[T]) = ident ~ ("=" ~> rhs)
+  def commas[T](thing: PackratParser[T]) = repsep(thing, ",")
+  def collect[T](thing: PackratParser[T]) = commas(thing) ^^ {_.toSet}
+
+  lazy val vars = commas(decl(decimalNumber)) ^^ { is ⇒
     val bndings = is.map(_ match {case v ~ d ⇒ (Variable(v) → d.toDouble)}).toMap
     (bndings.keySet, Store(bndings))
   }
-  lazy val shps: SP[Shape]          = repsep(shp, ",") ^^ {_.toSet}
-  lazy val eqs: SP[Eq]              = repsep(equation, ",") ^^ {_.toSet}
-  lazy val recs: SP[RecConstraint]  = repsep(rec, ",") ^^ {_.toSet}
-  lazy val fvs: SP[Variable] = repsep(vrbl, ",") ^^ {_.toSet}
+  lazy val shps: PackratParser[(Set[Shape], Map[String, Value])] = commas(decl(shp)) ^^ {ss ⇒
+    val bndings: Map[String, Shape] = ss.map{_ match {case v ~ s ⇒ (v → s)}}.toMap
+    (bndings.map(_._2).toSet, bndings)
+  }
+
+  lazy val eqs: SP[Eq]              = collect(equation)
+  lazy val recs: SP[RecConstraint]  = collect(rec)
+  lazy val fvs: SP[Variable] = collect(vrbl)
 
   lazy val program =
     (("VARS(" ~> vars <~ ");") ~ ("SHAPES(" ~> shps <~ ");") ~
     ("LINEAR(" ~> eqs <~ ");") ~ ("NONLINEAR(" ~> recs <~ ")") ~
      ("WITH FREE(" ~> fvs <~ ");")) ^^ {
       case (vs, σ) ~ ss ~ es ~ rcs ~ rfvs ⇒
-      (Program(vs, Set(), ss, es, rcs, rfvs), σ)
+      (Program(vs, Set(), ss._1, es, rcs, rfvs, ss._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
     }
 
   def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {

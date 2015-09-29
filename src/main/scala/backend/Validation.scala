@@ -29,7 +29,8 @@ object Validate {
   def getVars(e: RecConstraint): SV = getVars(e.rhs) + e.lhs
 
   def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs, recs, rfvs) ⇒ {
+    case Program(vars, ips, shapes, eqs, recs, rfvs, names) ⇒ {
+      // check all defs with decls
       val allUses =
         ips.flatMap(getVars(_)) ++ shapes.flatMap(getVars(_)) ++
         eqs.flatMap(getVars(_)) ++ recs.flatMap(getVars(_)) ++ rfvs
@@ -37,6 +38,13 @@ object Validate {
         println("error: undefined variables " ++ (allUses diff vars).toString)
         throw IllformedProgram
       }
+      // validate names map with internal fields
+      if (vars.exists{ v ⇒ !names.contains(v.name) || (names(v.name) != v)}) {
+        println("error: inconsistent variable names " ++
+          names.filter{case (nme, v) ⇒ vars.exists{vv ⇒ vv == v && nme != vv.name}})
+        throw IllformedProgram
+      }
+
     }
   }}
 

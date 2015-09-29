@@ -12,10 +12,10 @@ VARS(
   InitRL = 125, RL = 125, F = 0, V = 0, T = 0
 );
 SHAPES(
-  Rectangle((BX, BY), BH, BW),    // base
-  Spring((SX, SY), DX, DY),       // spring
-  Rectangle((PX, PY), PH, PW),    // platform
-  Image((IX, IY), IH, IW, 'iron') // image
+  Base = Rectangle((BX, BY), BH, BW),    // base
+  S = Spring((SX, SY), DX, DY),       // spring
+  Plat = Rectangle((PX, PY), PH, PW),    // platform
+  Weight = Image((IX, IY), IH, IW, 'iron') // image
 );
 LINEAR(
   SX = BX,

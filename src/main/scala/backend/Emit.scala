@@ -7,42 +7,6 @@ import org.kiama.output.PrettyPrinter
 import scala.collection.immutable.{Seq ⇒ Seq}
 import scala.collection.mutable.{HashMap ⇒ MMap}
 
-// allocator for javascript global variable names. maps objects which will be
-// stored in variables (Variables, IPoints, and Shapes) to names.
-
-// usage is through apply; apply extends the map if necessary and returns
-// an object's name.
-object Allocator {
-
-  // union type hack
-  sealed class VorIPorShp[T]
-  implicit object VWitness extends VorIPorShp[Variable]
-  implicit object IPWitness extends VorIPorShp[IPoint]
-  implicit object ShpWitness extends VorIPorShp[Shape]
-  trait Inner[T] extends MMap[T, String] {
-    var alloc = -1
-    override def default(key: T) = {
-      alloc += 1
-      val prefix = key match {
-        case Variable(nme) ⇒ nme
-        case v:IPoint ⇒ "IP"
-        case v:Shape ⇒ "S"
-      }
-      this.+=(key → (prefix ++ alloc.toString))
-      prefix ++ alloc.toString
-    }
-  }
-
-  object Variables extends Inner[Variable]
-  object IPoints extends Inner[IPoint]
-  object Shapes extends Inner[Shape]
-  def apply[T: VorIPorShp](v: T): String = v match {
-    case v@Variable(_) ⇒ Variables(v)
-    case v@IPoint(_, _, _) ⇒ IPoints(v)
-    case v: Shape ⇒ Shapes(v)
-  }
-}
-
 trait Emitter extends PrettyPrinter {
   // for some reason, the library doesn't define it...
   def sep(ds: Seq[Doc], sep: Doc) = group(vsep(ds, sep))
@@ -56,8 +20,8 @@ trait Emitter extends PrettyPrinter {
   def fvPreamble: Doc
 
   def printVar(v: Variable, initσ: Store): Doc
-  def printIP(p: IPoint): Doc
-  def printShape(s: Shape): Doc
+  def printIP(p: IPoint, names: Map[String, Value]): Doc
+  def printShape(s: Shape, names: Map[String, Value]): Doc
   def printLinear(e: Eq): Doc
   def printNonlinear(e: RecConstraint): Doc
 
@@ -95,11 +59,11 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es, recs, rfvs) ⇒ {
+    case Program(vs, ps, ss, es, recs, rfvs, names) ⇒ {
       vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
-      , ipPreamble <@> sep(ps.map(printIP(_))(collection.breakOut))
+      , ipPreamble <@> sep(ps.map(printIP(_, names))(collection.breakOut))
       , shpPreamble <@>
-        sep(ss.map(printShape(_))(collection.breakOut))
+        sep(ss.map(printShape(_, names))(collection.breakOut))
       , eqPreamble <@>
         sep(es.map(printLinear(_))(collection.breakOut))
       , recPreamble <@>
@@ -128,7 +92,7 @@ object HighLevel extends Emitter {
 
   def printVar(v: Variable, σ: Store) = v.name <> semi
 
-  def printShape(s: Shape) = {
+  def printShape(s: Shape, names: Map[String, Value]) = {
     val (cname: String, args) = s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
       case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,h,w))
@@ -145,7 +109,7 @@ object HighLevel extends Emitter {
     text(e.lhs + " = " +  e.rhs)
   }
 
-  def printIP(p:IPoint) = p match {
+  def printIP(p:IPoint, names: Map[String, Value]) = p match {
     case IPoint(x, y, links) ⇒ {
       parens( space <>
         nest( text(x.name) <> comma <+> text(y.name) <> comma <+> braces(
@@ -231,7 +195,7 @@ object LowLevel extends Emitter {
     text(v.name) <+> "=" <+>
       emitFCall("makeVariable", Seq(squotes(text(v.name)), text(σ(v).toString)))
   }
-  def printShape(s: Shape) = Allocator(s) <+> "=" <+> {
+  def printShape(s: Shape, names: Map[String, Value]) = names.map(_.swap).apply(s) <+> "=" <+> {
     val (ctor:String, symbArgs) = s match {
       case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
       case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
@@ -294,9 +258,9 @@ object LowLevel extends Emitter {
       empty
     })
   }}
-  def printIP(p:IPoint) = p match {
+  def printIP(p:IPoint, names: Map[String, Value]) = p match {
     case IPoint(x, y, links) ⇒ {
-      val iname = Allocator(p)
+      val iname = names.map(_.swap).apply(p)
       iname <+> "=" <+> printConstructor(
         "InteractionPoint", Seq(x, y).map(v ⇒ text(v.name))
       ) <@> iname <> ".links" <+> "=" <+> brackets(
@@ -346,15 +310,15 @@ object LowLevel extends Emitter {
   }
   // assumes the rest of the program has been emitted (i.e., that Allocator constraints
   // the correct variable names)
-  def emitDrawUpdates(shapes: Set[Shape]): Doc = {
+  def emitDrawUpdates(shapes: Set[Shape], names: Map[Value, String]): Doc = {
     sep(
       shapes.map(s ⇒ s match {
         case LineSegment(Point(x1, y1), Point(x2, y2)) ⇒
-          Allocator(s) <> ".points = " <> brackets(sep(Seq(x1,y1,x2,y2).map{ v ⇒
+          names(s) <> ".points = " <> brackets(sep(Seq(x1,y1,x2,y2).map{ v ⇒
             text(v.name ++ ".value")
           }, comma)) <> semi
         case _ ⇒ sep(fieldsAndVars(s).map{case (f, v) ⇒
-          Allocator(s) <> "." <> f <+> "=" <+> v <> semi
+          names(s) <> "." <> f <+> "=" <+> v <> semi
         }(collection.breakOut))
       }
       )(collection.breakOut)
@@ -382,8 +346,9 @@ object LowLevel extends Emitter {
     // rely on superclass for most of the gruntwork. in addition to variable declarations,
     // foreach shape + ip, we need to emit a call to push(all_objects, s)
     // and foreach ip, we need to emit a call to push(drag_objects, ip)
-    val ipoints = p.ipoints.map(Allocator(_))
-    val objects = Seq("all_objects") ++ p.shapes.map(Allocator(_)) ++ ipoints
+    val nms = p.names.map(_.swap)
+    val ipoints = p.ipoints.map(nms(_))
+    val objects = Seq("all_objects") ++ p.shapes.map(nms(_)) ++ ipoints
     val initBody = super.emitProg(p, σ)
     val initEnd =
       emitFCall("push", objects.map(text(_))) <@>
@@ -392,7 +357,7 @@ object LowLevel extends Emitter {
     vsep(Seq(
       emitInit(p, σ, initBody, initEnd),
       // emit update_constraints
-      emitFunc("update_constraints", emitDrawUpdates(p.shapes)),
+      emitFunc("update_constraints", emitDrawUpdates(p.shapes, nms)),
       // emit recursive_constraints
       emitFunc(recFunName, emitRecConstraints(p.recConstraints), Seq("args") ),
       // emit remaining stubs
