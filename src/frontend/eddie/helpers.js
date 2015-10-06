@@ -29,6 +29,16 @@ function removeFromArr(arr, o) {
   }
 }
 
+// converts a serialized seq into a javascript array
+function responseToArray(o) {
+  var tmp = JSON.parse(o);
+  var ret = [];
+  for (var i in tmp) {
+    ret[i] = tmp[i];
+  }
+  return ret;
+}
+
 // Returns true iff the input point is within the radius defined by a circle-like
 // object (namely, one that defines x, y, and r)
 function withinRadius(x, y, iPoint) {

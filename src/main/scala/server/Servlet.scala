@@ -86,28 +86,18 @@ class Servlet extends Stack {
       ret
     }
 
-    // TODO: make function pure, return seq of variants w.r.t. ipc
     def generateVariants(ipc: IPConfig): Seq[State] = {
-      // likely: given the existing points, try all variants on configurations.
       val currProg = ℵ.prog
-      val σ = ℵ.σ
       val (p, es, γ) = ipc
 
       // TODO: do something smarter than ELA
       Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
-          (Positional.extendLinksAll( ls, currProg.equations ++ es), p)
-        }.flatMap{ case (links, p) ⇒ { // (Set[Set[Var]], point) → Set[program]
-          links.map{ls ⇒
+          Positional.extendLinksAll( ls, currProg.equations ++ es)
+        }.flatMap{ _.map{ls ⇒
             val newPoint = p.copy(links = ls)
-            currProg.copy(
-              ipoints = currProg.ipoints + newPoint,
-              names = State.nameIP(currProg.names, newPoint)
-            )
+            State.merge((newPoint, es, γ), ℵ, false)
           }
-        }
-      }.map{p ⇒ // p → state
-          ℵ.copy(prog = p, σ = σ ++ γ)
-      }.foldLeft(Poset.empty(ranker)) {
+        }.foldLeft(Poset.empty(ranker)) {
         case (acc, prog) ⇒ acc + prog
       }.toSeq
 

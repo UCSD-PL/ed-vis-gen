@@ -11,8 +11,6 @@ function main() {
 
         // the order of points matters, so we can't use mainWindow.drag_points
         for (var i in points) {
-          console.log(points[i]);
-          console.log(mainWindow[points[i]]);
           current_points[i] = mainWindow[points[i]];
         }
         mainWindow.drag_points = [];
@@ -30,7 +28,6 @@ function main() {
           var y = e.layerY;
           for (var i = 0; i < current_points.length; i++) {
             if (withinRadius(x, y, current_points[i])) {
-              console.log("clicked");
               var currPoint = current_points[i]
               if (currPoint.selected) {
                 currPoint.fill = "red";
@@ -107,14 +104,11 @@ function clearFrames(){
 function learnMotive(i) {
   clearFrames();
   sendGet("variants/" + i.toString() + "/300/300", function(variants) {
-    var newFrames = JSON.parse(variants)
-    console.log(newFrames.length);
-    // for (var i = 0; i < variants.length; ++i) {
-    //   // initFrame(i, 32.3, "variants");
-    //   // populateFrame(i, div);
-    //   // TODO
-    //   console.log(variants[i]);
-    // }
+    var newFrames = responseToArray(variants);
+    console.log(newFrames[0]);
+    for (var i = 0; i < newFrames.length; ++i) {
+      initFrame(i, 32.3, "variants", newFrames[i]);
+    }
   });
 }
 
@@ -158,12 +152,13 @@ function loadFromSource(name, h, w, Κ, reset) {
 
 
 function acceptVariant(ident) {
-  disableInterface();
-  sendGet("accept-variant/" + ident, function (h) {
-    setMain(h);
-    regenVariants();
-    enableInterface();
-  });
+  alert(ident);
+  // disableInterface();
+  // sendGet("accept-variant/" + ident, function (h) {
+  //   setMain(h);
+  //   regenVariants();
+  //   enableInterface();
+  // });
 }
 
 function disableInterface() {
@@ -175,23 +170,22 @@ function enableInterface() {
 
 
 // given an ident and width, make a new frame and add it to the end of some element
-function initFrame(ident, widthP, divID) {
+function initFrame(index, widthP, divID, html) {
   var newContainer = document.createElement('div');
-  newContainer.id = divID + '_' + ident.toString();
+  newContainer.id = divID + '_' + index.toString();
   var newFrame = document.createElement('iframe');
   var aButton = document.createElement('button');
   aButton.id = newContainer.id + '_accept';
   newContainer.style.width = widthP.toString() + "%";
+  newContainer.classList.add("smallFrame");
   newContainer.style.float = 'left';
-  newContainer.style.height = "100%";
-  newContainer.style.borderStyle = 'solid';
 
-  aButton.onclick = function() {acceptVariant(ident);};
+  aButton.onclick = function() {acceptVariant(index);};
 
   aButton.style = {float: 'right', background_color: '#00FF33'};
   aButton.textContent = "Accept";
 
-  newFrame.srcdoc = "";
+  newFrame.srcdoc = html;
   newFrame.style.height = "100%";
   newFrame.style.width = "100%";
   newFrame.style.borderStyle = "none";
@@ -200,7 +194,7 @@ function initFrame(ident, widthP, divID) {
   newContainer.appendChild(aButton);
   newContainer.appendChild(newFrame);
   parent.appendChild(newContainer);
-  program_frames[ident] = newFrame;
+  program_frames[index] = newFrame;
 }
 
 
