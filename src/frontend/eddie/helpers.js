@@ -19,6 +19,16 @@ function push(arr) {
   }
 }
 
+
+// pulled from http://stackoverflow.com/questions/5767325/remove-a-specific-element-from-an-array-in-javascript
+// removes o from arr in place, assumes o is an object and arr is an array
+function removeFromArr(arr, o) {
+  var i = arr.indexOf(o);
+  if (i > -1) {
+    arr.splice(i, 1);
+  }
+}
+
 // Returns true iff the input point is within the radius defined by a circle-like
 // object (namely, one that defines x, y, and r)
 function withinRadius(x, y, iPoint) {

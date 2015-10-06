@@ -1,0 +1,31 @@
+TODO:
+
+  * when a point is added, extend the configs to include its dimensions
+  * debug duplicate programs... wtf???
+  * filter out weird configs...
+  * look at clash
+
+
+
+  * finish point generation
+    ** add inequalities to enforce orientation
+    ** add triangles
+  * finish AST
+    ** add plots
+    ** add inequalities to expressions
+
+  * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
+  * find more benchmarks
+    ** http://www.malinc.se/math/
+    ** JSXGraph
+    ** my solar system
+
+ranking:
+  * interactions tend to be at connection points
+  * domain specific knowledge:
+    ** boxes tend to be translated
+    ** springs only stretch in y dimension
+    ** dimensions don't mix in same point
+  * penalty for shape w/o interactive components
+  * filter out "functionally identical" diagrams...
+    ** positional equivalence: all points are in same place + have same links

@@ -25,6 +25,13 @@ trait Stack extends ScalatraServlet with ScalateSupport with JacksonJsonSupport 
 
   protected implicit val jsonFormats : Formats = DefaultFormats
 
+  error {
+    case e: Throwable ⇒ {
+      println(e.toString())
+      InternalServerError(Unit, Map.empty, e.toString())
+    }
+  }
+
 
   notFound {
     // remove content type in case it was set through an action

@@ -15,6 +15,7 @@ import EDDIE.backend.semantics._
 import EDDIE.backend.Types._
 import EDDIE.backend.synthesis._
 import EDDIE.backend.ranking._
+import EDDIE.backend.errors._
 
 class Servlet extends Stack {
   object Mutables {
@@ -58,32 +59,57 @@ class Servlet extends Stack {
       }
     }
 
-    def generatePoints: Seq[Map[String, String]] = {
-      def flatten(p: IPoint): Map[String, String] = {
-        Map("x" → p.x.name, "y" → p.y.name)
+    def generatePoints: Seq[String] = {
+      val points = allPoints.toSeq
+
+      ζ = points.foldLeft(ζ){case (ξ, ipc) ⇒ State.merge(ipc, ξ, false)}
+      currPoints = points.zipWithIndex.map(_.swap)(collection.breakOut)
+      val ret = points.map{ case (p, _, _) ⇒
+        ζ.prog.names.filter(Program.takePoints).find{
+          case (name, IPoint(x, y, _)) ⇒ (x == p.x && y == p.y) // find identical point
+        } match { // extract name
+          case Some((nme, _)) ⇒ nme
+          case _ ⇒ println("error: couldn't find name for " + p.toString()); throw IllformedProgram
+        }
       }
-      currPoints = allPoints.zipWithIndex.map(_.swap)(collection.breakOut)
-      currPoints.map{case (_, ipc) ⇒ flatten(ipc._1)}.toSeq
+
+      ret.foreach{ name ⇒
+        ζ.prog.names(name) match {
+          case IPoint(x, y, _) ⇒
+            if (!ζ.prog.ipoints.exists{ p ⇒ p.x == x && p.y == y}) {
+              println("error: point named " + name + " not in program")
+              throw InconsistentServerState
+            }
+          case _ ⇒ Unit
+        }
+      }
+      ret
     }
 
-    def generateVariants(ipc: IPConfig) {
+    // TODO: make function pure, return seq of variants w.r.t. ipc
+    def generateVariants(ipc: IPConfig): Seq[State] = {
       // likely: given the existing points, try all variants on configurations.
       val currProg = ℵ.prog
       val σ = ℵ.σ
-      val (p, es, γ) = ipc match {case (a, b, c) ⇒ (a, b, c)}
+      val (p, es, γ) = ipc
 
       // TODO: do something smarter than ELA
-      variants = Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
+      Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
           (Positional.extendLinksAll( ls, currProg.equations ++ es), p)
         }.flatMap{ case (links, p) ⇒ { // (Set[Set[Var]], point) → Set[program]
-          val newPoints = currProg.ipoints - p
-          links.map(ls ⇒ currProg.copy(ipoints = newPoints + (p.copy(links = ls))))
+          links.map{ls ⇒
+            val newPoint = p.copy(links = ls)
+            currProg.copy(
+              ipoints = currProg.ipoints + newPoint,
+              names = State.nameIP(currProg.names, newPoint)
+            )
+          }
         }
       }.map{p ⇒ // p → state
           ℵ.copy(prog = p, σ = σ ++ γ)
       }.foldLeft(Poset.empty(ranker)) {
         case (acc, prog) ⇒ acc + prog
-      }
+      }.toSeq
 
     }
 
@@ -94,10 +120,28 @@ class Servlet extends Stack {
     }
     // ...or with supplied parameters
     def serveProgram(params: Map[String, String], s: State = ζ) = {
-      jade("/empty.jade", "scrpt" → Run.compileState(s),
+      val retP = try {
+        Run.compileState(s)
+      } catch {
+        case e: Throwable ⇒ println("exception in compiling"); println(e); throw e
+      }
+      jade("/empty.jade", "scrpt" → retP,
         "height" → params("h"), "width" → params("w")
       )
     }
+
+    def removeDuplicates(points: Set[IPConfig]) : Set[IPConfig] = points.foldLeft(
+      (Store.empty, Set[IPConfig]())
+    ){
+      case ((σ, acc), (p, es, γ)) ⇒
+        if (acc.exists{ case (ip, _, _) ⇒
+          σ(ip.x) == γ(p.x) && σ(ip.y) == γ(p.y)}
+        ) {
+          (σ, acc)
+        } else {
+          (σ ++ γ, acc + ((p, es, γ)))
+        }
+    }._2
 
     // load a new file
     def loadFile(src: String) {
@@ -107,7 +151,7 @@ class Servlet extends Stack {
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
       }
-      allPoints = ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)}
+      allPoints = removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
     }
 
     def reset = {
@@ -121,8 +165,10 @@ class Servlet extends Stack {
   import Mutables._
 
   // get the current program
-  get("/") {
-    serveProgram
+  get("/main/:h/:w") {
+    contentType = "text/html"
+    println(ζ.prog.names("IP1"))
+    serveProgram(params, ζ)
   }
 
   // resets the server state
@@ -141,13 +187,24 @@ class Servlet extends Stack {
     generatePoints
   }
 
-  // get the next different variants
-  // TODO
-  get("/variants/:h/:w") {
+  post("/accept-points") {
+    val incIndices = parsedBody.extract[Set[Int]]
 
+    currPoints = currPoints.filterKeys(incIndices.contains(_))
+    Actions.reset
+    ()
+  }
 
-    //currVariants = currVariants + (params("n").toInt → nextVar)
-    serveProgram(params)
+  // for a particular index into currPoints, return a list of all variants wrt
+  // the ith IPoint
+  get("/variants/:i/:h/:w") {
+
+    val ipc = currPoints.get(params("i").toInt) match {
+      case Some(ip) ⇒ ip
+      case _ ⇒ println("couldn't get ipoint for index " + params("i")); throw InconsistentServerState
+    }
+
+    generateVariants(ipc).map{state ⇒ serveProgram(params, state)}
   }
 
   // given an index, make the specified variant the main program and regenerate

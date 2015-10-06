@@ -2,17 +2,58 @@ function main() {
 
   current_points = [];
   program_frames = {};
+  mainWindow = {};
   loadMain( function() {
     getPoints( function (payload) {
-      console.log(payload);
+      var points = JSON.parse(payload);
+      loadMain( function () {
+        mainWindow = document.getElementById("mainFrame").contentWindow
+
+        // the order of points matters, so we can't use mainWindow.drag_points
+        for (var i in points) {
+          console.log(points[i]);
+          console.log(mainWindow[points[i]]);
+          current_points[i] = mainWindow[points[i]];
+        }
+        mainWindow.drag_points = [];
+      for (var i in current_points) {
+        var newPoint = current_points[i];
+        newPoint.fill = "red";
+        newPoint.selected = false;
+      }
+
+      mainWindow.global_redraw();
+
+      mainWindow.addEventListener("mousedown", function (e) {
+        if (e.button == 0) {
+          var x = e.layerX;
+          var y = e.layerY;
+          for (var i = 0; i < current_points.length; i++) {
+            if (withinRadius(x, y, current_points[i])) {
+              console.log("clicked");
+              var currPoint = current_points[i]
+              if (currPoint.selected) {
+                currPoint.fill = "red";
+              } else {
+                currPoint.fill = "green";
+              }
+              currPoint.selected = !currPoint.selected;
+              mainWindow.global_redraw();
+            }
+          }
+        }
+      }, true);
+
+
+      });
     });
-  });
+  }, true);
 
 }
 
 function nop () {}
-function setMain(html) {
-  updateFrame(html, "mainFrame");
+function setMain(html, Κ) {
+  updateFrame(html, "mainFrame", Κ);
 }
 
 function getDiv(i) {
@@ -26,15 +67,58 @@ function regenVariants() {
   }
 }
 
-function initFrames() {
+function acceptPoints() {
+  var acceptedPoints = [];
 
-  // TODO: ask for list of frames, populate each of them
-  // merge with populate frame
+  for (var i = 0; i < current_points.length; ++i) {
+    if (current_points[i].selected) {
+      acceptedPoints.push(i);
+    } else {
+      mainWindow.removePoint(current_points[i]);
+    }
+  }
 
-    initFrame(i, 32.3, "variants");
-    populateFrame(i, div);
+  mainWindow.global_redraw();
 
+  sendPost(acceptedPoints, "accept-points", learnMotives);
 }
+
+function learnMotives() {
+  for (var i = 0; i < current_points.length; ++i) {
+    if (current_points[i].selected) {
+      var thePoint = current_points[i];
+      thePoint.fill = 'yellow';
+      thePoint.cr = 8;
+      mainWindow.global_redraw();
+      learnMotive(i);
+      thePoint.fill = 'green';
+      thePoint.cr = 2;
+    }
+  }
+}
+
+function clearFrames(){
+  var frames = document.getElementById('variants');
+
+  while (frames.firstChild) {
+    frames.removeChild(frames.firstChild);
+  }
+}
+function learnMotive(i) {
+  clearFrames();
+  sendGet("variants/" + i.toString() + "/300/300", function(variants) {
+    var newFrames = JSON.parse(variants)
+    console.log(newFrames.length);
+    // for (var i = 0; i < variants.length; ++i) {
+    //   // initFrame(i, 32.3, "variants");
+    //   // populateFrame(i, div);
+    //   // TODO
+    //   console.log(variants[i]);
+    // }
+  });
+}
+
+
 
 function populateFrame(ident, type) {
   getVariants(type, ident, 300, 300, function(html) {
@@ -42,14 +126,13 @@ function populateFrame(ident, type) {
   });
 }
 // load into the main display
-function loadMain(Κ) {
+function loadMain(Κ, reset) {
   var h = "300";
   var w = "300";
   var html = document.getElementById("filename").value
   loadFromSource(html, h, w, function (h) {
-    setMain(h);
-    Κ();
-  });
+    setMain(h, Κ);
+  }, reset);
 }
 
 function reset(Κ) {
@@ -57,24 +140,29 @@ function reset(Κ) {
 }
 
 // set a frame's source to an html string
-function updateFrame(html, fid) {
-  document.getElementById(fid).srcdoc = html;
+function updateFrame(html, fid, Κ) {
+  var frame = document.getElementById(fid)
+  frame.srcdoc = html;
+  frame.onload = Κ;
+
 }
 
 // given a file name, asks the server to load the file
-function loadFromSource(name, h, w, Κ) {
-  sendGet("loadfile/" + name + "/" + h + "/" + w, Κ);
+function loadFromSource(name, h, w, Κ, reset) {
+  if (reset) {
+    sendGet("loadfile/" + name + "/" + h + "/" + w, Κ);
+  } else {
+    sendGet("main/" + h + "/" + w, Κ)
+  }
 }
 
 
 function acceptVariant(ident) {
-  //console.log("accepting " + ident);
   disableInterface();
   sendGet("accept-variant/" + ident, function (h) {
     setMain(h);
     regenVariants();
     enableInterface();
-    //console.log("accepted");
   });
 }
 
@@ -117,8 +205,8 @@ function initFrame(ident, widthP, divID) {
 
 
 
-function getVariants(h, w, Κ) {
-  var prefix = ["variants", h.toString(), w.toString()];
+function getVariants(i, h, w, Κ) {
+  var prefix = ["variants", i.toString(), h.toString(), w.toString()];
   sendGet(prefix.join("/"), Κ);
 }
 

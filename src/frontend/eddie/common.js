@@ -60,6 +60,11 @@ function resetState() {
   timers = [];
 }
 
+function removePoint(point) {
+  removeFromArr(all_objects, point);
+  removeFromArr(drag_points, point);
+}
+
 function doMouseDown(e) {
   switch (e.button) {
     case 0: // left click

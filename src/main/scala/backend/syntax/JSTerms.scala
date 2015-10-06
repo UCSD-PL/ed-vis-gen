@@ -153,4 +153,8 @@ case class Program(
 
 object Program {
   def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Map())
+  def takePoints(kv: (String, Value)) = kv._2 match {
+    case _:IPoint ⇒ true
+    case _ ⇒ false
+  }
 }

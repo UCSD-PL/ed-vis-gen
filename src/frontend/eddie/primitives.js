@@ -232,7 +232,7 @@ function InteractionPoint (x,y) {
     x: x,
     y: y,
     cr: 2,
-    r: 10,
+    r: 2,
     fill: "green",
     links: [], // transitive cassowary data dependencies,
                // need to be keys in constrained_vars.
@@ -241,7 +241,7 @@ function InteractionPoint (x,y) {
 		},
     draw: function(ctx) {
       with (this) {
-        Circle(x.value, y.value, cr, fill).draw(ctx);
+        Circle(x.value, y.value, cr, fill, fill).draw(ctx);
       }
     }
   }

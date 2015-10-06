@@ -19,3 +19,7 @@ object IllformedProgram extends RuntimeException {
 object Inconceivable extends RuntimeException {
   override def getMessage = "dead code"
 }
+
+object InconsistentServerState extends RuntimeException {
+  override def getMessage = "server state is inconsistent"
+}

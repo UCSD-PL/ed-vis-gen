@@ -32,7 +32,26 @@ case class State(prog: Program, σ: Store)
 
 object State {
   def empty = State(Program.empty, Store.empty)
-  def merge(ipc: IPConfig, ζ: State): State = ipc match {
+
+  // given a name map and IP, generate a name for the IP and extend the map
+  def nameIP(names: Map[String, Value], p: IPoint) = {
+    if (names.exists{ _ match {
+      case (nme, v: IPoint) ⇒ v.x == p.x && v.y == p.y
+      case _ ⇒ false
+    }}) {
+      println("warning: added duplicate point " + p.toString())
+      names
+    } else {
+      var prefix = "IP"
+      var suffix = 0
+      while (names.contains(prefix + suffix.toString)) {
+        suffix += 1
+      }
+      names + ((prefix + suffix.toString) → p)
+    }
+  }
+
+  def merge(ipc: IPConfig, ζ: State, mergeLinks: Boolean = true): State = ipc match {
     case (ip, eqs, σ) ⇒
       val newLinks = ζ.prog.ipoints.foldLeft(ip.links) { case (acc, oip) ⇒
         if ((oip.links & acc).isEmpty) {
@@ -41,11 +60,18 @@ object State {
           acc + oip.x + oip.y
         }
       }
-      ζ.copy( prog = ζ.prog.copy(
-        vars = ζ.prog.vars ++ Set(ip.x, ip.y),
-        ipoints = ζ.prog.ipoints + ip.copy(links = newLinks),
-        equations = ζ.prog.equations ++ eqs,
-        freeRecVars = ζ.prog.freeRecVars + ip.x + ip.y // TODO: be more precise
+      val newIP =
+        if (mergeLinks)
+          ip.copy(links = newLinks)
+        else
+          ip
+      val oldProg = ζ.prog
+      ζ.copy( prog = oldProg.copy(
+        vars = oldProg.vars ++ Set(ip.x, ip.y),
+        ipoints = oldProg.ipoints + newIP,
+        equations = oldProg.equations ++ eqs,
+        freeRecVars = oldProg.freeRecVars + ip.x + ip.y, // TODO: be more precise
+        names = nameIP(oldProg.names, newIP)
         ),
         σ = ζ.σ ++ σ)
   }

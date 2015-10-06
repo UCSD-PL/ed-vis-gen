@@ -242,16 +242,6 @@ trait SynthesisPass {
         }
       }
     }
-
-  // given a name map and IP, generate a name for the IP and extend the map
-  def nameIP(names: Map[String, Value], p: IPoint) = {
-    var prefix = "IP"
-    var suffix = 0
-    while (names.contains(prefix + suffix.toString)) {
-      suffix += 1
-    }
-    names + ((prefix + suffix.toString) → p)
-  }
 }
 
 
@@ -289,7 +279,7 @@ object Positional extends SynthesisPass {
         vars = vars ++ Set(ip.x, ip.y),
         ipoints = ips + ip,
         equations = eqs ++ es,
-        names = nameIP(names, ip)
+        names = State.nameIP(names, ip)
       ), δ)
     }
   }

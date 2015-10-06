@@ -28,8 +28,11 @@
   <div id="loading"> </div>
   <div style="text-align:center">
     <div>
-      <button onClick="loadMain();">Load file</button>
+      <button onclick="loadMain();">Load file</button>
       <input type="text" name="filename" id="filename" value="sspring.txt">
+    </div>
+    <div>
+      <button onclick="acceptPoints();">Accept points </button>
     </div>
     <iframe id="mainFrame" class="smallFrame" srcdoc="<html></html>"
     >
@@ -38,7 +41,7 @@
 
   <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
 
-  <div id="variants" class="smallFrame">
+  <div id="variants" class="smallFrame" style="visibility:hidden;">
   </div>
 
 </body>
