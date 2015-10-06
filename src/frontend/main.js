@@ -1,6 +1,7 @@
 function main() {
 
   current_points = [];
+  accepted_points = {};
   program_frames = {};
   mainWindow = {};
   loadMain( function() {
@@ -69,6 +70,7 @@ function acceptPoints() {
 
   for (var i = 0; i < current_points.length; ++i) {
     if (current_points[i].selected) {
+      accepted_points[i] = current_points[i];
       acceptedPoints.push(i);
     } else {
       mainWindow.removePoint(current_points[i]);
@@ -77,22 +79,28 @@ function acceptPoints() {
 
   mainWindow.global_redraw();
 
-  sendPost(acceptedPoints, "accept-points", learnMotives);
+  sendPost(acceptedPoints, "accept-points", learnNextMotive);
 }
 
-function learnMotives() {
-  for (var i = 0; i < current_points.length; ++i) {
-    if (current_points[i].selected) {
-      var thePoint = current_points[i];
-      thePoint.fill = 'yellow';
-      thePoint.cr = 8;
-      mainWindow.global_redraw();
-      learnMotive(i);
-      thePoint.fill = 'green';
-      thePoint.cr = 2;
-    }
+function learnNextMotive() {
+  var nextI = Object.keys(accepted_points).shift();
+  if (nextI === undefined) {
+    loadMain(clearFrames, false);
+  } else {
+    console.log(nextI)
+    var nextPoint = accepted_points[nextI];
+    console.log(nextPoint);
+    nextPoint.fill = 'yellow';
+    nextPoint.cr = 8;
+    mainWindow.global_redraw();
+    learnMotive(nextI, function () {
+      nextPoint.fill = 'green';
+      nextPoint.cr = 2;
+      delete accepted_points[nextI];
+    });
   }
 }
+
 
 function clearFrames(){
   var frames = document.getElementById('variants');
@@ -101,13 +109,12 @@ function clearFrames(){
     frames.removeChild(frames.firstChild);
   }
 }
-function learnMotive(i) {
+function learnMotive(i, Κ) {
   clearFrames();
   sendGet("variants/" + i.toString() + "/300/300", function(variants) {
     var newFrames = responseToArray(variants);
-    console.log(newFrames[0]);
     for (var i = 0; i < newFrames.length; ++i) {
-      initFrame(i, 32.3, "variants", newFrames[i]);
+      initFrame(i, 32.3, "variants", newFrames[i], Κ);
     }
   });
 }
@@ -151,14 +158,12 @@ function loadFromSource(name, h, w, Κ, reset) {
 }
 
 
-function acceptVariant(ident) {
-  alert(ident);
+function acceptVariant(ident, Κ) {
   // disableInterface();
-  // sendGet("accept-variant/" + ident, function (h) {
-  //   setMain(h);
-  //   regenVariants();
-  //   enableInterface();
-  // });
+  sendGet("accept-variant/" + ident, function () {
+    Κ();
+    learnNextMotive();
+  });
 }
 
 function disableInterface() {
@@ -170,7 +175,7 @@ function enableInterface() {
 
 
 // given an ident and width, make a new frame and add it to the end of some element
-function initFrame(index, widthP, divID, html) {
+function initFrame(index, widthP, divID, html, Κ) {
   var newContainer = document.createElement('div');
   newContainer.id = divID + '_' + index.toString();
   var newFrame = document.createElement('iframe');
@@ -180,7 +185,7 @@ function initFrame(index, widthP, divID, html) {
   newContainer.classList.add("smallFrame");
   newContainer.style.float = 'left';
 
-  aButton.onclick = function() {acceptVariant(index);};
+  aButton.onclick = function() {acceptVariant(index, Κ);};
 
   aButton.style = {float: 'right', background_color: '#00FF33'};
   aButton.textContent = "Accept";

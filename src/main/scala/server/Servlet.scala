@@ -35,7 +35,7 @@ class Servlet extends Stack {
     var variants: Poset = Poset.empty(ranker)
 
     // variants present in the client
-    var currVariants: Map[Int, State] = Map()
+    var currVariants: Map[Int, IPConfig] = Map()
     // points given to the client
     var currPoints: Map[Int, IPConfig] = Map()
 
@@ -91,16 +91,27 @@ class Servlet extends Stack {
       val (p, es, γ) = ipc
 
       // TODO: do something smarter than ELA
-      Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
+      val results = Set(Set(p.x), Set(p.y), Set(p.x, p.y)).map{ ls ⇒ // Set[Set[Var]] → (Set[Set[Var]], point)
           Positional.extendLinksAll( ls, currProg.equations ++ es)
         }.flatMap{ _.map{ls ⇒
-            val newPoint = p.copy(links = ls)
-            State.merge((newPoint, es, γ), ℵ, false)
+            val newConfig = (p.copy(links = ls), es, γ)
+            (State.merge(newConfig, ℵ, false), newConfig)
           }
-        }.foldLeft(Poset.empty(ranker)) {
-        case (acc, prog) ⇒ acc + prog
-      }.toSeq
+        }.foldLeft((Poset.empty(ranker), Map[State, IPConfig]())) {
+        case ((states, configs), (prog, config)) ⇒ (states + prog, configs + (prog → config))
+      }
 
+      val ret = results._1.toSeq
+
+      currVariants = ret.zipWithIndex.map{case (state, i) ⇒ (i → results._2(state))}.toMap
+
+      ret
+
+    }
+
+    def acceptVariant(i: Int) {
+      ζ = State.merge(currVariants(i), ζ)
+      currVariants = Map()
     }
 
 
@@ -197,16 +208,11 @@ class Servlet extends Stack {
     generateVariants(ipc).map{state ⇒ serveProgram(params, state)}
   }
 
-  // given an index, make the specified variant the main program and regenerate
-  // variants
-  // TODO
+  // given an index, adds currVariants[i] into the main program and clears currVariants
 
-  // get("/accept-variant/:n") {
-  //   if (currVariants(params("n").toInt) != ζ) {
-  //     ζ = currVariants(params("n").toInt)
-  //     generateVariants
-  //   }
-  //   serveProgram
-  // }
+  get("/accept-variant/:i") {
+    acceptVariant(params("i").toInt)
+    ()
+  }
 
 }
