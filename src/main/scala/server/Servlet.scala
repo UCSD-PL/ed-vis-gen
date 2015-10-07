@@ -31,7 +31,7 @@ class Servlet extends Stack {
 
     // current variants:
     // same points, different link configurations
-    val ranker = LinkLength
+    val ranker = Default
     var variants: Poset = Poset.empty(ranker)
 
     // variants present in the client
@@ -62,7 +62,7 @@ class Servlet extends Stack {
     def generatePoints: Seq[String] = {
       val points = allPoints.toSeq
 
-      ζ = points.foldLeft(ζ){case (ξ, ipc) ⇒ State.merge(ipc, ξ, false)}
+      ζ = points.foldLeft(ζ){case (ξ, ipc) ⇒ State.merge(ipc, ξ)}
       currPoints = points.zipWithIndex.map(_.swap)(collection.breakOut)
       val ret = points.map{ case (p, _, _) ⇒
         ζ.prog.names.filter(Program.takePoints).find{
@@ -95,7 +95,7 @@ class Servlet extends Stack {
           Positional.extendLinksAll( ls, currProg.equations ++ es)
         }.flatMap{ _.map{ls ⇒
             val newConfig = (p.copy(links = ls), es, γ)
-            (State.merge(newConfig, ℵ, false), newConfig)
+            (State.merge(newConfig, ℵ), newConfig)
           }
         }.foldLeft((Poset.empty(ranker), Map[State, IPConfig]())) {
         case ((states, configs), (prog, config)) ⇒ (states + prog, configs + (prog → config))
@@ -168,7 +168,6 @@ class Servlet extends Stack {
   // get the current program
   get("/main/:h/:w") {
     contentType = "text/html"
-    println(ζ.prog.names("IP1"))
     serveProgram(params, ζ)
   }
 

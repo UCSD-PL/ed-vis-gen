@@ -3,6 +3,7 @@ package EDDIE.backend.semantics
 import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.Types._
 import scala.collection.immutable.{Map ⇒ Map}
+import scala.annotation.tailrec
 
 // default value of 0
 case class Store(vars: Map[Variable, Double]) extends Iterable[(Variable, Double)] {
@@ -35,31 +36,46 @@ object State {
 
   // given a name map and IP, generate a name for the IP and extend the map
   def nameIP(names: Map[String, Value], p: IPoint) = {
-    if (names.exists{ _ match {
+    names.find{ _ match {
       case (nme, v: IPoint) ⇒ v.x == p.x && v.y == p.y
       case _ ⇒ false
-    }}) {
-      println("warning: added duplicate point " + p.toString())
-      names
-    } else {
-      var prefix = "IP"
-      var suffix = 0
-      while (names.contains(prefix + suffix.toString)) {
-        suffix += 1
+    }} match {
+      case Some(oldp) ⇒
+        println("warning: added duplicate point " + p.toString())
+        println("old point: " + oldp.toString())
+        names
+      case _ ⇒
+        var prefix = "IP"
+        var suffix = 0
+        while (names.contains(prefix + suffix.toString)) {
+          suffix += 1
+        }
+        names.map{ kv ⇒ kv match {
+          case (nme, IPoint(x, y, lnks)) ⇒ (nme, IPoint(x, y, lnks + p.x + p.y))
+          case _ ⇒ kv
+        }} + ((prefix + suffix.toString) → p)
       }
-      names + ((prefix + suffix.toString) → p)
-    }
+
+  }
+
+  // @tailrec
+  def growLinks(links: Set[Variable], points: Set[IPoint]): Set[Variable] = {
+    // val newLinks = points.filter{
+    //   ip ⇒ !(ip.links & links).isEmpty
+    // }.flatMap{ip ⇒
+    //   Set(ip.x, ip.y)
+    // }
+    // val ret = links ++ newLinks
+    // if (links == ret)
+    //   ret
+    // else
+    //   growLinks(ret, points)
+    links ++ points.flatMap{ip ⇒ Set(ip.x, ip.y)}
   }
 
   def merge(ipc: IPConfig, ζ: State, mergeLinks: Boolean = true): State = ipc match {
     case (ip, eqs, σ) ⇒
-      val newLinks = ζ.prog.ipoints.foldLeft(ip.links) { case (acc, oip) ⇒
-        if ((oip.links & acc).isEmpty) {
-          acc
-        } else {
-          acc + oip.x + oip.y
-        }
-      }
+      val newLinks = growLinks(ip.links, ζ.prog.ipoints)
       val newIP =
         if (mergeLinks)
           ip.copy(links = newLinks)
@@ -67,10 +83,11 @@ object State {
           ip
       val oldProg = ζ.prog
       ζ.copy( prog = oldProg.copy(
-        vars = oldProg.vars ++ Set(ip.x, ip.y),
-        ipoints = oldProg.ipoints + newIP,
+        vars = oldProg.vars ++ Set(newIP.x, newIP.y),
+        // TODO: be more precise
+        ipoints = oldProg.ipoints.map(point ⇒ point.copy(links = point.links + newIP.x + newIP.y)) + newIP,
         equations = oldProg.equations ++ eqs,
-        freeRecVars = oldProg.freeRecVars + ip.x + ip.y, // TODO: be more precise
+        freeRecVars = oldProg.freeRecVars + newIP.x + newIP.y, // TODO: be more precise
         names = nameIP(oldProg.names, newIP)
         ),
         σ = ζ.σ ++ σ)

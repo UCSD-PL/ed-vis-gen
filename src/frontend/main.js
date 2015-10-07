@@ -1,9 +1,16 @@
-function main() {
-
+function init_state() {
   current_points = [];
   accepted_points = {};
   program_frames = {};
   mainWindow = {};
+  clearFrames();
+}
+
+function main() {
+
+  init_state();
+
+
   loadMain( function() {
     getPoints( function (payload) {
       var points = JSON.parse(payload);
@@ -87,9 +94,7 @@ function learnNextMotive() {
   if (nextI === undefined) {
     loadMain(clearFrames, false);
   } else {
-    console.log(nextI)
     var nextPoint = accepted_points[nextI];
-    console.log(nextPoint);
     nextPoint.fill = 'yellow';
     nextPoint.cr = 8;
     mainWindow.global_redraw();
