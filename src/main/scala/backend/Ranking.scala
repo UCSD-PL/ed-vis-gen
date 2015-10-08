@@ -124,7 +124,7 @@ object ShapeHeuristics extends Ranker {
 object Default extends Ranker {
   val inner = WeightedSum(Set(
     (1 → LinkLength),
-    (2 → ShapeHeuristics)
+    (3 → ShapeHeuristics)
   ))
 
   def eval(c: Configuration) = inner eval(c)
