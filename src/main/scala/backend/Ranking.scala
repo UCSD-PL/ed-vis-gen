@@ -6,7 +6,7 @@ import EDDIE.backend.errors._
 import EDDIE.backend.synthesis._
 import EDDIE.backend.Types._
 import EDDIE.backend.Helpers._
-import scala.collection.Set
+import scala.collection.immutable.{Set ⇒ Set}
 
 // ranking functions for synthesis outputs
 // implements an ordering over configurations
@@ -61,9 +61,62 @@ object ShapeHeuristics extends Ranker {
     translationPenalty + stretchPenalty + uncoordinatedPenalty
   }
 
+  def usesShape(ip: IPoint, s: Shape, e: Eq) =
+    e.contains(Set(ip.x, ip.y)) && e.contains(s.toVars)
+
+  // helper function to select corner points, centered points
+  def cornerPoint(c: Configuration, ip: IPoint) = {
+    c.prog.shapes.exists{ shape ⇒ c.prog.equations.exists{e ⇒ usesShape(ip, shape, e)} && // variable uses shape
+    (shape match {
+      case VecLike(Point(x, y), dx, dy) ⇒
+        (c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)) ||
+        (c.σ(x) + 2*c.σ(dx) == c.σ(ip.x) && c.σ(y) + 2*c.σ(dy) == c.σ(ip.y))
+      case BoxLike(Point(x, y), _, _) ⇒
+        c.σ(x) != c.σ(ip.x) || c.σ(y) != c.σ(ip.y)
+      // TODO: add line segments, triangles
+      case Circle(Point(x, y), _) ⇒
+        c.σ(x) != c.σ(ip.x) || c.σ(y) != c.σ(ip.y)
+      case _ ⇒ false
+    })
+  }}
+
+  def centerPoint(c: Configuration, ip: IPoint) = {
+    c.prog.shapes.exists{ shape ⇒ c.prog.equations.exists{e ⇒ usesShape(ip, shape, e)} && // variable uses shape
+    (shape match {
+        case VecLike(Point(x, y), dx, dy) ⇒
+          (c.σ(x) + 0.5*c.σ(dx) == c.σ(ip.x) && c.σ(y) + 0.5*c.σ(dy) == c.σ(ip.y))
+        case BoxLike(Point(x, y), _, _) ⇒
+          c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)
+        case Circle(Point(x, y), _) ⇒
+          c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)
+        // TODO: add line segments, triangles
+        case _ ⇒ false
+    })
+  }}
+
+  def placementPenalty(c: Configuration, ip: IPoint) = {
+    (if (centerPoint(c, ip)) { // if the point is in the center of a shape and manages to stretch it, penalize the point
+      c.prog.shapes.find{ shape ⇒
+        c.prog.equations.exists{e ⇒ usesShape(ip, shape, e)} && !(ip.links & (shape match {
+          case VecLike(_, dx, dy) ⇒ Set(dx, dy)
+          case BoxLike(_, dy, dx) ⇒ Set(dx, dy)
+          case Circle(_, r) ⇒ Set(r)
+        })).isEmpty
+      }.size
+    } else if (cornerPoint(c, ip)) { // ditto, but for corners and translations
+      c.prog.shapes.find{ shape ⇒
+        c.prog.equations.exists{e ⇒ usesShape(ip, shape, e)} && !(ip.links & (shape match {
+          case VecLike(Point(x,y), _, _) ⇒ Set(x, y)
+          case BoxLike(Point(x,y), _, _) ⇒ Set(x, y)
+          case Circle(Point(x,y), _) ⇒ Set(x, y)
+        })).isEmpty
+      }.size
+    } else 0) * 2
+  }
+
   def eval(c: Configuration) = c.prog.shapes.foldLeft(0){ case (sum, shp) ⇒
     sum + c.prog.ipoints.foldLeft(0) { case (sum, ip) ⇒
-      sum + motivePenalty(ip.links, shp)
+      sum + motivePenalty(ip.links, shp) + placementPenalty(c, ip)
     }
   }
 }
