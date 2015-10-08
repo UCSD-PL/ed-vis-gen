@@ -8,6 +8,7 @@ import EDDIE.backend.Helpers._
 import EDDIE.backend.Types._
 
 import scala.annotation.tailrec
+import scala.collection.mutable.{Set ⇒ MSet}
 
 // interaction point placements: given a shape, return all possible ipoints and
 // their respective positional equations. e.g. Circle((a,b), c) => (a,b) + 8 points
@@ -139,16 +140,54 @@ trait SynthesisPass {
   // interaction links. we enforce the invariant that every equation
   // contains either 2 free variables, or no free variables.
   def extendLinksAll(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
-    dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
     if (eqs.exists(e ⇒ e.count(links) > 2)) {
       Set()
     }
     else {
+      def partByNum(es: Set[Eq], ls: Set[Variable], num: Int) =
+        es.partition(e ⇒ e.count(ls) == num)
       dprintln("valid case")
-      exLinksAllH(links,
-        eqs.filter(e ⇒ e.count(links) == 0),
-        eqs.filter(e ⇒ e.count(links) == 1),
-        eqs.filter(e ⇒ e.count(links) == 2))
+      // store states as links, empties, semis, and fullfilleds
+      type LinkState = (Set[Variable], Set[Eq], Set[Eq], Set[Eq])
+      val newStates: MSet[LinkState] = MSet(
+        (links, partByNum(eqs, links, 0)._1, partByNum(eqs, links, 1)._1, partByNum(eqs, links, 2)._1)
+      )
+      val validStates: MSet[Set[Variable]] = MSet()
+
+      while (newStates.nonEmpty) {
+        val (links, empties, semis, fullfilled) = newStates.head
+        newStates -= newStates.head
+
+        if (semis.isEmpty) {
+          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+          validStates += links
+        } else {
+          // for each equation e in semis, for each fixed variable x in e, if x
+          // respects the invariant, add x to links, adjust the sets, and recurse.
+          val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
+            fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
+
+          // candidates :: v ∈ Set[Variable] | v can be added to links
+          if (candidates.isEmpty) {
+            assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+            validStates += links
+          } else {
+            newStates ++= candidates.map(v ⇒ {
+              // adding v might bump some empties to semis, but not to fullfilleds.
+              val newLinks = links + v
+              val (newEmpty, newSemi) = partByNum(empties, newLinks, 0)
+              assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
+              // ditto for semis to fulls
+              val (newSemi2, newFull) = partByNum(semis, newLinks, 1)
+              assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
+              assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
+              (newLinks, newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled)
+            })
+          }
+        }
+      }
+
+      validStates.map(identity)(collection.breakOut)
     }
   }
 
@@ -167,8 +206,6 @@ trait SynthesisPass {
         // respects the invariant, add x to links, adjust the sets, and recurse.
         val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
           fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
-
-        dprintln("candidates:" ++ candidates.toString)
 
         // candidates :: v ∈ Set[Variable] | v can be added to links
         if (candidates.isEmpty) {
