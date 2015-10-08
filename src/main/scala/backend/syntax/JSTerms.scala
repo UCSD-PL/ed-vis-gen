@@ -7,7 +7,9 @@ import scala.collection.immutable.{Map ⇒ Map, Set ⇒ Set}
 trait Value // named javascript objects
 
 // constraint variables
-case class Variable(name:String) extends Value
+case class Variable(name:String) extends Value {
+  override def toString = name
+}
 // convenience point class, interaction points
 case class Point(x: Variable, y: Variable) {
   def toIP(suffix:String = "") = {
@@ -15,7 +17,11 @@ case class Point(x: Variable, y: Variable) {
     IPoint(newx, newy)
   }
 }
-case class IPoint(x: Variable, y: Variable, links: Set[Variable]) extends Value
+case class IPoint(x: Variable, y: Variable, links: Set[Variable]) extends Value {
+  def toShrtString() = "(" + x.name + "," + y.name + ")"
+  override def toString = "(" + x.toString + ", " +  y.toString +
+    ",{" ++ (links.foldLeft(""){case (acc, v) ⇒ acc + ", " + v.toString()}).drop(2) + "}"
+}
 
 object IPoint {
   // constructor when just given variables

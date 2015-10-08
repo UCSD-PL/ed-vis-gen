@@ -32,12 +32,12 @@ object PointGeneration {
     (l, Set(Eq(l, r)), σ + (l → σ(r)))
   }
   def plus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-    val newVar = Variable(l.name ++ "P" ++ r.name)
+    val newVar = Variable(l.name + "_P_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
     (newVar, Set(Eq(newVar, Expr(l) plus (Expr(r) times coeff))), σ + (newVar → (σ(l) + coeff * σ(r))))
   }
 
   def minus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-    val newVar = Variable(l.name ++ "M" ++ r.name)
+    val newVar = Variable(l.name + "_M_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
     (newVar, Set(Eq(newVar, Expr(l) minus (Expr(r) times coeff))), σ + (newVar → (σ(l) - coeff*σ(r))))
   }
   // helper function; link up an IP to the midpoint of two points

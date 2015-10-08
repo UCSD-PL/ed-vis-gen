@@ -1,6 +1,5 @@
 TODO:
 
-  * when a point is added, extend the configs to include its dimensions
   * debug duplicate programs... wtf???
   * filter out weird configs...
   * look at clash
@@ -13,6 +12,8 @@ TODO:
   * finish AST
     ** add plots
     ** add inequalities to expressions
+
+  * make merging links more precise
 
   * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
   * find more benchmarks

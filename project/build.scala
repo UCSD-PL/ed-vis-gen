@@ -10,6 +10,8 @@ object MyExampleBuild extends Build {
   val Name = "EDDIE"
   val Version = "0.1.0-SNAPSHOT"
   val ScalatraVersion = "2.4.0.RC1"
+  scalacOptions += "-feature"
+  scalacOptions += "-deprecation"
 
   lazy val project = Project (
     "scalatra-buildfile-example",

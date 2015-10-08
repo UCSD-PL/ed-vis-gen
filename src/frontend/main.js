@@ -29,7 +29,7 @@ function main() {
       }
 
       mainWindow.global_redraw();
-
+      
       mainWindow.addEventListener("mousedown", function (e) {
         if (e.button == 0) {
           var x = e.layerX;

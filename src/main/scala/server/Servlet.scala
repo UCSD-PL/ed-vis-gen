@@ -133,14 +133,12 @@ class Servlet extends Stack {
 
     def removeDuplicates(points: Set[IPConfig]) : Set[IPConfig] = points.foldLeft(
       (Store.empty, Set[IPConfig]())
-    ){
-      case ((σ, acc), (p, es, γ)) ⇒
-        if (acc.exists{ case (ip, _, _) ⇒
-          σ(ip.x) == γ(p.x) && σ(ip.y) == γ(p.y)}
-        ) {
-          (σ, acc)
-        } else {
-          (σ ++ γ, acc + ((p, es, γ)))
+    ){ case ((σ, acc), (p, es, γ)) ⇒
+        acc.find{ case (ip, _, _) ⇒
+          σ(ip.x) == γ(p.x) && σ(ip.y) == γ(p.y)
+        } match {
+          case Some(c) ⇒ (σ, acc) // ignore duplicate
+          case _ ⇒ (σ ++ γ, acc + ((p, es, γ)))
         }
     }._2
 

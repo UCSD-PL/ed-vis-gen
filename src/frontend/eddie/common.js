@@ -1,6 +1,6 @@
 //
 
-function common_init() {
+function common_init(height, width) {
 
   // canvas operations are expensive, so we distinguish between a global canvas
   // "mainCanvas", which gets (globally) wiped and redrawn every frame, and
@@ -14,12 +14,12 @@ function common_init() {
   var canvas = document.getElementById("mainCanvas");
   var ctx = canvas.getContext("2d");
   global_ctx = ctx;
-  ctx.canvas.width  = window.innerWidth-20;
-  ctx.canvas.height = window.innerHeight-20;
+  ctx.canvas.width  = width-20;
+  ctx.canvas.height = height-20;
   ctx = document.getElementById("incCanvas").getContext("2d");
   inc_ctx = ctx;
-  ctx.canvas.width  = window.innerWidth-20;
-  ctx.canvas.height = window.innerHeight-20;
+  ctx.canvas.width  = width-20;
+  ctx.canvas.height = height-20;
   canvas.addEventListener("mousedown", doMouseDown);
   canvas.addEventListener("mouseup", doMouseUp);
   canvas.addEventListener("mousemove", doMouseMove);

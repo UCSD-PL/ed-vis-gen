@@ -1,6 +1,6 @@
 -@ val scrpt: String
--@ val height: String = "400"
--@ val width: String = "400"
+-@ val height: String = "300"
+-@ val width: String = "300"
 
 !!! strict
 html
@@ -44,4 +44,4 @@ html
     img(id="iron" src="resources/weight.jpeg" height="400px" width="400px" style="display:none")
 
   script
-    | document.addEventListener('DOMContentLoaded', function() { c_main();}, false);
+    | document.addEventListener('DOMContentLoaded', function() { c_main(#{height}, #{width});}, false);
