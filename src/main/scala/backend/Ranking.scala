@@ -101,6 +101,7 @@ object ShapeHeuristics extends Ranker {
           case VecLike(_, dx, dy) ⇒ Set(dx, dy)
           case BoxLike(_, dy, dx) ⇒ Set(dx, dy)
           case Circle(_, r) ⇒ Set(r)
+          case _ ⇒ Set ()
         })).isEmpty
       }.size
     } else if (cornerPoint(c, ip)) { // ditto, but for corners and translations
@@ -109,6 +110,7 @@ object ShapeHeuristics extends Ranker {
           case VecLike(Point(x,y), _, _) ⇒ Set(x, y)
           case BoxLike(Point(x,y), _, _) ⇒ Set(x, y)
           case Circle(Point(x,y), _) ⇒ Set(x, y)
+          case _ ⇒ Set ()
         })).isEmpty
       }.size
     } else 0) * 2

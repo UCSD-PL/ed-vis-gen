@@ -190,95 +190,6 @@ trait SynthesisPass {
       validStates.map(identity)(collection.breakOut)
     }
   }
-
-  // given a set of links, a set of equation containing no free variables,
-  // a set of equations containing one free variable, and a set of equations
-  // containing two free variables, return all valid collections of links.
-  // @OPT: make this function tail-recursive
-  //@tailrec
-  def exLinksAllH(links: Set[Variable],
-    empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
-      if (semis.isEmpty) {
-        assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-        Set(links)
-      } else {
-        // for each equation e in semis, for each fixed variable x in e, if x
-        // respects the invariant, add x to links, adjust the sets, and recurse.
-        val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
-          fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
-
-        // candidates :: v ∈ Set[Variable] | v can be added to links
-        if (candidates.isEmpty) {
-          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-          Set(links)
-
-        } else {
-          candidates.flatMap(v ⇒ {
-            // adding v might bump some empties to semis, but not to fullfilleds.
-            val newLinks = links + v
-            val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
-            assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
-            // ditto for semis to fulls
-            val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
-            assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
-            assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
-            exLinksAllH( newLinks,
-              newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
-            )}
-          )
-        }
-      }
-    }
-
-  // given a set of links and equations, return a single well-defined interaction
-  // set of links. Returns None if no interaction exists.
-  def extendLinksOne(links: Set[Variable], eqs: Set[Eq]): Option[Set[Variable]] = {
-    if (eqs.exists(e ⇒ e.count(links) > 2)) {
-      None
-    } else {
-      exLinksOneH(links,
-        eqs.filter(e ⇒ e.count(links) == 0),
-        eqs.filter(e ⇒ e.count(links) == 1),
-        eqs.filter(e ⇒ e.count(links) == 2))
-    }
-  }
-
-  @tailrec
-  final def exLinksOneH(links: Set[Variable],
-    empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Option[Set[Variable]] = {
-      if (semis.isEmpty) {
-        Some(links)
-      } else {
-        // for each equation e in semis, for each fixed variable x in e, if x
-        // respects the invariant, add x to links, adjust the sets, and recurse.
-        val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
-          fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
-
-        dprintln("candidates:" ++ candidates.toString)
-
-        // candidates :: v ∈ Set[Variable] | v can be added to links
-        if (candidates.isEmpty) {
-          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-          Some(links)
-
-        } else {
-          val v = candidates.head
-
-          // adding v might bump some empties to semis, but not to fullfilleds.
-          val newLinks = links + v
-          val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
-          assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
-          // ditto for semis to fulls
-          val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
-          assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
-          assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
-          exLinksOneH( newLinks,
-            newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
-          )
-
-        }
-      }
-    }
 }
 
 
@@ -286,11 +197,6 @@ trait SynthesisPass {
 object Positional extends SynthesisPass {
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
-
-  // returns true iff links are well-defined WRT eqs
-  def wellDefined(links: Set[Variable], eqs: Set[Eq]) : Boolean = {
-    !eqs.exists{e ⇒ (e.count(links) == 1) || (e.count(links) > 2)}
-  }
 
 
 

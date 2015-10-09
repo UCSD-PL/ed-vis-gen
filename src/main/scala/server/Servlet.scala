@@ -137,7 +137,7 @@ class Servlet extends Stack {
         acc.find{ case (ip, _, _) ⇒
           σ(ip.x) == γ(p.x) && σ(ip.y) == γ(p.y)
         } match {
-          case Some(c) ⇒ (σ, acc) // ignore duplicate
+          case Some(c) ⇒ (σ, acc) // ignore duplicate point
           case _ ⇒ (σ ++ γ, acc + ((p, es, γ)))
         }
     }._2

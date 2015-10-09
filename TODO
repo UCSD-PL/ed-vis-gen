@@ -1,10 +1,5 @@
 TODO:
 
-  * debug duplicate programs... wtf???
-  * filter out weird configs...
-  * look at clash
-
-
 
   * finish point generation
     ** add inequalities to enforce orientation
@@ -13,7 +8,7 @@ TODO:
     ** add plots
     ** add inequalities to expressions
 
-  * make merging links more precise
+  * make merging links more precise 
 
   * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
   * find more benchmarks
