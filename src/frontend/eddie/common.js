@@ -82,6 +82,7 @@ function doLeftClick(event) {
   dragged_obj = null;
   var x = event.layerX;
   var y = event.layerY;
+  console.log('clicked: ' + x.toString() + ", " + y.toString());
   for (var i = 0; i < drag_points.length; i++) {
     if (withinRadius(x, y, drag_points[i])) {
       dragged_obj = drag_points[i];
@@ -134,6 +135,7 @@ function doRightClick(e) {
 }
 
 function doMouseUp(e) {
+  console.log("released at: " + e.layerX + ", " + e.layerY);
   //drag_update();
   if (dragged_obj != null) {
     solver.endEdit();
@@ -155,6 +157,7 @@ function doMouseUp(e) {
 function doMouseMove(e) {
   if (dragged_obj != null) {
 
+    //console.log("move at: " + e.layerX + ", " + e.layerY);
     solver.suggestValue(dragged_obj.x, e.layerX);
     solver.suggestValue(dragged_obj.y, e.layerY);
 
@@ -229,7 +232,8 @@ function update_rec_constraints(work, fvs) {
     fvs.forEach(function (cv) {
       if (dragged_obj.links.indexOf(cv) != -1) {
         clash = true;
-        return;
+        return; // i would like a nonlocal return but only sorin's thesis language
+                // and apparently scala supports them
       }
     });
   }

@@ -157,7 +157,6 @@ object LowLevel extends Emitter {
 
   // convert a function identifier to the appropriate javascript function
   def emitFName(name: String): String = {
-    println(name == "cos")
     val mathFuncs = Set("abs", "acos", "asin", "atan", "atan2", "ceil", "cos",
          "exp", "floor", "log", "max", "min", "pow", "random", "round", "sin",
          "sqrt", "tan")
@@ -166,6 +165,8 @@ object LowLevel extends Emitter {
       "Math." ++ name
     else if (libFuncs contains (name))
       name
+    else if (name == "PI")
+      "Math.PI" // hack in pi
     else {
       println("undefined function: " ++ name); throw IllformedProgram
     }

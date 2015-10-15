@@ -22,7 +22,7 @@ NONLINEAR(
   T  <- (T + 0.01),
   Omega <- Omega - (G * sin(Theta) / L + C * Omega),
   Theta <- Theta + Omega,
-  L <- sqrt((XB-XA)*(XB-XA) + (YA-YB)*(YA-YB)),
+  L <- sqrt(pow((XB-XA), 2) + pow((YA-YB), 2)),
   XB <- XA + L * sin(Theta),
   YB <- YA + L * cos(Theta)
 

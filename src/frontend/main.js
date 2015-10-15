@@ -10,7 +10,6 @@ function main() {
 
   init_state();
 
-
   loadMain( function() {
     getPoints( function (payload) {
       var points = JSON.parse(payload);
@@ -29,7 +28,7 @@ function main() {
       }
 
       mainWindow.global_redraw();
-      
+
       mainWindow.addEventListener("mousedown", function (e) {
         if (e.button == 0) {
           var x = e.layerX;
@@ -56,6 +55,7 @@ function main() {
 
 }
 
+function log(obj) {console.log(obj);}
 function nop () {}
 function setMain(html, Κ) {
   updateFrame(html, "mainFrame", Κ);
