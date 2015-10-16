@@ -10,8 +10,8 @@ trait Value // named javascript objects
 case class Variable(name:String) extends Value {
   override def toString = name
 }
-// convenience point class, interaction points
-case class Point(x: Variable, y: Variable) {
+// convenience point class, interaction points. extends value for parsing.
+case class Point(x: Variable, y: Variable) extends Value {
   def toIP(suffix:String = "") = {
     val (newx, newy) = (Variable(x.name ++ "_IX" ++ suffix), Variable(y.name ++ "_IY" ++ suffix) )
     IPoint(newx, newy)

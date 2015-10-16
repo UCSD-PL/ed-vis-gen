@@ -12,13 +12,21 @@ import scala.util.parsing.combinator.PackratParsers
 object Parser extends JavaTokenParsers with PackratParsers {
   // ignore c-style comments (doesn't handle nesting properly, i don't think)
   protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
+  // allow numbers to be proceeded by a sign.
+  override def decimalNumber = """-?(\d+(\.\d*)?|\d*\.\d+)""".r
+  // helper for parenthesized things
+  def parens[A](p: Parser[A]): Parser[A] = '(' ~> p <~ ')'
+  // helper for constructors
+  def constructor[A](name: String, body: Parser[A]): Parser[A] = name ~> parens(body)
+
   // variables, points, and shapes
   lazy val str = """'([a-zA-Z0-9_-]*)'""".r //single-quote characters, nums
   lazy val vrbl = ident ^^ {Variable(_)}
-  lazy val pnt = "(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ Point(l,r)}
+  lazy val pnt = parens( (vrbl <~ ',') ~ vrbl ) ^^ {case l ~ r ⇒ Point(l,r)}
 
-  // @TODO: factor out parens into a trait
-  // @TODO: other refactoring...
+  // 2-arg, 3-arg, and 4-arg constructors
+  type VP = Parser[Value]
+  def twoArg[A](name: String, fst: VP, snd: VP) = constructor(name, (fst <~ ',') ~ snd )
   lazy val crc = "Circle(" ~> ((pnt <~ ",") ~ vrbl) <~ ")" ^^ {case l ~ r ⇒ Circle(l, r)}
   lazy val tri = "Triangle(" ~> ((pnt <~ ",") ~ (pnt <~ ",") ~ pnt) <~ ")" ^^ {
     case p1 ~ p2 ~ p3 ⇒ Triangle(p1, p2, p3)
@@ -40,8 +48,6 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // @TODO: parse links
   lazy val ipoint = "IPoint(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ IPoint(l,r, Set())}
   // expressions and equations
-  // allow numbers to be proceeded by a sign.
-  override def decimalNumber = """-?(\d+(\.\d*)?|\d*\.\d+)""".r
   // variable, either with an implicit coefficient of 1 or an explicit coefficient
   lazy val term =
     (decimalNumber <~ "*") ~ vrbl ^^ {case n ~ v ⇒ (v → n.toDouble)} |

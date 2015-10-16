@@ -58,7 +58,8 @@ function generateMM(point) {
 
 // given a function, a length of time (in milliseconds), and a resolution, space the function's calls
 // equally over the resolution. the function will receive the current resolution step
-// as an argument.
+// as an argument. if shouldStop is true, the function will stop being called after
+// resolution steps.
 function scheduleCalls(work, time, resolution, Κ, shouldStop) {
   var i = 0;
   var calls = setInterval(function() {
@@ -66,7 +67,7 @@ function scheduleCalls(work, time, resolution, Κ, shouldStop) {
           work(i);
           ++i;
         });
-        if (i > resolution && shouldStop) { // stop incrementing if done
+        if (shouldStop && i > resolution) { // stop incrementing if done
           clearInterval(calls);
           Κ()
         }
@@ -102,10 +103,10 @@ function lineInvoke(Κ, start, end, resolution, i) {
 
 function circularSim(point, receiver) {
 
-  var lineres = 20;
-  var linet = 200;
-  var cres = 50;
-  var time = 1000;
+  var lineResolution = 20;
+  var lineDuration = 200;
+  var circResolution = 50;
+  var circDuration = 1000;
   var r = 40;
 
   dispatchEvent(receiver, generateMD(point)); // click on the point
@@ -116,19 +117,19 @@ function circularSim(point, receiver) {
         },
         point,
         {x: point.x + r, y: point.y},
-        lineres,
+        lineResolution,
         i
       );
-    }, linet, lineres, function() {
+    }, lineDuration, lineResolution, function() {
     scheduleCalls(function (i) {
       circularInvoke( function(point) {
             dispatchEvent(receiver, generateMM(point)); // drag around the circle
           },
           {x: point.x, y: point.y, r: r},
-          cres,
+          circResolution,
           i
         );
-      }, time, cres, function() {}, false
+      }, circDuration, circResolution, function() {}, false
     )}, true);
 
 }
