@@ -6,9 +6,21 @@ function init_state() {
   clearFrames();
 }
 
+function captureMovement(e) {
+  if (!e) e = window.event;
+  log(e);
+  e.stopPropagation();
+  e.preventDefault();
+  e.bubbles=false;
+  log(e.bubbles);
+  return false;
+}
 function main() {
 
   init_state();
+
+  // capture mouse events over variants so that simulated display movements are not
+  // interrupted
 
   loadMain( function() {
     getPoints( function (payload) {
@@ -55,8 +67,7 @@ function main() {
 
 }
 
-function log(obj) {console.log(obj);}
-function nop () {}
+
 function setMain(html, Κ) {
   updateFrame(html, "mainFrame", Κ);
 }
@@ -113,9 +124,13 @@ function clearFrames(){
   while (frames.firstChild) {
     frames.removeChild(frames.firstChild);
   }
+  ["mousedown", "mouseup", "mousemove"].map( function(e) {
+    frames.addEventListener(e, captureMovement, true);
+  });
 }
 function learnMotive(i, Κ) {
   clearFrames();
+
   sendGet("variants/" + i.toString() + "/300/300", function(variants) {
     var newFrames = responseToArray(variants);
     for (var i = 0; i < newFrames.length; ++i) {

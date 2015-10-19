@@ -127,7 +127,8 @@ class Servlet extends Stack {
         case e: Throwable ⇒ println("exception in compiling"); println(e); throw e
       }
       jade("/empty.jade", "scrpt" → retP,
-        "height" → params("h"), "width" → params("w")
+        "height" → params("h"), "width" → params("w"),
+        "shouldSim" → params("sim")
       )
     }
 
@@ -166,7 +167,7 @@ class Servlet extends Stack {
   // get the current program
   get("/main/:h/:w") {
     contentType = "text/html"
-    serveProgram(params, ζ)
+    serveProgram(params + ("sim" → "false"), ζ)
   }
 
   // resets the server state
@@ -178,7 +179,7 @@ class Servlet extends Stack {
   get("/loadfile/:src/:h/:w") {
     contentType = "text/html"
     loadFile(params("src"))
-    serveProgram(params)
+    serveProgram(params + ("sim" → "false"))
   }
 
   get("/points") {
@@ -202,7 +203,7 @@ class Servlet extends Stack {
       case _ ⇒ println("couldn't get ipoint for index " + params("i")); throw InconsistentServerState
     }
 
-    generateVariants(ipc).map{state ⇒ serveProgram(params, state)}
+    generateVariants(ipc).map{state ⇒ serveProgram(params + ("sim" → "true"), state)}
   }
 
   // given an index, adds currVariants[i] into the main program and clears currVariants

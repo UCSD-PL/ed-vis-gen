@@ -8,7 +8,12 @@ window.requestAnimFrame = (function(){
           };
 })();
 
-
+LOGGING = true;
+function log(obj) {
+  if (LOGGING)
+    console.log(obj);
+}
+function nop () {}
 
 // Pushes a variable number of arguments to an array.
 // Despite the function signature, the intended use is

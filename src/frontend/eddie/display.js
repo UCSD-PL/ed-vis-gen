@@ -103,34 +103,23 @@ function lineInvoke(Κ, start, end, resolution, i) {
 
 function circularSim(point, receiver) {
 
-  var lineResolution = 20;
-  var lineDuration = 200;
-  var circResolution = 50;
+  var circResolution = 25;
   var circDuration = 1000;
-  var r = 40;
+  var r = 25;
 
   dispatchEvent(receiver, generateMD(point)); // click on the point
 
-  scheduleCalls(function(i){
-    lineInvoke(function(point) {
-          dispatchEvent(receiver, generateMM(point)); // drag to the start
+
+  scheduleCalls(function (i) {
+    circularInvoke( function(point) {
+          dispatchEvent(receiver, generateMM(point)); // drag around the circle
         },
-        point,
-        {x: point.x + r, y: point.y},
-        lineResolution,
+        {x: point.x, y: point.y, r: r},
+        circResolution,
         i
       );
-    }, lineDuration, lineResolution, function() {
-    scheduleCalls(function (i) {
-      circularInvoke( function(point) {
-            dispatchEvent(receiver, generateMM(point)); // drag around the circle
-          },
-          {x: point.x, y: point.y, r: r},
-          circResolution,
-          i
-        );
-      }, circDuration, circResolution, function() {}, false
-    )}, true);
+    }, circDuration, circResolution, function() {}, false
+  );
 
 }
 
