@@ -6,6 +6,7 @@ logLevel in run := Level.Warn
 
 scalacOptions += "-feature"
 scalacOptions += "-deprecation"
+scalacOptions += "-language:experimental.macros"
 
 // javaOptions += "-XX:+UnlockCommercialFeatures"
 // javaOptions += "-XX:+FlightRecorder"

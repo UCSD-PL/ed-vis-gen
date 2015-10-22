@@ -1,4 +1,4 @@
-VARS(
+VARS (
   // base
   BX = 150, BY = 200, BH = 30, BW = 100,
   // spring
@@ -11,13 +11,13 @@ VARS(
   M = 55, K = 1.1, C = 2.5, G = 0.98,
   InitRL = 125, RL = 125, F = 0, V = 0, T = 0
 );
-SHAPES(
+SHAPES (
   Base = Rectangle((BX, BY), BH, BW),    // base
   S = Spring((SX, SY), DX, DY),       // spring
   Plat = Rectangle((PX, PY), PH, PW),    // platform
   Weight = Image((IX, IY), IH, IW, 'iron') // image
 );
-LINEAR(
+LINEAR (
   SX = BX,
   SY = BY - BH,   // spring starts at top-center of base
   PX = SX + DX,
@@ -25,12 +25,12 @@ LINEAR(
   IX = PX,
   IY = PY - IH - PH  // image is on top of platform
 );
-NONLINEAR(
+NONLINEAR (
   T  <- (T + 0.01) % 100,
   RL <- InitRL - M*G/K,
   F <- (-K*(DY + RL) - (C*V))/M,
   V <- V + F,
   DY <- DY + V
-) WITH FREE(
+) WITH FREE (
   PY, IY
 );

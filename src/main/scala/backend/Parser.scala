@@ -3,6 +3,7 @@ package EDDIE.backend.parser
 import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 import scala.collection.immutable.{Map ⇒ Map}
+import EDDIE.backend.Helpers.DEBUG
 
 
 import scala.util.parsing.combinator.JavaTokenParsers
@@ -10,43 +11,77 @@ import scala.util.parsing.combinator.PackratParsers
 
 // parsers for AST + initial store
 object Parser extends JavaTokenParsers with PackratParsers {
+  type P[A] = PackratParser[A]
+  type SP[A] = P[Set[A]]
   // ignore c-style comments (doesn't handle nesting properly, i don't think)
-  protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)+""".r
+  protected override val whiteSpace = """(\s|//.*|(?m)/\*(\*(?!/)|[^*])*\*/)*""".r
   // allow numbers to be proceeded by a sign.
   override def decimalNumber = """-?(\d+(\.\d*)?|\d*\.\d+)""".r
+
+  // logging helper
+  @inline
+  def mylog[A](parser: P[A])(msg: String): P[A] = if (DEBUG) {
+    log(parser)(msg)
+  } else {
+    parser
+  }
   // helper for parenthesized things
-  def parens[A](p: Parser[A]): Parser[A] = '(' ~> p <~ ')'
+  @inline
+  def parens[A](p: P[A]): P[A] = mylog("(" ~> (p <~ ")"))("parsing parens")
   // helper for constructors
-  def constructor[A](name: String, body: Parser[A]): Parser[A] = name ~> parens(body)
+  @inline
+  def constructor[A](name: String, body: P[A]): P[A] = name ~> parens(body)
+  @inline
+  def commad[A](thing: P[A]): P[A] = thing <~ ","
+
+  @inline
+  def decl[T](rhs: P[T]) = ident ~ ("=" ~> rhs)
+  @inline
+  def commas[T](thing: P[T]) = repsep(thing, ",")
+  @inline
+  def collect[T](thing: P[T]) = commas(thing) ^^ {_.toSet}
+
+  // unary, 2-arg, 3-arg, and 4-arg constructors
+  @inline
+  def unary[A](name: String, thing: P[A]) = constructor(name, thing)
+  @inline
+  def twoArg[A, B](name: String, fst: P[A], snd: P[B]) = constructor(name, commad(fst) ~ snd )
+  @inline
+  def threeArg[A, B, C](name: String, fst: P[A], snd: P[B], thrd: P[C]) =
+    constructor(name, commad(fst) ~ commad(snd) ~ thrd)
+  @inline
+  def fourArg[A, B, C, D](name: String, fst: P[A], snd: P[B], thrd: P[C], last: P[D]) =
+    constructor(name, commad(fst) ~ commad(snd) ~ commad(thrd) ~ last)
+
+
+
 
   // variables, points, and shapes
-  lazy val str = """'([a-zA-Z0-9_-]*)'""".r //single-quote characters, nums
-  lazy val vrbl = ident ^^ {Variable(_)}
-  lazy val pnt = parens( (vrbl <~ ',') ~ vrbl ) ^^ {case l ~ r ⇒ Point(l,r)}
+  lazy val str: P[String] = mylog(parser2packrat("""\'([a-zA-Z0-9_-]+)\'""".r))("parsing string") //single-quote characters, nums
+  lazy val vrbl: P[Variable] = mylog(ident ^^ {Variable(_)})("parsing variable")
+  lazy val pnt: P[Point] = mylog(parens( commad(vrbl) ~ vrbl ) ^^ {case l ~ r ⇒ Point(l,r)})("parsing point")
 
-  // 2-arg, 3-arg, and 4-arg constructors
-  type VP = Parser[Value]
-  def twoArg[A](name: String, fst: VP, snd: VP) = constructor(name, (fst <~ ',') ~ snd )
-  lazy val crc = "Circle(" ~> ((pnt <~ ",") ~ vrbl) <~ ")" ^^ {case l ~ r ⇒ Circle(l, r)}
-  lazy val tri = "Triangle(" ~> ((pnt <~ ",") ~ (pnt <~ ",") ~ pnt) <~ ")" ^^ {
+  lazy val crc: P[Circle] = twoArg("Circle", pnt, vrbl) ^^ {case l ~ r ⇒ Circle(l, r)}
+  lazy val tri: P[Triangle] = threeArg("Triangle", pnt, pnt, pnt) ^^ {
     case p1 ~ p2 ~ p3 ⇒ Triangle(p1, p2, p3)
   }
-  lazy val rct = "Rectangle(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {case c ~ h ~ w ⇒ Rectangle(c, h, w)}
-  lazy val img = "Image(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ (vrbl <~ ",") ~ str) <~ ")" ^^ {
+  lazy val rct: P[Rectangle] =
+    threeArg("Rectangle", pnt, vrbl, vrbl) ^^ {case c ~ h ~ w ⇒ Rectangle(c, h, w)}
+  lazy val img: P[Image] = fourArg("Image", pnt, vrbl, vrbl, str) ^^ {
     case c ~ h ~ w ~ s ⇒ Image(c, h, w, s)
   }
-  lazy val lne = "Line(" ~> ((pnt <~ ",") ~ pnt) <~ ")" ^^ {case l ~ r ⇒ LineSegment(l, r)}
-  lazy val spr = "Spring(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
+  lazy val lne: P[LineSegment] = twoArg("Line", pnt, pnt) ^^ {case l ~ r ⇒ LineSegment(l, r)}
+  lazy val spr: P[Spring] = threeArg("Spring", pnt, vrbl, vrbl) ^^ {
     case c ~ h ~ w ⇒ Spring(c, h, w)
   }
-  lazy val arr = "Arrow(" ~> ((pnt <~ ",") ~ (vrbl <~ ",") ~ vrbl) <~ ")" ^^ {
+  lazy val arr: P[Arrow] = threeArg("Arrow", pnt, vrbl, vrbl) ^^ {
     case c ~ h ~ w ⇒ Arrow(c, h, w)
   }
-  lazy val shp = crc | tri | rct | img | lne | spr | arr
+  lazy val shp: P[Shape] = crc | tri | rct | img | lne | spr | arr
 
   // IPoints
   // @TODO: parse links
-  lazy val ipoint = "IPoint(" ~> (vrbl <~ ",") ~ vrbl <~ ")" ^^ {case l ~ r ⇒ IPoint(l,r, Set())}
+  lazy val ipoint = twoArg("IPoint", vrbl, vrbl) ^^ {case l ~ r ⇒ IPoint(l,r, Set())}
   // expressions and equations
   // variable, either with an implicit coefficient of 1 or an explicit coefficient
   lazy val term =
@@ -70,11 +105,11 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // standard arithmetic expression grammar + function apps
 
   // terminal values, unops, and fcalls
-  type EP = Parser[Expression]
+  type EP = P[Expression]
   lazy val efactor: EP = decimalNumber ^^ {s ⇒ Const(s.toDouble)} |
-    "(" ~> expression <~ ")" ^^ {UnOp(_, Paren)} |
+    parens(expression) ^^ {UnOp(_, Paren)} |
     "-" ~> expression ^^ {UnOp(_, ¬)} |
-    ident ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
+    ident ~ parens( commas(expression)) ^^ {
       case f ~ args ⇒ App(f, args)
     } |
     vrbl ^^ {Var(_)}
@@ -108,17 +143,11 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // LINEAR(eq (, eq)*);
   // NONLINEAR(rec, (, rec)*);
 
-  type SP[T] = Parser[Set[T]]
-
-  def decl[T](rhs: PackratParser[T]) = ident ~ ("=" ~> rhs)
-  def commas[T](thing: PackratParser[T]) = repsep(thing, ",")
-  def collect[T](thing: PackratParser[T]) = commas(thing) ^^ {_.toSet}
-
   lazy val vars = commas(decl(decimalNumber)) ^^ { is ⇒
     val bndings = is.map(_ match {case v ~ d ⇒ (Variable(v) → d.toDouble)}).toMap
     (bndings.keySet, Store(bndings))
   }
-  lazy val shps: PackratParser[(Set[Shape], Map[String, Value])] = commas(decl(shp)) ^^ {ss ⇒
+  lazy val shps: P[(Set[Shape], Map[String, Value])] = commas(decl(shp)) ^^ {ss ⇒
     val bndings: Map[String, Shape] = ss.map{_ match {case v ~ s ⇒ (v → s)}}.toMap
     (bndings.map(_._2).toSet, bndings)
   }
@@ -128,16 +157,16 @@ object Parser extends JavaTokenParsers with PackratParsers {
   lazy val fvs: SP[Variable] = collect(vrbl)
 
   lazy val program =
-    (("VARS(" ~> vars <~ ");") ~ ("SHAPES(" ~> shps <~ ");") ~
-    ("LINEAR(" ~> eqs <~ ");") ~ ("NONLINEAR(" ~> recs <~ ")") ~
-     ("WITH FREE(" ~> fvs <~ ");")) ^^ {
+    (unary("VARS", vars) <~ ';')  ~ (unary("SHAPES", shps) <~ ';') ~
+    (unary("LINEAR", eqs) <~ ';') ~ (unary("NONLINEAR", recs)) ~
+    (unary("WITH FREE", fvs) <~ ';') ^^ {
       case (vs, σ) ~ ss ~ es ~ rcs ~ rfvs ⇒
       (Program(vs, Set(), ss._1, es, rcs, rfvs, ss._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
     }
 
-  def tryParsing[T](start: PackratParser[T])(input: String) = parseAll(start, input) match {
+  def tryParsing[T](start: P[T])(input: String) = parseAll(start, input) match {
     case Success(p, _) ⇒ Left(p)
-    case f: NoSuccess ⇒ Right(f.msg)
+    case f: NoSuccess ⇒ Right(f.toString())
   }
 
   // external parsing interface
