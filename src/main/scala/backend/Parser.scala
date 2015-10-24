@@ -57,7 +57,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
 
 
   // variables, points, and shapes
-  lazy val str: P[String] = mylog(parser2packrat("""\'([a-zA-Z0-9_-]+)\'""".r))("parsing string") //single-quote characters, nums
+  lazy val str: P[String] = mylog(parser2packrat("""\'([a-zA-Z0-9_-]*)\'""".r))("parsing string") //single-quote characters, nums
   lazy val vrbl: P[Variable] = mylog(ident ^^ {Variable(_)})("parsing variable")
   lazy val pnt: P[Point] = mylog(parens( commad(vrbl) ~ vrbl ) ^^ {case l ~ r ⇒ Point(l,r)})("parsing point")
 

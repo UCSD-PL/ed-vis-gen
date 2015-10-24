@@ -22,7 +22,7 @@ object PointGeneration {
     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
     case VecLike(c, dx, dy) ⇒ vec(c, dx, dy, σ)
     case Circle(center, radius) ⇒ circ(center, radius, σ)
-    case Triangle(p1, p2, p3) ⇒ tri(p1, p2, p3)
+    case Triangle(p1, p2, p3) ⇒ tri(p1, p2, p3, σ)
   })
 
   // helper function; link up an IP and a point by equality
@@ -70,7 +70,11 @@ object PointGeneration {
     Set((sip, startEqs, sσ), (eip, endEqs, eσ), (mip, midEqs, mσ))
   }
 
-  def tri(p1: Point, p2: Point, p3: Point):Set[IPConfig] = Set()
+  // endpoints, midpoints of each line, and overall midpoint
+  def tri(p1: Point, p2: Point, p3: Point, σ: Store):Set[IPConfig] = {
+    val midPoint = Set() // TODO
+    line(p1, p2, σ) ++ line(p2, p3, σ) ++ line(p1, p3, σ) ++ midPoint
+  }
 
   // 3 lines, including midpoints: tL -> tR, mL -> mR, bL -> bR
   // visually:
