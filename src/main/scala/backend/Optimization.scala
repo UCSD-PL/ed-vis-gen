@@ -53,7 +53,11 @@ object EquationOpts extends OptimizationPass {
         else
           freeRVs
       )
-      val newNames = nms - l.name
+      val newNames = nms.mapValues{ v ⇒ v match {
+        case s:Shape ⇒ shapeMap(s, subst)
+        case vrble:Variable ⇒ subst(vrble)
+        case Point(x, y) ⇒ Point(subst(x), subst(y))
+      }}
       val γ = σ - l
       State(Program(newVars, newIPs, newShps, newEqs, newRecs, newFrees, newNames), γ)
   }}
@@ -61,8 +65,6 @@ object EquationOpts extends OptimizationPass {
   // helper to check if an equation looks like a + x = a + y, where x and y are variables.
   // i think it misses stuff like 0 = y - x, unfortunately...
   def simpEq(e: Eq): Boolean = {
-    println(e)
-    println(e.lhs.vars.head._2 == 1.0)
     (e.lhs.constant == e.rhs.constant)  &&
     (e.lhs.vars.size == 1) && (e.rhs.vars.size == 1) &&
     (e.lhs.vars.head._2 == 1.0) && (e.rhs.vars.head._2 == 1.0)

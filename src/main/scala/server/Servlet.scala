@@ -150,8 +150,8 @@ class Servlet extends Stack {
       val orig = Run.loadSource(src)
       ζ = OptimizeAll(EquationPass(orig).head)
 
-      //println("old equations: " + orig.prog.equations.toString())
-      //println("new equations: " + ζ.prog.equations.toString())
+      println("old equations: " + orig.prog.equations.toString())
+      println("new equations: " + ζ.prog.equations.toString())
       println("number of equations: " + ζ.prog.equations.size)
 
       ℵ = ζ
