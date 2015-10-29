@@ -1,6 +1,11 @@
 VARS(
-  XA = 125, YA = 100, RA = 5,
+  // pivot circle
+  XA = 125, YA = 100, RA = 10,
+  // bob circle
   XB = 225, YB = 100, RB = 20,
+  // connecting line start and endpoints
+  LAX = 125, LAY = 100,
+  LBX = 225, LBY = 100,
 
   M = 500,    // mass of bob
   G = 0.98,  // strength of gravity
@@ -12,7 +17,7 @@ VARS(
 );
 SHAPES(
   Fulcrum = Circle((XA, YA), RA),
-  Lever = Line((XA, YA), (XB, YB)),
+  Lever = Line((LAX, LAY), (LBX, LBY)),
   Weight = Circle((XB, YB), RB)
 );
 LINEAR(

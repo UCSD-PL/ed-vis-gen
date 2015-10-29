@@ -8,6 +8,7 @@ import EDDIE.backend.emit._
 import EDDIE.backend.errors._
 import EDDIE.backend.ranking._
 import EDDIE.backend.validation._
+import EDDIE.backend.optimization._
 
 import scala.io.Source._
 
@@ -21,7 +22,8 @@ object Run {
       case Left(p) ⇒ p
       case Right(msg) ⇒ println(msg); throw ParseError
     }
-    State(prog, initσ)
+    // add in
+    OptimizeAll(State(prog, initσ))
   }
 
   def compileState(ζ: State, validate: Boolean = false) : String = {
@@ -33,24 +35,10 @@ object Run {
   def compileSource(name: String): String = {
 
     compileState(loadSource(name), true)
-    // println("interactive variants:")
-    // // Set[Configuration]
-    // val newProgs = LinkLength(Positional(prog, initσ))
-    //
-    // var pcounter = 0
-    // newProgs.foreach{ case (prog, σ) ⇒ {
-    //   println("// prog" ++ pcounter.toString)
-    //   pcounter += 1
-    //   println(LowLevel(prog, σ) ++ "\n")}
-    // }
   }
 
 
   def main(args: Array[String]) {
-
-    // println("original:")
-    //println(HighLevel(prog, initσ))
-    //println("// compiled version:")
     println(compileSource(args(0)))
   }
 

@@ -1,5 +1,8 @@
 TODO:
 
+  * add in scalatest testing framework + unit tests
+  * add physics primitives to AST
+  * restructor AST into
 
   * finish point generation
     ** add inequalities to enforce orientation
@@ -8,7 +11,7 @@ TODO:
     ** add plots
     ** add inequalities to expressions
 
-  * make merging links more precise 
+  * make merging links more precise
 
   * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
   * find more benchmarks
@@ -18,10 +21,30 @@ TODO:
 
 ranking:
   * interactions tend to be at connection points
-  * domain specific knowledge:
-    ** boxes tend to be translated
-    ** springs only stretch in y dimension
-    ** dimensions don't mix in same point
   * penalty for shape w/o interactive components
   * filter out "functionally identical" diagrams...
     ** positional equivalence: all points are in same place + have same links
+
+equations:
+  * run point generation on all shapes
+  * fuzzy snapping: for all generated points within ~5 of each other:
+    ** add in equality between original variables (or 3-way: generated == lhs, generated == rhs)
+    ** adjust image to match equality (maybe...or maybe just don't validate synth equations)
+
+
+distinguish between recursive updates and nonlinear one-way constraints:
+  * recursive update semantics are: take old values of variable references.
+  * nonlinear semantics are: ignore cycles (i.e. eval each node exactly once),
+                             update a la dataflow graph
+  * extend values:
+    ** CassValues
+    ** DFValues
+    ** interface:
+      *** getValue
+      *** suggestValue
+      *** evaluate
+    ** type system: DFValues can't appear in cass equations and vice versa
+  * runtime semantics:
+    ** interactions: suggestValue for x, y values. reevaluate both networks.
+
+  * user input:

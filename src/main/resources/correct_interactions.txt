@@ -1,7 +1,7 @@
-sspring.txt, (IX, IY), {IY, DY, PY};
+spring.txt, (IX, IY), {IY, DY, PY};
   % working
   % see spring.html
-spendulum.txt, (XB, YB), {XB, YB, XS, YS};
+pendulum.txt, (XB, YB), {XB, YB, XS, YS};
   % working
   % see pendulum.html
 sconcentration.txt, (MX, MY), {MX, MY}, (TX, TY), {TX, TY, XLS, YLS};

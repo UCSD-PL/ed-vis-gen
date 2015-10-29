@@ -8,7 +8,7 @@ window.requestAnimFrame = (function(){
           };
 })();
 
-LOGGING = true;
+LOGGING = false;
 function log(obj) {
   if (LOGGING)
     console.log(obj);

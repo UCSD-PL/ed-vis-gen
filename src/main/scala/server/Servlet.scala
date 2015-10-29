@@ -14,6 +14,7 @@ import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
 import EDDIE.backend.Types._
 import EDDIE.backend.synthesis._
+import EDDIE.backend.optimization._
 import EDDIE.backend.ranking._
 import EDDIE.backend.errors._
 
@@ -146,12 +147,19 @@ class Servlet extends Stack {
     // load a new file
     def loadFile(src: String) {
       reset
-      ζ = Run.loadSource(src)
+      val orig = Run.loadSource(src)
+      ζ = OptimizeAll(EquationPass(orig).head)
+
+      //println("old equations: " + orig.prog.equations.toString())
+      //println("new equations: " + ζ.prog.equations.toString())
+      println("number of equations: " + ζ.prog.equations.size)
+
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
       }
-      allPoints = removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
+      allPoints = //removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
+        ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)}
     }
 
     def reset = {

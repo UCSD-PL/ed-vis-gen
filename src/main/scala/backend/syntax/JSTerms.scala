@@ -81,12 +81,38 @@ case class Arrow(base: Point, dx: Variable, dy: Variable) extends Shape with Vec
 // e.g. 5*x1 + 7*x2 + 3 = Expr(3, {x1 -> 5, x2 -> 7})
 case class Expr(constant: Double, vars: Map[Variable, Double]) {
   override def toString(): String = {
-    def each(acc: String, nxt: (Variable, String)) = {
-      acc ++ " + " ++ nxt._2 ++ "*" ++ nxt._1.name
+    def each(nxt: (Variable, Double)): String = {
+      (if (nxt._2 == 1.0)
+          ""
+        else
+          nxt._2.toString ++ "*"
+      ) ++ nxt._1.name
     }
-    val strs = vars.mapValues(_.toString)
-    "(" ++ strs.foldLeft(constant.toString())(each) ++ ")"
+    val intermezzo = Seq(constant.toString) ++ vars.map(each)
+    if (intermezzo.size == 1) {
+      constant.toString
+    } else {
+      (
+        if (constant == 0.0)
+          intermezzo.drop(1)
+        else
+          intermezzo
+      ).addString(new StringBuilder(), " + ").toString
+    }
   }
+
+  // replace each instance of oldVal with newVal
+  def substitute(subst: Map[Variable, Variable]): Expr = Expr(constant, subst.foldLeft(vars) {
+    case (mp, (oldVal, newVal)) ⇒ {
+      val restricted = mp.filterKeys(_ == oldVal)
+      if (restricted.size == 0) {
+        // if the key isn't present, ignore it
+        mp
+      } else {
+        assert(restricted.size == 1, "multiple instances of " + oldVal + " in " + mp)
+        mp - oldVal + (newVal → mp(oldVal))
+      }
+  }})
 
   // helper builders
   // if the rhs contains a variable, sum the cofficients
@@ -120,11 +146,25 @@ case class Eq(lhs: Expr, rhs: Expr) {
   }
   def contains(vars: Set[Variable]) = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
   def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
+  def substitute(subst: Map[Variable, Variable]) = Eq(lhs.substitute(subst), rhs.substitute(subst))
 }
 
 // recursive one-way constraints of the form
 // x <- e
-case class RecConstraint(lhs: Variable, rhs: Expression)
+case class RecConstraint(lhs: Variable, rhs: Expression) {
+  def substitute(subst: Map[Variable, Variable]) = subst.foldLeft(this){
+    case (RecConstraint(l, r), (oldV, newV)) ⇒ {
+      val newL = (
+        if (l == oldV)
+          newV
+        else
+          l
+      )
+      val newR = Expression.substitute(rhs, oldV → newV) // TODO: do all substitutions at once
+      RecConstraint(newL, newR)
+    }
+  }
+}
 
 // arithmetic expression grammar, plus function calls.
 sealed abstract class Expression
@@ -133,6 +173,21 @@ case class Var(v: Variable) extends Expression with Value
 case class BinOp(lhs: Expression, rhs: Expression, op: BOP) extends Expression
 case class UnOp(inner: Expression, op: UOP) extends Expression
 case class App(func: String, args: Seq[Expression]) extends Expression
+
+object Expression {
+  def substitute(e: Expression, bnding: (Variable, Variable)): Expression = e match {
+    case Const(_) ⇒ e
+    case Var(v) ⇒ {
+      if (v == bnding._1)
+        Var(bnding._2)
+      else
+        e
+    }
+    case BinOp(l, r, op) ⇒ BinOp(substitute(l, bnding), substitute(r, bnding), op)
+    case UnOp(i, o) ⇒ UnOp(substitute(i, bnding), o)
+    case App(f, args) ⇒ App(f, args.map{substitute(_, bnding)})
+  }
+}
 
 // binary operations
 // +,-,*,/,%
