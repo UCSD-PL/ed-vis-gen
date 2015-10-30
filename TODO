@@ -25,12 +25,13 @@ ranking:
   * filter out "functionally identical" diagrams...
     ** positional equivalence: all points are in same place + have same links
 
-equations:
-  * run point generation on all shapes
-  * fuzzy snapping: for all generated points within ~5 of each other:
-    ** add in equality between original variables (or 3-way: generated == lhs, generated == rhs)
-    ** adjust image to match equality (maybe...or maybe just don't validate synth equations)
-
+nonlinear synthesis:
+  * after equational pass, FV choice is ambiguous
+  * (even w/o it, FVs might be underspecified)
+  * foreach valid configuration w.r.t initial FVs:
+    ** spin off iframe with that configuration
+    ** start simulation in that frame
+    *** disable hoverover requirement...maybe. maybe precompute frames or something...
 
 distinguish between recursive updates and nonlinear one-way constraints:
   * recursive update semantics are: take old values of variable references.
