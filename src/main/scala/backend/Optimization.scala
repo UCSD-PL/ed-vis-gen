@@ -31,7 +31,6 @@ object EquationOpts extends OptimizationPass {
   // arbitrarily pick r as the remaining variable
   def inlineOnce(l: Variable, r: Variable, s: State): State = s match {
     case State(Program(vars, ips, shps, eqs, recs, freeRVs, nms), σ) ⇒ {
-      println("replacing " + l + " with " + r)
       def subst(v: Variable) = {
         if (v == l)
           r

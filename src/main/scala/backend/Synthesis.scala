@@ -291,7 +291,12 @@ object EquationPass extends SynthesisPass {
         if (fuzzEq(l, r)) // select positionally equal points
       } yield {
         (l, r)
-      })
+      }).foldLeft(Set[(IPConfig, IPConfig)]()){ case (acc, pr) ⇒ // filter out symmetries
+        if (acc.contains(pr.swap))
+          acc
+        else
+          acc + pr
+      }
 
       //println("inter: " + intermezzo.toString)
       //println("candidates: " + candidates.toString())
@@ -304,7 +309,6 @@ object EquationPass extends SynthesisPass {
         ), α ++ γ)
       }
 
-      println("new equations: " + res.head.prog.equations)
 
       //println("done with equations")
       res

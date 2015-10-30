@@ -84,6 +84,8 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
     def each(nxt: (Variable, Double)): String = {
       (if (nxt._2 == 1.0)
           ""
+       else if (nxt._2 == -1.0)
+         "-"
         else
           nxt._2.toString ++ "*"
       ) ++ nxt._1.name
@@ -97,7 +99,7 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
           intermezzo.drop(1)
         else
           intermezzo
-      ).addString(new StringBuilder(), " + ").toString
+      ).addString(new StringBuilder(), " + ").replaceAllLiterally("+ -", "- ")
     }
   }
 

@@ -150,16 +150,15 @@ class Servlet extends Stack {
       val orig = Run.loadSource(src)
       ζ = OptimizeAll(EquationPass(orig).head)
 
-      println("old equations: " + orig.prog.equations.toString())
-      println("new equations: " + ζ.prog.equations.toString())
-      println("number of equations: " + ζ.prog.equations.size)
+      val freeRVs = ζ.prog.freeRecVars ++ ζ.prog.recConstraints.map(_.lhs)
+      // println("valid FV configs: " +
+      //   (Positional.extendLinksAll(freeRVs, ζ.prog.equations).map(_ diff freeRVs).toString))
 
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
       }
-      allPoints = //removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
-        ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)}
+      allPoints = removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
     }
 
     def reset = {
