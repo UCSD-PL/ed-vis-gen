@@ -1,6 +1,6 @@
 //
 
-function common_init(height, width) {
+function common_init(height, width, alwaysRun) {
 
   // canvas operations are expensive, so we distinguish between a global canvas
   // "mainCanvas", which gets (globally) wiped and redrawn every frame, and
@@ -26,21 +26,29 @@ function common_init(height, width) {
 
   resetState();
 
-  document.body.onmouseover = function() {
-    timers.map(function(t) {
-      if (t.shouldRun) {
-        t.start();
-      }
-    });
-  };
+  // start physics components if necessary
+  if (alwaysRun) {
+    // timers.map(function (t) {
+    //   t.start();
+    // });
 
-  document.body.onmouseout = function() {
-    timers.map(function(t) {
-      if (t.shouldRun) {
-        t.stop();
-      }
-    });
-  };
+  } else {
+    // only run when selected
+    document.body.onmouseover = function() {
+      timers.map(function(t) {
+        if (t.shouldRun) {
+          t.start();
+        }
+      });
+    };
+    document.body.onmouseout = function() {
+      timers.map(function(t) {
+        if (t.shouldRun) {
+          t.stop();
+        }
+      });
+    };
+  }
 
 }
 
@@ -82,7 +90,7 @@ function doLeftClick(event) {
   dragged_obj = null;
   var x = event.layerX;
   var y = event.layerY;
-  console.log('clicked: ' + x.toString() + ", " + y.toString());
+  //console.log('clicked: ' + x.toString() + ", " + y.toString());
   for (var i = 0; i < drag_points.length; i++) {
     if (withinRadius(x, y, drag_points[i])) {
       dragged_obj = drag_points[i];
@@ -120,22 +128,10 @@ function doLeftClick(event) {
 }
 
 function doRightClick(e) {
-  // if we clicked on a vector, prompt for the vector's magnitude
-  // var x = e.layerX;
-  // var y = e.layerY;
-  // for (var i = 0; i < rightClick_points.length; ++i) {
-  //   if (withinRadius(x,y, rightClick_points[i])) {
-  //     var m = parseFloat(prompt("What should the magnitude be?", "50"));
-  //     rightClick_points[i].magnitude = m;
-  //     rightClick_update();
-  //     global_redraw();
-  //     break;
-  //   }
-  // }
 }
 
 function doMouseUp(e) {
-  console.log("released at: " + e.layerX + ", " + e.layerY);
+  //console.log("released at: " + e.layerX + ", " + e.layerY);
   //drag_update();
   if (dragged_obj != null) {
     solver.endEdit();

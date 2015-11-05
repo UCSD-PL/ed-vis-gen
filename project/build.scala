@@ -4,6 +4,7 @@ import org.scalatra.sbt._
 import org.scalatra.sbt.PluginKeys._
 import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
+import fi.gekkio.sbtplugins.jrebel
 
 object MyExampleBuild extends Build {
   val Organization = "com.github.jsarracino"
@@ -14,9 +15,12 @@ object MyExampleBuild extends Build {
   scalacOptions += "-deprecation"
   scalacOptions += "-language:experimental.macros"
 
+
+
   lazy val project = Project (
     "scalatra-buildfile-example",
     file("."),
+
     settings = Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ scalateSettings ++ Seq(
       organization := Organization,
       name := Name,
@@ -47,7 +51,16 @@ object MyExampleBuild extends Build {
             Some("templates")
           )
         )
-      }
-    )
+      },
+
+      fork in (Compile,run) := true,
+      javaOptions in (Compile,run) ++= (System.getenv("JREBEL_HOME") match {
+        case null => Seq("-Xmx2G")
+        case v    => println("added jrebel"); Seq("-Xmx2G", "-javaagent:" + v + "/jrebel.jar")
+      })
+    ) ++ Seq(jrebel.JRebelPlugin.jrebelSettings: _*)
+
+
+
   )
 }

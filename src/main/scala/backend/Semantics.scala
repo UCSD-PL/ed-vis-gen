@@ -87,8 +87,10 @@ object State {
         // TODO: be more precise
         ipoints = oldProg.ipoints.map(point ⇒ point.copy(links = point.links + newIP.x + newIP.y)) + newIP,
         equations = oldProg.equations ++ eqs,
-        freeRecVars = oldProg.freeRecVars + newIP.x + newIP.y, // TODO: be more precise
         names = nameIP(oldProg.names, newIP)
+        // notice, free rec vars is not updated (and should be). however, it's unclear
+        // at this stage whether both dimensions of the point should be added,
+        // so we rely on a later synthesis pass to add in correct FVs. 
         ),
         σ = ζ.σ ++ σ)
   }

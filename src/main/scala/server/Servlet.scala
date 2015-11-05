@@ -39,6 +39,8 @@ class Servlet extends Stack {
     var currVariants: Map[Int, IPConfig] = Map()
     // points given to the client
     var currPoints: Map[Int, IPConfig] = Map()
+    // FV configurations given to the client
+    var currFVs: Map[Int, Set[Variable]] = Map()
 
     def reset = {
       ζ = State.empty
@@ -58,6 +60,15 @@ class Servlet extends Stack {
         val (unchanged, outdated) = allConfigs.partition{c ⇒ (c & p.links).isEmpty}
         allConfigs = unchanged ++ (outdated.map{c ⇒ c + p.x + p.y})
       }
+    }
+
+
+    def generateFRVs: Seq[State] = {
+
+      val freeRVs = ζ.prog.freeRecVars ++ ζ.prog.recConstraints.map(_.lhs)
+      val validFVConfigs = Positional.extendLinksAll(freeRVs, ζ.prog.equations).toSeq
+      currFVs = validFVConfigs.zipWithIndex.map(_.swap).toMap
+      validFVConfigs.map{fvs ⇒ ζ.copy(prog = ζ.prog.copy(freeRecVars = fvs))}(collection.breakOut)
     }
 
     def generatePoints: Seq[String] = {
@@ -115,6 +126,10 @@ class Servlet extends Stack {
       currVariants = Map()
     }
 
+    def acceptFRV(i: Int){
+      ζ = ζ.copy(prog = ζ.prog.copy(freeRecVars = currFVs(i)))
+      currFVs = Map()
+    }
 
     // serve the current state, either with default parameters...
     def serveProgram = {
@@ -127,9 +142,11 @@ class Servlet extends Stack {
       } catch {
         case e: Throwable ⇒ println("exception in compiling"); println(e); throw e
       }
+      val wParams = params.withDefaultValue("false")
       jade("/empty.jade", "scrpt" → retP,
-        "height" → params("h"), "width" → params("w"),
-        "shouldSim" → params("sim")
+        "height" → wParams("h"), "width" → wParams("w"),
+        "shouldSimInteractions" → wParams("simInteractions"),
+        "shouldSimPhysics" → wParams("simPhysics")
       )
     }
 
@@ -149,11 +166,6 @@ class Servlet extends Stack {
       reset
       val orig = Run.loadSource(src)
       ζ = OptimizeAll(EquationPass(orig).head)
-
-      val freeRVs = ζ.prog.freeRecVars ++ ζ.prog.recConstraints.map(_.lhs)
-      // println("valid FV configs: " +
-      //   (Positional.extendLinksAll(freeRVs, ζ.prog.equations).map(_ diff freeRVs).toString))
-
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
@@ -186,7 +198,7 @@ class Servlet extends Stack {
   get("/loadfile/:src/:h/:w") {
     contentType = "text/html"
     loadFile(params("src"))
-    serveProgram(params + ("sim" → "false"))
+    serveProgram(params)
   }
 
   get("/points") {
@@ -210,13 +222,22 @@ class Servlet extends Stack {
       case _ ⇒ println("couldn't get ipoint for index " + params("i")); throw InconsistentServerState
     }
 
-    generateVariants(ipc).map{state ⇒ serveProgram(params + ("sim" → "true"), state)}
+    generateVariants(ipc).map{state ⇒ serveProgram(params + ("simInteractions" → "true"), state)}
   }
 
   // given an index, adds currVariants[i] into the main program and clears currVariants
 
   get("/accept-variant/:i") {
     acceptVariant(params("i").toInt)
+    ()
+  }
+
+  get("/free-vars/:h/:w"){
+    generateFRVs.map{state ⇒ serveProgram(params + ("simPhysics" → "true"), state)}
+  }
+
+  get("/accept-fv/:i"){
+    acceptFRV(params("i").toInt)
     ()
   }
 

@@ -1,8 +1,14 @@
 TODO:
 
+  * read KITTY + draco papers, esp. related work + motivation, evaluation
+    *** internalize structure of paper + style
+    ** draco, animation sketching approach to accessible animation thesis,
+       drawing dynamic visualizations
+    ** THIS IS OUR GOAL!!!!!
+    *** what is the bar for polish? what should evaluation look like? do we recruit TAs? profs?
+       *** how do they measure? how do they argue tool is good?
+
   * add in scalatest testing framework + unit tests
-  * add physics primitives to AST
-  * restructor AST into
 
   * finish point generation
     ** add inequalities to enforce orientation
@@ -49,3 +55,9 @@ distinguish between recursive updates and nonlinear one-way constraints:
     ** interactions: suggestValue for x, y values. reevaluate both networks.
 
   * user input:
+
+
+
+
+  NLP: given some text in a textbook describing a sim,
+  spit out a diagram implementing the sim

@@ -147,7 +147,7 @@ case class Eq(lhs: Expr, rhs: Expr) {
     res
   }
   def contains(vars: Set[Variable]) = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
-  def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) diff vars
+  def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) -- vars
   def substitute(subst: Map[Variable, Variable]) = Eq(lhs.substitute(subst), rhs.substitute(subst))
 }
 

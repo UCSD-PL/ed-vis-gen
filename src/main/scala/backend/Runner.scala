@@ -22,8 +22,7 @@ object Run {
       case Left(p) ⇒ p
       case Right(msg) ⇒ println(msg); throw ParseError
     }
-    // add in
-    OptimizeAll(State(prog, initσ))
+    State(prog, initσ)
   }
 
   def compileState(ζ: State, validate: Boolean = false) : String = {

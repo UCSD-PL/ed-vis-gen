@@ -170,12 +170,16 @@ object Positional extends SynthesisPass {
       )
       val validStates: MSet[Set[Variable]] = MSet()
 
+      dprintln("seed state: " + links + ", " + eqs)
+
       while (newStates.nonEmpty) {
         val (links, empties, semis, fullfilled) = newStates.head
+        dprintln("evaluating " + newStates.head)
         newStates -= newStates.head
 
         if (semis.isEmpty) {
           assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+          dprintln("finished")
           validStates += links
         } else {
           // for each equation e in semis, for each fixed variable x in e, if x
@@ -185,9 +189,12 @@ object Positional extends SynthesisPass {
 
           // candidates :: v ∈ Set[Variable] | v can be added to links
           if (candidates.isEmpty) {
-            assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-            validStates += links
+            dprintln("dead end")
+            // assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+            // validStates += links
           } else {
+            //println("seed " + links)
+            dprintln("generated " + candidates)
             newStates ++= candidates.map(v ⇒ {
               // adding v might bump some empties to semis, but not to fullfilleds.
               val newLinks = links + v
@@ -206,6 +213,54 @@ object Positional extends SynthesisPass {
       validStates.map(identity)(collection.breakOut)
     }
   }
+
+  // def extendLinksAll(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
+  //   dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
+  //   if (eqs.exists(e ⇒ e.count(links) > 2)) {
+  //     Set()
+  //   }
+  //   else {
+  //     dprintln("valid case")
+  //     exLinksAllH(links,
+  //       eqs.filter(e ⇒ e.count(links) == 0),
+  //       eqs.filter(e ⇒ e.count(links) == 1),
+  //       eqs.filter(e ⇒ e.count(links) == 2))
+  //   }
+  // }
+  //
+  // def exLinksAllH(links: Set[Variable],
+  //   empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
+  //     if (semis.isEmpty) {
+  //       assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+  //       Set(links)
+  //     } else {
+  //       // for each equation e in semis, for each fixed variable x in e, if x
+  //       // respects the invariant, add x to links, adjust the sets, and recurse.
+  //       val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
+  //         fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
+  //
+  //       // candidates :: v ∈ Set[Variable] | v can be added to links
+  //       if (candidates.isEmpty) {
+  //         assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
+  //         Set(links)
+  //
+  //       } else {
+  //         candidates.flatMap(v ⇒ {
+  //           // adding v might bump some empties to semis, but not to fullfilleds.
+  //           val newLinks = links + v
+  //           val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
+  //           assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
+  //           // ditto for semis to fulls
+  //           val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
+  //           assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
+  //           assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
+  //           exLinksAllH( newLinks,
+  //             newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
+  //           )}
+  //         )
+  //       }
+  //     }
+  //   }
 
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))

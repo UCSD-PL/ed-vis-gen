@@ -103,7 +103,7 @@ function acceptPoints() {
 function learnNextMotive() {
   var nextI = Object.keys(accepted_points).shift();
   if (nextI === undefined) {
-    loadMain(clearFrames, false);
+    loadMain(learnFVs, false);
   } else {
     var nextPoint = accepted_points[nextI];
     nextPoint.fill = 'yellow';
@@ -115,6 +115,21 @@ function learnNextMotive() {
       delete accepted_points[nextI];
     });
   }
+}
+
+function learnFVs() {
+  clearFrames();
+
+  sendGet("free-vars/300/300", function(variants) {
+    var newFrames = responseToArray(variants);
+    for (var i = 0; i < newFrames.length; ++i) {
+      initFrame(i, 32.3, "variants", newFrames[i], function(index) {
+        sendGet("accept-fv/" + index, function() {
+          loadMain(clearFrames, false);
+        });
+      });
+    }
+  });
 }
 
 
@@ -133,8 +148,10 @@ function learnMotive(i, Κ) {
 
   sendGet("variants/" + i.toString() + "/300/300", function(variants) {
     var newFrames = responseToArray(variants);
-    for (var i = 0; i < newFrames.length; ++i) {
-      initFrame(i, 32.3, "variants", newFrames[i], Κ);
+    for (var j = 0; j < newFrames.length; ++j) {
+      initFrame(j, 32.3, "variants", newFrames[j], function(index) {
+        acceptVariant(index, Κ);
+      });
     }
   });
 }
@@ -195,7 +212,7 @@ function enableInterface() {
 
 
 // given an ident and width, make a new frame and add it to the end of some element
-function initFrame(index, widthP, divID, html, Κ) {
+function initFrame(index, widthP, divID, html, learner) {
   var newContainer = document.createElement('div');
   newContainer.id = divID + '_' + index.toString();
   var newFrame = document.createElement('iframe');
@@ -205,7 +222,7 @@ function initFrame(index, widthP, divID, html, Κ) {
   newContainer.classList.add("smallFrame");
   newContainer.style.float = 'left';
 
-  aButton.onclick = function() {acceptVariant(index, Κ);};
+  aButton.onclick = function() {learner(index);}
 
   aButton.style = {float: 'right', background_color: '#00FF33'};
   aButton.textContent = "Accept";

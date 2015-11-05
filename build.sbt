@@ -10,3 +10,8 @@ scalacOptions += "-language:experimental.macros"
 
 // javaOptions += "-XX:+UnlockCommercialFeatures"
 // javaOptions += "-XX:+FlightRecorder"
+
+// javaOptions in (Compile,run) ++= (System.getenv("JREBEL_HOME") match {
+//   case null => Seq("-Xmx2G")
+//   case v    => println("added jrebel"); Seq("-Xmx2G", "-javaagent:" + v + "/jrebel.jar")
+// })
