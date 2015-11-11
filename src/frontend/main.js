@@ -6,6 +6,31 @@ function init_state() {
   clearFrames();
 }
 
+function init_frames() {
+  $('.variants').jcarousel();
+  $('.variant-prev')
+    .on('jcarouselcontrol:active', function() {
+        $(this).removeClass('inactive');
+    })
+    .on('jcarouselcontrol:inactive', function() {
+        $(this).addClass('inactive');
+    })
+    .jcarouselControl({
+        target: '-=1'
+    });
+
+  $('.variant-next')
+      .on('jcarouselcontrol:active', function() {
+          $(this).removeClass('inactive');
+      })
+      .on('jcarouselcontrol:inactive', function() {
+          $(this).addClass('inactive');
+      })
+      .jcarouselControl({
+          target: '+=1'
+      });
+}
+
 function captureMovement(e) {
   if (!e) e = window.event;
   log(e);
@@ -18,6 +43,7 @@ function captureMovement(e) {
 function main() {
 
   init_state();
+  init_frames();
 
   // capture mouse events over variants so that simulated display movements are not
   // interrupted
@@ -129,12 +155,14 @@ function learnFVs() {
         });
       });
     }
+
+    $(".variants").jcarousel('reload');
   });
 }
 
 
 function clearFrames(){
-  var frames = document.getElementById('variants');
+  var frames = $(".variants")[0].children[0];
 
   while (frames.firstChild) {
     frames.removeChild(frames.firstChild);
@@ -153,6 +181,7 @@ function learnMotive(i, Κ) {
         acceptVariant(index, Κ);
       });
     }
+    $(".variants").jcarousel('reload');
   });
 }
 
@@ -213,14 +242,12 @@ function enableInterface() {
 
 // given an ident and width, make a new frame and add it to the end of some element
 function initFrame(index, widthP, divID, html, learner) {
-  var newContainer = document.createElement('div');
+  var newContainer = document.createElement('li');
   newContainer.id = divID + '_' + index.toString();
   var newFrame = document.createElement('iframe');
   var aButton = document.createElement('button');
   aButton.id = newContainer.id + '_accept';
-  newContainer.style.width = widthP.toString() + "%";
   newContainer.classList.add("smallFrame");
-  newContainer.style.float = 'left';
 
   aButton.onclick = function() {learner(index);}
 
@@ -232,7 +259,8 @@ function initFrame(index, widthP, divID, html, learner) {
   newFrame.style.width = "100%";
   newFrame.style.borderStyle = "none";
 
-  var parent = document.getElementById(divID);
+  var parent = $(".variants")[0].children[0];
+  //console.log();
   newContainer.appendChild(aButton);
   newContainer.appendChild(newFrame);
   parent.appendChild(newContainer);

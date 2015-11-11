@@ -18,6 +18,8 @@
 <script src="eddie/library.js"></script>
 <script src="eddie/common.js"></script>
 <script src="eddie/display.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jcarousel/0.3.4/jquery.jcarousel.min.js"></script>
 <script src="main.js"></script>
 
 <link href="style.css" type="text/css" rel="stylesheet"/>
@@ -41,7 +43,13 @@
 
   <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
 
-  <div id="variants">
+  <div class='variant-wrapper'>
+    <a href="#" class="variant-prev" data-jcarouselcontrol="true">›</a>
+    <div class="variants">
+      <ul>
+      </ul>
+    </div>
+    <a href="#" class="variant-next" data-jcarouselcontrol="true">›</a>
   </div>
 
 </body>
