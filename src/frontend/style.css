@@ -11,10 +11,20 @@
 
 /** Carousel **/
 
+.variant-wrapper {
+  width:1200px;
+  height:100%;
+  position: relative;
+  margin:auto;
+  display: block;
+}
+
 .variants {
   height: 400px;
+  width: 350px;
   position: relative;
   overflow: hidden;
+  margin:auto;
 }
 
 .variants ul {
@@ -32,7 +42,7 @@
 
 .smallFrame {
   height: 350px;
-  width: 350px;
+  width: 344px;
   border-style: solid;
 }
 
@@ -45,41 +55,39 @@
 
 /** Carousel Controls **/
 
-.variants-prev,
-.variants-next {
+.variant-prev,
+.variant-next {
     position: absolute;
-    top: 200px;
-    width: 30px;
-    height: 30px;
+    top: 155px;
     text-align: center;
-    background: #4E443C;
-    color: #fff;
-    text-decoration: none;
-    text-shadow: 0 0 1px #000;
-    font: 24px/27px Arial, sans-serif;
-    -webkit-border-radius: 30px;
-       -moz-border-radius: 30px;
-            border-radius: 30px;
-    -webkit-box-shadow: 0 0 2px #999;
-       -moz-box-shadow: 0 0 2px #999;
-            box-shadow: 0 0 2px #999;
+    display:block;
+    height:50px;
+    width:50px;
+    background-image:url("resources/arrow.jpg");
 }
 
-.variants-prev {
-    left: -50px;
+.variant-prev {
+  left:-60px;
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
 }
 
-.variants-next {
-    right: -50px;
+.variant-next {
+  right:-60px;
 }
 
-.variants-prev:hover span,
-.variants-next:hover span {
+
+.variant-prev:hover span,
+.variant-next:hover span {
     display: block;
 }
 
-.variants-prev.inactive,
-.variants-next.inactive {
+.variant-prev.inactive,
+.variant-next.inactive {
     opacity: .5;
     cursor: default;
 }
