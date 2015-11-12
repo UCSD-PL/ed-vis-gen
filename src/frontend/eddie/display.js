@@ -101,20 +101,27 @@ function lineInvoke(Κ, start, end, resolution, i) {
 // given a center point and a receiver for events, click on the center,
 // drag to the start of a circle, drag a circle, and release.
 
-function circularSim(point, receiver) {
+function circularSim(offset, point, receiver) {
 
   var circResolution = 25;
   var circDuration = 1000;
   var r = 25;
 
-  dispatchEvent(receiver, generateMD(point)); // click on the point
+  var cdelta = 20;
+  var cursor = Image(point.x + cdelta/2-5, point.y + cdelta/2 -2, cdelta, cdelta, "mouse"); // height, width
+  all_objects.push(cursor);
+
+  var newPoint = {x: point.x + offset.left, y: point.y + offset.top};
+  dispatchEvent(receiver, generateMD(newPoint)); // click on the point
 
 
   scheduleCalls(function (i) {
-    circularInvoke( function(point) {
-          dispatchEvent(receiver, generateMM(point)); // drag around the circle
+    circularInvoke( function(p) {
+          cursor.x = p.x - offset.left + cdelta/2 - 5;
+          cursor.y = p.y - offset.top + cdelta/2 - 2;
+          dispatchEvent(receiver, generateMM(p)); // drag around the circle
         },
-        {x: point.x, y: point.y, r: r},
+        {x: newPoint.x, y: newPoint.y, r: r},
         circResolution,
         i
       );

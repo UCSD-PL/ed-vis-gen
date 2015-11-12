@@ -45,6 +45,7 @@ html
     canvas(id="incCanvas" style="position:absolute; z-index:1; pointer-events:none;")
 
     img(id="iron" src="resources/weight.jpeg" height="400px" width="400px" style="display:none")
+    img(id="mouse" src="resources/cursor.png" height="32" width="30" style="display:none")
 
   script
     | document.addEventListener('DOMContentLoaded', function() { c_main(#{height}, #{width}, #{shouldSimInteractions}, #{shouldSimPhysics});}, false);
