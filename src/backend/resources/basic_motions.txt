@@ -32,9 +32,8 @@ DY <- DY + V
 M = _,     // mass of object
 G = _,     // strength of gravity
 V = _,     // initial vertical velocity
-T = _,     // starting time
-C = _,     // amount of air damping
 F = _      // Must be defined, value is not used
+
 
 ## Shape
 Spring((PX, PY), DX, DY)
@@ -44,12 +43,9 @@ Rectangle((PX, PY), HX, HY)
 Circle((PX,PY), R)
 
 ## One-way constraints
-T  <- (T + 0.01),
-F <- M*G - (C*V))/M,
+F <- M*G
 V <- V + F,
 PY <- PY + V
-
-
 
 #####################
 ## Pendulum Motion ##
