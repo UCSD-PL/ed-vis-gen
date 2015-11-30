@@ -73,6 +73,7 @@ function scheduleCalls(work, time, resolution, Κ, shouldStop) {
         }
       }, time/resolution
     );
+  return calls;
 
 }
 
@@ -108,14 +109,14 @@ function circularSim(offset, point, receiver) {
   var r = 25;
 
   var cdelta = 20;
-  var cursor = Image(point.x + cdelta/2-5, point.y + cdelta/2 -2, cdelta, cdelta, "mouse"); // height, width
+  cursor = Image(point.x + cdelta/2-5, point.y + cdelta/2 -2, cdelta, cdelta, "mouse"); // height, width
   all_objects.push(cursor);
 
   var newPoint = {x: point.x + offset.left, y: point.y + offset.top};
   dispatchEvent(receiver, generateMD(newPoint)); // click on the point
 
 
-  scheduleCalls(function (i) {
+  return scheduleCalls(function (i) {
     circularInvoke( function(p) {
           cursor.x = p.x - offset.left + cdelta/2 - 5;
           cursor.y = p.y - offset.top + cdelta/2 - 2;

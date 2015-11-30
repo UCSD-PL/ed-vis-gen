@@ -4,9 +4,11 @@ function init_state() {
   program_frames = {};
   mainWindow = {};
   clearFrames();
+  learningInteractions = false;
 }
 
 function init_frames() {
+  var jc = function(str){ return $('.variants').jcarousel(str); };
   $('.variants').jcarousel();
   $('.variant-prev')
     .on('jcarouselcontrol:active', function() {
@@ -14,6 +16,22 @@ function init_frames() {
     })
     .on('jcarouselcontrol:inactive', function() {
         $(this).addClass('inactive');
+    })
+    .on('click', function() {
+      // stop current sim, start next sim
+      // TODO: make separate carousels or detach onclick handler
+      if (learningInteractions) {
+        var currIdx = jc('items').index(jc('first'));
+        var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
+        oldFrame.contentWindow['stopDisplay']();
+        // index is for old frame
+        if (currIdx > 0) {
+          currIdx -= 1;
+        }
+
+        var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
+        nextFrame.contentWindow['startDisplay']();
+      }
     })
     .jcarouselControl({
         target: '-=1'
@@ -25,6 +43,21 @@ function init_frames() {
       })
       .on('jcarouselcontrol:inactive', function() {
           $(this).addClass('inactive');
+      })
+      .on('click', function() {
+        if (learningInteractions) {
+          // stop current sim, start next sim
+          var currIdx = jc('items').index(jc('first'));
+          var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
+          oldFrame.contentWindow['stopDisplay']();
+          // index is for old frame
+          if (currIdx < jc('items').length - 1) {
+            currIdx += 1;
+          }
+
+          var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
+          nextFrame.contentWindow['startDisplay']();
+        }
       })
       .jcarouselControl({
           target: '+=1'
@@ -110,6 +143,7 @@ function regenVariants() {
 }
 
 function acceptPoints() {
+  learningInteractions = true;
   var acceptedPoints = [];
 
   for (var i = 0; i < current_points.length; ++i) {
@@ -129,6 +163,7 @@ function acceptPoints() {
 function learnNextMotive() {
   var nextI = Object.keys(accepted_points).shift();
   if (nextI === undefined) {
+    learningInteractions = false;
     loadMain(learnFVs, false);
   } else {
     var nextPoint = accepted_points[nextI];
@@ -182,6 +217,11 @@ function learnMotive(i, Κ) {
       });
     }
     $(".variants").jcarousel('reload');
+    $($('.variants').jcarousel('first').children('iframe')[0]).on('load',
+      function() {
+        $('.variants').jcarousel('first').children('iframe')[0].contentWindow['startDisplay']();
+      }
+    );
   });
 }
 
