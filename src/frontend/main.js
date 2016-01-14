@@ -92,6 +92,7 @@ function main() {
           current_points[i] = mainWindow[points[i]];
         }
         mainWindow.drag_points = [];
+      console.log(current_points);
       for (var i in current_points) {
         var newPoint = current_points[i];
         newPoint.fill = "red";
@@ -172,7 +173,7 @@ function learnNextMotive() {
     mainWindow.global_redraw();
     learnMotive(nextI, function () {
       nextPoint.fill = 'green';
-      nextPoint.cr = 2;
+      nextPoint.cr = 3.5;
       delete accepted_points[nextI];
     });
   }
