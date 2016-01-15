@@ -9,6 +9,34 @@ function init_state() {
 
 function init_frames() {
   var jc = function(str){ return $('.variants').jcarousel(str); };
+  var transition = function (forward) {
+      // stop current sim, start next sim
+      var currIdx = jc('items').index(jc('first'));
+      var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
+      // index is for old frame
+      // we're going to the right...
+      if (forward && (currIdx < jc('items').length - 1)) {
+        currIdx += 1;
+      } else if (!forward && currIdx > 0) {
+        // we're going to the left
+        currIdx -= 1;
+      }
+
+      var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
+
+      // we're either learning interactions, or learning physics configurations.
+      if (learningInteractions) {
+        // if the former, call start/stop display.
+        oldFrame.contentWindow['stopDisplay']();
+        nextFrame.contentWindow['startDisplay']();
+      } else {
+        // if the latter, stop and reset the old frame and start the new frame.
+        oldFrame.contentWindow['stop']();
+        oldFrame.contentWindow['reset']();
+        nextFrame.contentWindow['start']();
+      }
+
+    };
   $('.variants').jcarousel();
   $('.variant-prev')
     .on('jcarouselcontrol:active', function() {
@@ -18,20 +46,8 @@ function init_frames() {
         $(this).addClass('inactive');
     })
     .on('click', function() {
+      transition(false)
       // stop current sim, start next sim
-      // TODO: make separate carousels or detach onclick handler
-      if (learningInteractions) {
-        var currIdx = jc('items').index(jc('first'));
-        var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
-        oldFrame.contentWindow['stopDisplay']();
-        // index is for old frame
-        if (currIdx > 0) {
-          currIdx -= 1;
-        }
-
-        var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
-        nextFrame.contentWindow['startDisplay']();
-      }
     })
     .jcarouselControl({
         target: '-=1'
@@ -45,19 +61,7 @@ function init_frames() {
           $(this).addClass('inactive');
       })
       .on('click', function() {
-        if (learningInteractions) {
-          // stop current sim, start next sim
-          var currIdx = jc('items').index(jc('first'));
-          var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
-          oldFrame.contentWindow['stopDisplay']();
-          // index is for old frame
-          if (currIdx < jc('items').length - 1) {
-            currIdx += 1;
-          }
-
-          var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
-          nextFrame.contentWindow['startDisplay']();
-        }
+        transition(true);
       })
       .jcarouselControl({
           target: '+=1'
@@ -92,33 +96,33 @@ function main() {
           current_points[i] = mainWindow[points[i]];
         }
         mainWindow.drag_points = [];
-      console.log(current_points);
-      for (var i in current_points) {
-        var newPoint = current_points[i];
-        newPoint.fill = "red";
-        newPoint.selected = false;
-      }
 
-      mainWindow.global_redraw();
+        for (var i in current_points) {
+          var newPoint = current_points[i];
+          newPoint.fill = "red";
+          newPoint.selected = false;
+        }
 
-      mainWindow.addEventListener("mousedown", function (e) {
-        if (e.button == 0) {
-          var x = e.layerX;
-          var y = e.layerY;
-          for (var i = 0; i < current_points.length; i++) {
-            if (withinRadius(x, y, current_points[i])) {
-              var currPoint = current_points[i]
-              if (currPoint.selected) {
-                currPoint.fill = "red";
-              } else {
-                currPoint.fill = "green";
+        mainWindow.global_redraw();
+
+        mainWindow.addEventListener("mousedown", function (e) {
+          if (e.button == 0) {
+            var x = e.layerX;
+            var y = e.layerY;
+            for (var i = 0; i < current_points.length; i++) {
+              if (withinRadius(x, y, current_points[i])) {
+                var currPoint = current_points[i]
+                if (currPoint.selected) {
+                  currPoint.fill = "red";
+                } else {
+                  currPoint.fill = "green";
+                }
+                currPoint.selected = !currPoint.selected;
+                mainWindow.global_redraw();
               }
-              currPoint.selected = !currPoint.selected;
-              mainWindow.global_redraw();
             }
           }
-        }
-      }, true);
+        }, true);
 
 
       });
@@ -193,6 +197,14 @@ function learnFVs() {
     }
 
     $(".variants").jcarousel('reload');
+    $(".variants").jcarousel('scroll', 0, false);
+
+    // start the first frame
+    var iframe = ($($(".variants").jcarousel('items')[0]).children('iframe')[0]);
+    $(iframe).on('load', function() {
+      iframe.contentWindow.start();
+    });
+
   });
 }
 

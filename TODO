@@ -1,8 +1,6 @@
 TODO:
 
-  * annoying to start/reset animation, should reset on scroll
   * fix bug with capturing mouse movements
-  * make points larger
 
   * box width/heights being negative are nonsensical:
     ** solve inversion

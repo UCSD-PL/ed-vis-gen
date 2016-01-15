@@ -233,7 +233,7 @@ class Servlet extends Stack {
   }
 
   get("/free-vars/:h/:w"){
-    generateFRVs.map{state ⇒ serveProgram(params + ("simPhysics" → "true"), state)}
+    generateFRVs.map{state ⇒ serveProgram(params, state)}
   }
 
   get("/accept-fv/:i"){
