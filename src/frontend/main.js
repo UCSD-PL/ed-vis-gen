@@ -68,22 +68,14 @@ function init_frames() {
       });
 }
 
-function captureMovement(e) {
-  if (!e) e = window.event;
-  log(e);
-  e.stopPropagation();
-  e.preventDefault();
-  e.bubbles=false;
-  log(e.bubbles);
-  return false;
-}
 function main() {
 
   init_state();
   init_frames();
 
-  // capture mouse events over variants so that simulated display movements are not
-  // interrupted
+
+
+
 
   loadMain( function() {
     getPoints( function (payload) {
@@ -191,7 +183,24 @@ function learnFVs() {
     for (var i = 0; i < newFrames.length; ++i) {
       initFrame(i, 32.3, "variants", newFrames[i], function(index) {
         sendGet("accept-fv/" + index, function() {
-          loadMain(clearFrames, false);
+          loadMain(function() {
+            clearFrames();
+
+            // pass mouse events to new main
+            ["mousedown", "mouseup", "mousemove"].forEach( function(eType) {
+                var mFrame = document.getElementById('mainFrame')
+                             .contentWindow.document.getElementById('mainCanvas');
+                mFrame.addEventListener(eType, function(e) {
+                  var offset = mFrame.getBoundingClientRect();
+                  var newEv = wrapEvent(e, {
+                    dx: -1 * offset.left,
+                    dy: -1 * offset.top
+                  });
+
+                  dispatchEvent(mFrame, newEv);
+              });
+            });
+          }, false);
         });
       });
     }
@@ -215,9 +224,6 @@ function clearFrames(){
   while (frames.firstChild) {
     frames.removeChild(frames.firstChild);
   }
-  ["mousedown", "mouseup", "mousemove"].map( function(e) {
-    frames.addEventListener(e, captureMovement, true);
-  });
 }
 function learnMotive(i, Κ) {
   clearFrames();
@@ -285,13 +291,6 @@ function acceptVariant(ident, Κ) {
   });
 }
 
-function disableInterface() {
-  document.getElementById('loading').style.display = 'block';
-}
-function enableInterface() {
-  document.getElementById('loading').style.display = 'none';
-}
-
 
 // given an ident and width, make a new frame and add it to the end of some element
 function initFrame(index, widthP, divID, html, learner) {
@@ -313,6 +312,7 @@ function initFrame(index, widthP, divID, html, learner) {
   newFrame.style.borderStyle = "none";
 
   var parent = $(".variants")[0].children[0];
+
   //console.log();
   newContainer.appendChild(aButton);
   newContainer.appendChild(newFrame);
@@ -333,11 +333,11 @@ function getPoints(Κ) {
 // pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
 function sendGet(urlTail, Κ, resType) {
   var url = "http://localhost:8080/" + urlTail;
-  console.log('sending GET ' + urlTail);
+  log('sending GET ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState == 4 && req.status == 200) {
-      console.log("received response for " + urlTail);
+      log("received response for " + urlTail);
       Κ(req.responseText);
     }
   }
@@ -349,11 +349,11 @@ function sendGet(urlTail, Κ, resType) {
 function sendPost(body, urlTail, Κ) {
   urlTail = urlTail || "";
   var url = "http://localhost:8080/" + urlTail;
-  console.log('sending POST ' + urlTail);
+  log('sending POST ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState == 4 && req.status == 200) {
-      console.log("received response for " + urlTail);
+      log("received response for " + urlTail);
       Κ(req.responseText);
     }
   }

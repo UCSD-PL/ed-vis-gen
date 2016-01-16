@@ -1,7 +1,5 @@
 TODO:
 
-  * fix bug with capturing mouse movements
-
   * box width/heights being negative are nonsensical:
     ** solve inversion
     ** add inequalities to enforce orientation

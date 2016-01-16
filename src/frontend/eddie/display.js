@@ -1,61 +1,5 @@
 // library functions for displaying interactions
 
-// pulled from http://marcgrabanski.com/simulating-mouse-click-events-in-javascript/
-// simulate a generic mouse event
-// expects type ∈ {"mousemove", "click", "mouseup", "mousedown"}
-// sx, sy, cx, cy ∈ nats
-// example: mouseEvent("click", 1, 50, 1, 50);
-function mouseEvent(type, sx, sy, cx, cy) {
-  var evt;
-  var e = {
-    bubbles: true,
-    cancelable: (type != "mousemove"),
-    view: window,
-    detail: 0,
-    screenX: sx,
-    screenY: sy,
-    clientX: cx,
-    clientY: cy,
-    ctrlKey: false,
-    altKey: false,
-    shiftKey: false,
-    metaKey: false,
-    button: 0,
-    relatedTarget: undefined
-  };
-  if (typeof( document.createEvent ) == "function") {
-    evt = document.createEvent("MouseEvents");
-    evt.initMouseEvent(type,
-      e.bubbles, e.cancelable, e.view, e.detail,
-      e.screenX, e.screenY, e.clientX, e.clientY,
-      e.ctrlKey, e.altKey, e.shiftKey, e.metaKey,
-      e.button, document.body.parentNode);
-  } else if (document.createEventObject) {
-    evt = document.createEventObject();
-    for (prop in e) {
-    evt[prop] = e[prop];
-  }
-    evt.button = { 0:1, 1:4, 2:2 }[evt.button] || evt.button;
-  }
-  return evt;
-}
-
-// build a mouse event at a particular target
-function generateME(type, point) {
-  return mouseEvent(type, point.x, point.y, point.x, point.y);
-}
-
-// mouse events (parameterized at a point) for mouseup, mousedown, and drags
-function generateMU(point) {
-  return generateME("mouseup", point);
-}
-function generateMD(point) {
-  return generateME("mousedown", point);
-}
-function generateMM(point) {
-  return generateME("mousemove", point);
-}
-
 // given a function, a length of time (in milliseconds), and a resolution, space the function's calls
 // equally over the resolution. the function will receive the current resolution step
 // as an argument. if shouldStop is true, the function will stop being called after
@@ -107,19 +51,21 @@ function circularSim(offset, point, receiver) {
   var circResolution = 25;
   var circDuration = 1000;
   var r = 25;
+  var deltaX = 0; // offset.left
+  var deltaY = 0; // offset.top
 
   var cdelta = 20;
   cursor = Image(point.x + cdelta/2-5, point.y + cdelta/2 -2, cdelta, cdelta, "mouse"); // height, width
   all_objects.push(cursor);
 
-  var newPoint = {x: point.x + offset.left, y: point.y + offset.top};
+  var newPoint = {x: point.x + deltaX, y: point.y + deltaY};
   dispatchEvent(receiver, generateMD(newPoint)); // click on the point
 
 
   return scheduleCalls(function (i) {
     circularInvoke( function(p) {
-          cursor.x = p.x - offset.left + cdelta/2 - 5;
-          cursor.y = p.y - offset.top + cdelta/2 - 2;
+          cursor.x = p.x - deltaX + cdelta/2 - 5;
+          cursor.y = p.y - deltaY + cdelta/2 - 2;
           dispatchEvent(receiver, generateMM(p)); // drag around the circle
         },
         {x: newPoint.x, y: newPoint.y, r: r},
@@ -129,14 +75,4 @@ function circularSim(offset, point, receiver) {
     }, circDuration, circResolution, function() {}, false
   );
 
-}
-
-// trigger generic event to target
-function dispatchEvent (el, evt) {
-  if (el.dispatchEvent) {
-    el.dispatchEvent(evt);
-  } else if (el.fireEvent) {
-    el.fireEvent('on' + type, evt);
-  }
-  return evt;
 }
