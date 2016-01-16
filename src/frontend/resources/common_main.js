@@ -1,5 +1,5 @@
 function c_main(height, width, shouldSimInteractions, shouldSimPhysics) {
-  common_init(height, width, shouldSimPhysics);
+  common_init(height, width, true);
   init();
   global_redraw();
   displaySimID = -1;

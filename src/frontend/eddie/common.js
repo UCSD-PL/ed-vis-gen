@@ -29,14 +29,9 @@ function common_init(height, width, alwaysRun) {
 
   resetState();
 
-  // start physics components if necessary
   if (alwaysRun) {
-    // timers.map(function (t) {
-    //   t.start();
-    // });
-
   } else {
-    // only run when selected
+    // only run physics engine when selected
     document.body.onmouseover = function() {
       timers.map(function(t) {
         if (t.shouldRun) {
