@@ -236,6 +236,7 @@ function learnMotive(i, Κ) {
       });
     }
     $(".variants").jcarousel('reload');
+    $(".variants").jcarousel('scroll', 0, false);
     $($('.variants').jcarousel('first').children('iframe')[0]).on('load',
       function() {
         $('.variants').jcarousel('first').children('iframe')[0].contentWindow['startDisplay']();
