@@ -1,5 +1,7 @@
 TODO:
 
+  *rework ELA algorithm with sources and sinks
+
   ** some physic sims didn't run with multiple points: investigate
 
   ** inlining isn't optimal: with a point on weight + point in spring,
