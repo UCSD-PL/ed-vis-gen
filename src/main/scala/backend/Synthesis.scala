@@ -184,6 +184,7 @@ object Positional extends SynthesisPass {
       dprintln("seed equations: " + initColor.toString)
       val validColors = elaHelper(initColor)
 
+
       validColors.map{ coloring ⇒ coloring.foldLeft(Set[Variable]()){ case (acc, (_, color)) ⇒ color match {
           case Full(s, k) ⇒ acc + s + k
           case Empty ⇒ acc
@@ -246,7 +247,7 @@ object Positional extends SynthesisPass {
                 dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
                 acc + (eq → Empty)
               }
-            case Half(src) ⇒ if (src == cand.src) {
+            case Half(src) ⇒ if (src == cand.src && eq.contains(cand.snk)) {
                 dprintln("satisfied "+ cand.snk.toString + " in " + eq.toString)
                 acc + (eq → cand)
               } else {

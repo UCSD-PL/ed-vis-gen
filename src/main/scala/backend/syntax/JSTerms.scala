@@ -129,6 +129,7 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
     vars ++ that.vars.mapValues(-1 * _))
   def times(that: Double) = Expr(constant * that, vars.mapValues(that * _))
   def div(that: Double) = times(1/that)
+  def size = vars.size
 }
 
 object Expr {
