@@ -6,10 +6,12 @@ import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
 import fi.gekkio.sbtplugins.jrebel
 
-object MyExampleBuild extends Build {
+object EddieBuild extends Build {
   val Organization = "com.github.jsarracino"
   val Name = "EDDIE"
   val Version = "0.1.0-SNAPSHOT"
+  scalaVersion := "2.11.7"
+
   val ScalatraVersion = "2.4.0.RC1"
   scalacOptions += "-feature"
   scalacOptions += "-deprecation"
@@ -18,7 +20,7 @@ object MyExampleBuild extends Build {
 
 
   lazy val project = Project (
-    "scalatra-buildfile-example",
+    "scalatra-EDDIE",
     file("."),
 
     settings = Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ scalateSettings ++ Seq(
@@ -39,7 +41,8 @@ object MyExampleBuild extends Build {
         "org.scalatra" %% "scalatra-json" % "2.3.0",
         "org.json4s"   %% "json4s-jackson" % "3.2.9",
         "com.googlecode.kiama" %% "kiama" % "1.8.0",
-        "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+        "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+        "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(
@@ -51,14 +54,14 @@ object MyExampleBuild extends Build {
             Some("templates")
           )
         )
-      },
+      }
 
-      fork in (Compile,run) := true,
-      javaOptions in (Compile,run) ++= (System.getenv("JREBEL_HOME") match {
-        case null => Seq("-Xmx2G")
-        case v    => println("added jrebel"); Seq("-Xmx2G", "-javaagent:" + v + "/jrebel.jar")
-      })
-    ) ++ Seq(jrebel.JRebelPlugin.jrebelSettings: _*)
+      //fork in (Compile,run) := true,
+      // javaOptions in (Compile,run) ++= (System.getenv("JREBEL_HOME") match {
+      //   case null => Seq("-Xmx2G")
+      //   case v    => println("added jrebel"); Seq("-Xmx2G", "-javaagent:" + v + "/jrebel.jar")
+      // })
+    )  //++ Seq(jrebel.JRebelPlugin.jrebelSettings: _*)
 
 
 

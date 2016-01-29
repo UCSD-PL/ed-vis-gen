@@ -7,7 +7,6 @@ import EDDIE.backend.semantics._
 import EDDIE.backend.Helpers._
 import EDDIE.backend.Types._
 
-import scala.annotation.tailrec
 import scala.collection.mutable.{Set ⇒ MSet}
 
 // interaction point placements: given a shape, return all possible ipoints and
@@ -152,115 +151,119 @@ trait SynthesisPass {
 // synthesis of positional interactions
 object Positional extends SynthesisPass {
 
-  // given a seed set of links and equations, return a set of all well-defined
-  // interaction links. we enforce the invariant that every equation
-  // contains either 2 free variables, or no free variables.
+
+  // starting from a seed set of source variables:
+  //   * a configuration is **consistent** if every equation has either one source + sink
+  //     OR no sources or sinks
+  //   * associate configurations with colorings (a map from equation to empty/Source/Source + Sink).
+  //     a candidate:
+  //       ** lives in a equation with a Source
+  //       ** is not a Source/Sink in another equation
+  //     foreach candidate:
+  //       ** add the candidate to the configuration
+  //       ** color the candidate as a Sink in the other equations
+
+  sealed abstract class Color
+  case object Empty extends Color
+  case class Half(src: Variable) extends Color
+  case class Full(src: Variable, snk: Variable) extends Color
+
+  type Coloring = Map[Eq, Color]
   def extendLinksAll(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
-    if (eqs.exists(e ⇒ e.count(links) > 2)) {
+    dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
+    if (eqs.exists(e ⇒ e.count(links) >= 2)) {
+      dprintln("degenerate case")
       Set()
     }
     else {
-      def partByNum(es: Set[Eq], ls: Set[Variable], num: Int) =
-        es.partition(e ⇒ e.count(ls) == num)
-      dprintln("valid case")
-      // store states as links, empties, semis, and fullfilleds
-      type LinkState = (Set[Variable], Set[Eq], Set[Eq], Set[Eq])
-      val newStates: MSet[LinkState] = MSet(
-        (links, partByNum(eqs, links, 0)._1, partByNum(eqs, links, 1)._1, partByNum(eqs, links, 2)._1)
-      )
-      val validStates: MSet[Set[Variable]] = MSet()
+      val initColor = eqs.map{ e ⇒ links.find(v ⇒ e.contains(v)) match {
+          case Some(v) ⇒ (e → Half(v))
+          case _ ⇒ (e → Empty)
+      }}.toMap
 
-      dprintln("seed state: " + links + ", " + eqs)
+      dprintln("seed equations: " + initColor.toString)
+      val validColors = elaHelper(initColor)
 
-      while (newStates.nonEmpty) {
-        val (links, empties, semis, fullfilled) = newStates.head
-        dprintln("evaluating " + newStates.head)
-        newStates -= newStates.head
+      validColors.map{ coloring ⇒ coloring.foldLeft(Set[Variable]()){ case (acc, (_, color)) ⇒ color match {
+          case Full(s, k) ⇒ acc + s + k
+          case Empty ⇒ acc
+          case _ ⇒ assert(false); acc
+      }}}(collection.breakOut)
 
-        if (semis.isEmpty) {
-          assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-          dprintln("finished")
-          validStates += links
-        } else {
-          // for each equation e in semis, for each fixed variable x in e, if x
-          // respects the invariant, add x to links, adjust the sets, and recurse.
-          val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
-            fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
-
-          // candidates :: v ∈ Set[Variable] | v can be added to links
-          if (candidates.isEmpty) {
-            dprintln("dead end")
-            // assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-            // validStates += links
-          } else {
-            //println("seed " + links)
-            dprintln("generated " + candidates)
-            newStates ++= candidates.map(v ⇒ {
-              // adding v might bump some empties to semis, but not to fullfilleds.
-              val newLinks = links + v
-              val (newEmpty, newSemi) = partByNum(empties, newLinks, 0)
-              assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
-              // ditto for semis to fulls
-              val (newSemi2, newFull) = partByNum(semis, newLinks, 1)
-              assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
-              assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
-              (newLinks, newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled)
-            })
-          }
-        }
-      }
-
-      validStates.map(identity)(collection.breakOut)
     }
   }
 
-  // def extendLinksAll(links: Set[Variable], eqs: Set[Eq]): Set[Set[Variable]] = {
-  //   dprintln("for links " ++ links.toString ++ " and eqs " ++ eqs.toString)
-  //   if (eqs.exists(e ⇒ e.count(links) > 2)) {
-  //     Set()
-  //   }
-  //   else {
-  //     dprintln("valid case")
-  //     exLinksAllH(links,
-  //       eqs.filter(e ⇒ e.count(links) == 0),
-  //       eqs.filter(e ⇒ e.count(links) == 1),
-  //       eqs.filter(e ⇒ e.count(links) == 2))
-  //   }
-  // }
-  //
-  // def exLinksAllH(links: Set[Variable],
-  //   empties: Set[Eq], semis: Set[Eq], fullfilled: Set[Eq]): Set[Set[Variable]] = {
-  //     if (semis.isEmpty) {
-  //       assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-  //       Set(links)
-  //     } else {
-  //       // for each equation e in semis, for each fixed variable x in e, if x
-  //       // respects the invariant, add x to links, adjust the sets, and recurse.
-  //       val candidates = semis.flatMap(e ⇒ e.remove(links)).filter(v ⇒
-  //         fullfilled.forall( e ⇒ e.count(Set(v)) == 0 ))
-  //
-  //       // candidates :: v ∈ Set[Variable] | v can be added to links
-  //       if (candidates.isEmpty) {
-  //         assert((empties ++ semis ++ fullfilled).forall(e ⇒ e.count(links) <= 2))
-  //         Set(links)
-  //
-  //       } else {
-  //         candidates.flatMap(v ⇒ {
-  //           // adding v might bump some empties to semis, but not to fullfilleds.
-  //           val newLinks = links + v
-  //           val (newEmpty, newSemi) = empties.partition(e ⇒ e.count(newLinks) == 0)
-  //           assert(newSemi.forall(e ⇒ e.count(newLinks) == 1))
-  //           // ditto for semis to fulls
-  //           val (newSemi2, newFull) = semis.partition(e ⇒ e.count(newLinks) == 1)
-  //           assert(newFull.forall(e ⇒ e.count(newLinks) == 2))
-  //           assert(fullfilled.forall(e ⇒ e.count(newLinks) == 2))
-  //           exLinksAllH( newLinks,
-  //             newEmpty, newSemi ++ newSemi2, newFull ++ fullfilled
-  //           )}
-  //         )
-  //       }
-  //     }
-  //   }
+  // helper function for ELA: given a coloring, compute all possible colorings
+
+  //   * associate configurations with colorings (a map from equation to empty/Source/Source + Sink).
+
+
+
+  def elaHelper(init: Coloring): Set[Coloring] = {
+    //   * a configuration is **consistent** if every equation has either one source + sink
+    //     OR no sources or sinks
+    val done = init.forall{case (_, color) ⇒ color match {
+        case Half(_) ⇒ false
+        case _ ⇒ true
+    }}
+
+    if (done) {
+      dprintln("finished with " + init.toString)
+      Set(init)
+    } else {
+      dprintln("recursive input: " + init.toString)
+      //     a candidate:
+      //       ** lives in a equation with a Source
+      val candidates = init.flatMap{ case (eq, color) ⇒ color match {
+          case Half(src) ⇒ eq.remove(src).map(v ⇒ Full(src, v))
+          case _ ⇒ Set[Full]()
+      }}(collection.breakOut)
+
+  //       ** is not a Source/Sink in another equation, and doesn't break the
+  //          Source/Sink abstraction (i.e. isn't a Sink twice)
+
+      // TODO: probably have to add this check at the end
+      val newCands = candidates.filter{ case Full(oldSrc, v) ⇒ init.forall{ case (eq, color) ⇒ color match {
+          case Empty ⇒ true
+          case Half(src) ⇒ src == oldSrc || (! eq.contains(v))
+          case Full(src, snk) ⇒ (! eq.contains(v)) && (src != v) && (snk != v)
+      }}}
+
+      dprintln("recursing with candidates: " + newCands.toString)
+      //     foreach candidate:
+      //       ** add the candidate to the configuration
+
+      newCands.flatMap( cand ⇒ {
+        //       ** color the candidate as a Sink in the other equations
+        dprintln("recoloring based on " + cand.toString)
+
+        elaHelper(init.foldLeft(Map[Eq, Color]()){
+          case (acc, (eq, color)) ⇒ color match {
+            case Empty ⇒ if (eq.contains(cand.snk)) {
+                dprintln("adding " + cand.snk.toString + " in " + eq.toString)
+                acc + (eq → Half(cand.snk))
+              } else {
+                dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
+                acc + (eq → Empty)
+              }
+            case Half(src) ⇒ if (src == cand.src) {
+                dprintln("satisfied "+ cand.snk.toString + " in " + eq.toString)
+                acc + (eq → cand)
+              } else {
+                assert(!(eq.contains(cand.snk)))
+                dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
+                acc + (eq → color)
+              }
+
+            case Full(src, snk) ⇒
+              dprintln("skipping full " + color.toString + " in " + eq.toString)
+              assert(!(eq.contains(cand.snk)))
+              acc + (eq → color)
+          }
+        })
+      })(collection.breakOut)
+    }
+  }
 
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
