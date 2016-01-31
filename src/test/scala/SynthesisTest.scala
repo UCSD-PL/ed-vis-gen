@@ -76,6 +76,7 @@ class ELAUnitSuite extends FlatSpec with Matchers with ELATester {
     )
     val init = Set(variables("A"))
     val res = ela(init, eqs)
+    println(res)
 
     res.forall{vars ⇒ !vars.contains(variables("B"))} should be (true)
 

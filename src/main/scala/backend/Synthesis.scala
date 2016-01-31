@@ -213,19 +213,26 @@ object Positional extends SynthesisPass {
       Set(init)
     } else {
       dprintln("recursive input: " + init.toString)
+      // we map equations to a set of candidate colorings because we need to consider
+      // the remaining equations modulo the seed equation
+
       //     a candidate:
       //       ** lives in a equation with a Source
+      // TODO: broken
       val candidates = init.flatMap{ case (eq, color) ⇒ color match {
-          case Half(src) ⇒ eq.remove(src).map(v ⇒ Full(src, v))
-          case _ ⇒ Set[Full]()
+          case Half(src) ⇒ eq.remove(src).map(v ⇒ eq → Full(src, v))
+          case _ ⇒ Map[Eq, Full]()
       }}(collection.breakOut)
 
   //       ** is not a Source/Sink in another equation, and doesn't break the
   //          Source/Sink abstraction (i.e. isn't a Sink twice)
 
       // TODO: probably have to add this check at the end
-      val newCands = candidates.filter{ case Full(oldSrc, v) ⇒ init.forall{ case (eq, color) ⇒ color match {
+      val newCands = candidates.filter{ case (eq, Full(oldSrc, v)) ⇒ (init - eq).forall{ case (eq, color) ⇒ color match {
           case Empty ⇒ true
+          // TODO: this isn't actually correct...src and sink don't uniquely identify an equation
+          // e.g. A + B = C
+          //      A + B = D
           case Half(src) ⇒ src == oldSrc || (! eq.contains(v))
           case Full(src, snk) ⇒ (! eq.contains(v)) && (src != v) && (snk != v)
       }}}
@@ -234,37 +241,32 @@ object Positional extends SynthesisPass {
       //     foreach candidate:
       //       ** add the candidate to the configuration
 
-      newCands.flatMap( cand ⇒ {
+      newCands.flatMap{ case (seedEq, cand) ⇒ {
         //       ** color the candidate as a Sink in the other equations
         dprintln("recoloring based on " + cand.toString)
 
-        elaHelper(init.foldLeft(Map[Eq, Color]()){
-          case (acc, (eq, color)) ⇒ color match {
+        val inter = (init-seedEq).toSet
+        val res = inter.map{
+          case (eq:Eq, color:Color) ⇒ color match {
             case Empty ⇒ if (eq.contains(cand.snk)) {
                 dprintln("adding " + cand.snk.toString + " in " + eq.toString)
-                acc + (eq → Half(cand.snk))
+                (eq → Half(cand.snk))
               } else {
                 dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
-                acc + (eq → Empty)
-              }
-            case Half(src) ⇒ if (src == cand.src && eq.contains(cand.snk)) {
-                dprintln("satisfied "+ cand.snk.toString + " in " + eq.toString)
-                acc + (eq → cand)
-              } else {
-                assert(!(eq.contains(cand.snk)))
-                dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
-                acc + (eq → color)
+                (eq → Empty)
               }
 
-            case Full(src, snk) ⇒
-              dprintln("skipping full " + color.toString + " in " + eq.toString)
-              assert(!(eq.contains(cand.snk)))
-              acc + (eq → color)
+            case _ ⇒
+                dprintln("not adding " + cand.snk.toString + " in " + eq.toString)
+                (eq → color)
+
           }
-        })
-      })(collection.breakOut)
-    }
-  }
+        }(collection.breakOut)
+
+        elaHelper((res :+ (seedEq → cand)).toMap)
+
+    }}(collection.breakOut)
+  }}
 
   // given an IP, return valid seed configurations for extendLinks:
   def validSeeds(i:IPoint): Set[Set[Variable]] = Set(Set(i.x), Set(i.y), Set(i.x, i.y))
