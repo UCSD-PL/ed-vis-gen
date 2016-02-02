@@ -129,6 +129,7 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
     vars ++ that.vars.mapValues(-1 * _))
   def times(that: Double) = Expr(constant * that, vars.mapValues(that * _))
   def div(that: Double) = times(1/that)
+  def size = vars.size
 }
 
 object Expr {
@@ -140,14 +141,13 @@ object Expr {
 // lhs = rhs equation
 case class Eq(lhs: Expr, rhs: Expr) {
   override def toString() = prettyPrint(lhs, "≡", rhs)
-  def count(vars: Set[Variable]) = {
-    val res = ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
-    dprintln("counting " ++ (lhs.vars.keySet ++ rhs.vars.keySet).toString ++
-             " versus " ++ vars.toString ++ " as " ++ res.toString)
-    res
-  }
-  def contains(vars: Set[Variable]) = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
-  def remove(vars: Set[Variable]) = (lhs.vars.keySet ++ rhs.vars.keySet) -- vars
+  def count(vars: Set[Variable]) =
+    ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
+  def contains(vars: Set[Variable]):Boolean = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
+  def contains(v: Variable):Boolean = contains(Set(v))
+  def remove(vars: Set[Variable]):Set[Variable] = (lhs.vars.keySet ++ rhs.vars.keySet) -- vars
+  def remove(v: Variable):Set[Variable] = remove(Set(v))
+  def vars = remove(Set[Variable]())
   def substitute(subst: Map[Variable, Variable]) = Eq(lhs.substitute(subst), rhs.substitute(subst))
 }
 

@@ -4,9 +4,39 @@ function init_state() {
   program_frames = {};
   mainWindow = {};
   clearFrames();
+  learningInteractions = false;
 }
 
 function init_frames() {
+  var jc = function(str){ return $('.variants').jcarousel(str); };
+  var transition = function (forward) {
+      // stop current sim, start next sim
+      var currIdx = jc('items').index(jc('first'));
+      var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
+      // index is for old frame
+      // we're going to the right...
+      if (forward && (currIdx < jc('items').length - 1)) {
+        currIdx += 1;
+      } else if (!forward && currIdx > 0) {
+        // we're going to the left
+        currIdx -= 1;
+      }
+
+      var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
+
+      // we're either learning interactions, or learning physics configurations.
+      if (learningInteractions) {
+        // if the former, call start/stop display.
+        oldFrame.contentWindow['stopDisplay']();
+        nextFrame.contentWindow['startDisplay']();
+      } else {
+        // if the latter, stop and reset the old frame and start the new frame.
+        oldFrame.contentWindow['stop']();
+        oldFrame.contentWindow['reset']();
+        nextFrame.contentWindow['start']();
+      }
+
+    };
   $('.variants').jcarousel();
   $('.variant-prev')
     .on('jcarouselcontrol:active', function() {
@@ -14,6 +44,10 @@ function init_frames() {
     })
     .on('jcarouselcontrol:inactive', function() {
         $(this).addClass('inactive');
+    })
+    .on('click', function() {
+      transition(false)
+      // stop current sim, start next sim
     })
     .jcarouselControl({
         target: '-=1'
@@ -26,27 +60,22 @@ function init_frames() {
       .on('jcarouselcontrol:inactive', function() {
           $(this).addClass('inactive');
       })
+      .on('click', function() {
+        transition(true);
+      })
       .jcarouselControl({
           target: '+=1'
       });
 }
 
-function captureMovement(e) {
-  if (!e) e = window.event;
-  log(e);
-  e.stopPropagation();
-  e.preventDefault();
-  e.bubbles=false;
-  log(e.bubbles);
-  return false;
-}
 function main() {
 
   init_state();
   init_frames();
 
-  // capture mouse events over variants so that simulated display movements are not
-  // interrupted
+
+
+
 
   loadMain( function() {
     getPoints( function (payload) {
@@ -59,32 +88,33 @@ function main() {
           current_points[i] = mainWindow[points[i]];
         }
         mainWindow.drag_points = [];
-      for (var i in current_points) {
-        var newPoint = current_points[i];
-        newPoint.fill = "red";
-        newPoint.selected = false;
-      }
 
-      mainWindow.global_redraw();
+        for (var i in current_points) {
+          var newPoint = current_points[i];
+          newPoint.fill = "red";
+          newPoint.selected = false;
+        }
 
-      mainWindow.addEventListener("mousedown", function (e) {
-        if (e.button == 0) {
-          var x = e.layerX;
-          var y = e.layerY;
-          for (var i = 0; i < current_points.length; i++) {
-            if (withinRadius(x, y, current_points[i])) {
-              var currPoint = current_points[i]
-              if (currPoint.selected) {
-                currPoint.fill = "red";
-              } else {
-                currPoint.fill = "green";
+        mainWindow.global_redraw();
+
+        mainWindow.addEventListener("mousedown", function (e) {
+          if (e.button == 0) {
+            var x = e.layerX;
+            var y = e.layerY;
+            for (var i = 0; i < current_points.length; i++) {
+              if (withinRadius(x, y, current_points[i])) {
+                var currPoint = current_points[i]
+                if (currPoint.selected) {
+                  currPoint.fill = "red";
+                } else {
+                  currPoint.fill = "green";
+                }
+                currPoint.selected = !currPoint.selected;
+                mainWindow.global_redraw();
               }
-              currPoint.selected = !currPoint.selected;
-              mainWindow.global_redraw();
             }
           }
-        }
-      }, true);
+        }, true);
 
 
       });
@@ -110,6 +140,7 @@ function regenVariants() {
 }
 
 function acceptPoints() {
+  learningInteractions = true;
   var acceptedPoints = [];
 
   for (var i = 0; i < current_points.length; ++i) {
@@ -129,6 +160,7 @@ function acceptPoints() {
 function learnNextMotive() {
   var nextI = Object.keys(accepted_points).shift();
   if (nextI === undefined) {
+    learningInteractions = false;
     loadMain(learnFVs, false);
   } else {
     var nextPoint = accepted_points[nextI];
@@ -137,7 +169,7 @@ function learnNextMotive() {
     mainWindow.global_redraw();
     learnMotive(nextI, function () {
       nextPoint.fill = 'green';
-      nextPoint.cr = 2;
+      nextPoint.cr = 3.5;
       delete accepted_points[nextI];
     });
   }
@@ -151,12 +183,37 @@ function learnFVs() {
     for (var i = 0; i < newFrames.length; ++i) {
       initFrame(i, 32.3, "variants", newFrames[i], function(index) {
         sendGet("accept-fv/" + index, function() {
-          loadMain(clearFrames, false);
+          loadMain(function() {
+            clearFrames();
+
+            // pass mouse events to new main
+            ["mousedown", "mouseup", "mousemove"].forEach( function(eType) {
+                var mFrame = document.getElementById('mainFrame')
+                             .contentWindow.document.getElementById('mainCanvas');
+                mFrame.addEventListener(eType, function(e) {
+                  var offset = mFrame.getBoundingClientRect();
+                  var newEv = wrapEvent(e, {
+                    dx: -1 * offset.left,
+                    dy: -1 * offset.top
+                  });
+
+                  dispatchEvent(mFrame, newEv);
+              });
+            });
+          }, false);
         });
       });
     }
 
     $(".variants").jcarousel('reload');
+    $(".variants").jcarousel('scroll', 0, false);
+
+    // start the first frame
+    var iframe = ($($(".variants").jcarousel('items')[0]).children('iframe')[0]);
+    $(iframe).on('load', function() {
+      iframe.contentWindow.start();
+    });
+
   });
 }
 
@@ -167,9 +224,6 @@ function clearFrames(){
   while (frames.firstChild) {
     frames.removeChild(frames.firstChild);
   }
-  ["mousedown", "mouseup", "mousemove"].map( function(e) {
-    frames.addEventListener(e, captureMovement, true);
-  });
 }
 function learnMotive(i, Κ) {
   clearFrames();
@@ -182,6 +236,12 @@ function learnMotive(i, Κ) {
       });
     }
     $(".variants").jcarousel('reload');
+    $(".variants").jcarousel('scroll', 0, false);
+    $($('.variants').jcarousel('first').children('iframe')[0]).on('load',
+      function() {
+        $('.variants').jcarousel('first').children('iframe')[0].contentWindow['startDisplay']();
+      }
+    );
   });
 }
 
@@ -232,13 +292,6 @@ function acceptVariant(ident, Κ) {
   });
 }
 
-function disableInterface() {
-  document.getElementById('loading').style.display = 'block';
-}
-function enableInterface() {
-  document.getElementById('loading').style.display = 'none';
-}
-
 
 // given an ident and width, make a new frame and add it to the end of some element
 function initFrame(index, widthP, divID, html, learner) {
@@ -260,6 +313,7 @@ function initFrame(index, widthP, divID, html, learner) {
   newFrame.style.borderStyle = "none";
 
   var parent = $(".variants")[0].children[0];
+
   //console.log();
   newContainer.appendChild(aButton);
   newContainer.appendChild(newFrame);
@@ -280,11 +334,11 @@ function getPoints(Κ) {
 // pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
 function sendGet(urlTail, Κ, resType) {
   var url = "http://localhost:8080/" + urlTail;
-  console.log('sending GET ' + urlTail);
+  log('sending GET ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState == 4 && req.status == 200) {
-      console.log("received response for " + urlTail);
+      log("received response for " + urlTail);
       Κ(req.responseText);
     }
   }
@@ -296,11 +350,11 @@ function sendGet(urlTail, Κ, resType) {
 function sendPost(body, urlTail, Κ) {
   urlTail = urlTail || "";
   var url = "http://localhost:8080/" + urlTail;
-  console.log('sending POST ' + urlTail);
+  log('sending POST ' + urlTail);
   var req = new XMLHttpRequest();
   req.onreadystatechange = function() {
     if (req.readyState == 4 && req.status == 200) {
-      console.log("received response for " + urlTail);
+      log("received response for " + urlTail);
       Κ(req.responseText);
     }
   }

@@ -168,7 +168,7 @@ function Image (x, y, h, w, name) {
       with (this) {
         ctx.save();
         var i = document.getElementById(name);
-        ctx.drawImage(i, x-w/2, y-h/2, h, w);
+        ctx.drawImage(i, x-w/2, y-h/2, w, h);
         ctx.restore();
       }
     }
@@ -231,8 +231,8 @@ function InteractionPoint (x,y) {
   return {
     x: x,
     y: y,
-    cr: 2,
-    r: 2,
+    cr: 3.5,
+    r: 3.5,
     fill: "green",
     links: [], // transitive cassowary data dependencies,
                // need to be keys in constrained_vars.

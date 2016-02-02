@@ -1,17 +1,25 @@
 TODO:
 
-  * read KITTY + draco papers, esp. related work + motivation, evaluation
-    *** internalize structure of paper + style
-    ** draco, animation sketching approach to accessible animation thesis,
-       drawing dynamic visualizations
-    ** THIS IS OUR GOAL!!!!!
-    *** what is the bar for polish? what should evaluation look like? do we recruit TAs? profs?
-       *** how do they measure? how do they argue tool is good?
+    ** canonicalize equations? maybe?
+    ** > ARG_0: Set(V_1)
+       > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
+       (violated fuzz testing)
 
-  * add in scalatest testing framework + unit tests
+
+  ** inlining isn't optimal: with a point on weight + point in spring,
+     IY = IY_PY is an equation
+
+  * box width/heights being negative are nonsensical:
+    ** solve inversion
+    ** add inequalities to enforce orientation
+
+  * box height/width resizing for center points is weird...
+  * explore locked edges for locking variables (specifically height/width)
+  * or maybe learn from rejects? multi tier accept/reject phases?
+
+
 
   * finish point generation
-    ** add inequalities to enforce orientation
     ** add triangles
   * finish AST
     ** add plots
@@ -31,13 +39,7 @@ ranking:
   * filter out "functionally identical" diagrams...
     ** positional equivalence: all points are in same place + have same links
 
-nonlinear synthesis:
-  * after equational pass, FV choice is ambiguous
-  * (even w/o it, FVs might be underspecified)
-  * foreach valid configuration w.r.t initial FVs:
-    ** spin off iframe with that configuration
-    ** start simulation in that frame
-    *** disable hoverover requirement...maybe. maybe precompute frames or something...
+
 
 distinguish between recursive updates and nonlinear one-way constraints:
   * recursive update semantics are: take old values of variable references.

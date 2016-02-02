@@ -1,0 +1,67 @@
+overall: using nothing but a GUI, build an interactive educational diagram
+
+subproblems:
+  * runtime:
+    ** prerequisites:
+      *** needs graphics
+      *** needs interaction
+      *** needs domain-specific calculations
+    ** solution:
+      *** graphics/object library
+      *** simple point primitive for interaction
+        **** new problem: how to sensibly propagate user input?
+      *** domain-specific computation libraries:
+        **** dataflow expressions
+        **** iterative update expressions
+        **** new problem: how to sensibly propagate domain-specific input?
+
+      *** linear constraints handle user/DS input
+
+  * frontend:
+    ** graphical editor for shapes
+      *** expand...why is it good?
+    ** synthesis of complicated components:
+      *** interactions: given an IP,
+
+
+
+
+
+    * rework ELA algorithm: formulation with two FVs in each equation is not
+      always correct: e.g. consider a spring with points on end, middle.
+
+
+
+        TOP = BOT + DY
+        MID = BOT + DY/2
+
+
+        a correct assignment is {DY, TOP, MID}...an incorrect one (that ELA likes)
+        is {BOT, DY}
+
+        so instead of a FV set, we want sources and sinks:
+
+        starting from a seed set of source variables:
+          * a configuration is **consistent** if every equation has either one source + sink
+            OR no sources or sinks
+          * associate configurations with colorings (a map from equation to empty/Source/Source + Sink).
+            a candidate:
+              ** lives in a equation with a Source
+              ** is not a Source/Sink in another equation
+            foreach candidate:
+              ** add the candidate to the configuration
+              ** color the candidate as a Sink in the other equations
+
+
+        claim: given a consistent starting mapping of variables, the sources+sinks FV
+        algorithm will result in a system that has a consistent mapping.
+
+        PF: the
+
+
+
+        or equation rewriting! pivot about free-variable (DY) gives:
+        DY= TOP - BOT
+        MID = BOT + (TOP - BOT)/2
+
+        not clear why this works...

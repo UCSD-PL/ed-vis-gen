@@ -1,5 +1,7 @@
 //
 
+
+
 function common_init(height, width, alwaysRun) {
 
   // canvas operations are expensive, so we distinguish between a global canvas
@@ -18,22 +20,18 @@ function common_init(height, width, alwaysRun) {
   ctx.canvas.height = height-20;
   ctx = document.getElementById("incCanvas").getContext("2d");
   inc_ctx = ctx;
-  ctx.canvas.width  = width-20;
-  ctx.canvas.height = height-20;
-  canvas.addEventListener("mousedown", doMouseDown);
-  canvas.addEventListener("mouseup", doMouseUp);
-  canvas.addEventListener("mousemove", doMouseMove);
+  ctx.canvas.width  = 0; //width-20;
+  ctx.canvas.height = 0; //height-20;
+
+  canvas.addEventListener("eddiemousedown", doMouseDown);
+  canvas.addEventListener("eddiemouseup", doMouseUp);
+  canvas.addEventListener("eddiemousemove", doMouseMove);
 
   resetState();
 
-  // start physics components if necessary
   if (alwaysRun) {
-    // timers.map(function (t) {
-    //   t.start();
-    // });
-
   } else {
-    // only run when selected
+    // only run physics engine when selected
     document.body.onmouseover = function() {
       timers.map(function(t) {
         if (t.shouldRun) {
@@ -74,7 +72,7 @@ function removePoint(point) {
 }
 
 function doMouseDown(e) {
-  switch (e.button) {
+  switch (e.detail.button) {
     case 0: // left click
       doLeftClick(e);
       break;
@@ -82,15 +80,17 @@ function doMouseDown(e) {
       doRightClick(e);
       break;
     default:
-      alert(e.button);
+      console.log("ERROR: unsupported event");// error in event interface
+      console.log(e);
   }
 }
 
-function doLeftClick(event) {
+function doLeftClick(e) {
   dragged_obj = null;
-  var x = event.layerX;
-  var y = event.layerY;
-  //console.log('clicked: ' + x.toString() + ", " + y.toString());
+  var x = e.detail.x;
+  var y = e.detail.y;
+  // console.log('clicked: ' + x.toString() + ", " + y.toString());
+  // console.log('targets: ' + drag_points.toString());
   for (var i = 0; i < drag_points.length; i++) {
     if (withinRadius(x, y, drag_points[i])) {
       dragged_obj = drag_points[i];
@@ -154,8 +154,8 @@ function doMouseMove(e) {
   if (dragged_obj != null) {
 
     //console.log("move at: " + e.layerX + ", " + e.layerY);
-    solver.suggestValue(dragged_obj.x, e.layerX);
-    solver.suggestValue(dragged_obj.y, e.layerY);
+    solver.suggestValue(dragged_obj.x, e.detail.x);
+    solver.suggestValue(dragged_obj.y, e.detail.y);
 
     // console.log("before move");
     // console.log(solver.getDebugInfo());

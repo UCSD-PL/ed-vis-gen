@@ -18,12 +18,6 @@ SHAPES (
   Weight = Image((IX, IY), IH, IW, 'iron') // image
 );
 LINEAR (
-   /* SX = BX,
-  SY = BY - BH,   // spring starts at top-center of base
-  PX = SX + DX,
-  PY = SY + DY,        // platform is at end of spring
-  IX = PX,
-  IY = PY - IH - PH  // image is on top of platform */
 );
 NONLINEAR (
   T  <- (T + 0.01) % 100,
@@ -32,5 +26,4 @@ NONLINEAR (
   V <- V + F,
   DY <- DY + V
 ) WITH FREE (
-  //PY, IY
 );

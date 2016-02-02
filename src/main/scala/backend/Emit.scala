@@ -244,19 +244,36 @@ object LowLevel extends Emitter {
   }
 
   def printExpr(e: Expr) = e match { case Expr(c, vars) ⇒ {
-    "fromConst" <> parens(text(c.toString)) <>
-      (if (! vars.isEmpty) {
-          ".plus" <> parens({
+    // optimization; elide fromConst(0.0) when possible
+    val prefix = (if (c == 0 && (! vars.isEmpty)) {
+      empty
+    } else {
+      "fromConst" <> parens(text(c.toString)) <> ".plus"
+    })
+    val suffix = (if (! vars.isEmpty) {
         // first, convert var → coeff mappings to coeff*var expressions
         val var2CoeffE  = vars.mapValues(coeff ⇒ text(coeff.toString))
         val varE2CoeffE = var2CoeffE.map(
-          pr ⇒ "fromVar" <> parens(text(pr._1.name)) <> ".times" <> parens(pr._2)
+          pr ⇒ "fromVar" <> parens(text(pr._1.name)) <> (
+            // optimization; elide .times(1.0) when possible
+            // pr._2 is wrapped in the text PP, so we look in the original
+            if (vars(pr._1) == 1.0) {
+              empty
+            } else {
+              ".times" <> parens(pr._2)
+            }
+          )
         )(collection.breakOut)
         // finally, build a sum of coeff*var terms
         folddoc( varE2CoeffE, (acc, nxt) ⇒ acc <> ".plus" <> parens(nxt))
-      })
     } else {
       empty
+    })
+
+    prefix <> ( if ((c != 0) && (! vars.isEmpty)) {
+      parens(suffix)
+    } else {
+      suffix
     })
   }}
   def printIP(p:IPoint, names: Map[String, Value]) = p match {
