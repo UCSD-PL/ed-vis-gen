@@ -1,7 +1,7 @@
 package EDDIE.backend.synthesis
 
 import EDDIE.backend.syntax.JSTerms._
-import EDDIE.backend.errors._
+//import EDDIE.backend.errors._
 import EDDIE.backend.Conversions._
 import EDDIE.backend.semantics._
 import EDDIE.backend.Helpers._
@@ -225,16 +225,14 @@ object Positional extends SynthesisPass {
       }}(collection.breakOut)
 
   //       ** is not a Source/Sink in another equation, and doesn't break the
-  //          Source/Sink abstraction (i.e. isn't a Sink twice)
+  //          Source/Sink abstraction (i.e. isn't a Sink twice, each equation
+  //          has one Source + Sink
 
       // TODO: probably have to add this check at the end
-      val newCands = candidates.filter{ case (eq, Full(oldSrc, v)) ⇒ (init - eq).forall{ case (eq, color) ⇒ color match {
+      val newCands = candidates.filter{ case (eq, Full(oldSrc, newSink)) ⇒ (init - eq).forall{ case (eq, color) ⇒ color match {
           case Empty ⇒ true
-          // TODO: this isn't actually correct...src and sink don't uniquely identify an equation
-          // e.g. A + B = C
-          //      A + B = D
-          case Half(src) ⇒ src == oldSrc || (! eq.contains(v))
-          case Full(src, snk) ⇒ (! eq.contains(v)) && (src != v) && (snk != v)
+          case Half(src) ⇒ !eq.contains(newSink)
+          case Full(src, snk) ⇒ (! eq.contains(newSink)) && (src != newSink) && (snk != newSink)
       }}}
 
       dprintln("recursing with candidates: " + newCands.toString)

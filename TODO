@@ -1,8 +1,10 @@
 TODO:
 
-  *rework ELA algorithm with sources and sinks
+    ** canonicalize equations? maybe?
+    ** > ARG_0: Set(V_1)
+       > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
+       (violated fuzz testing)
 
-  ** some physic sims didn't run with multiple points: investigate
 
   ** inlining isn't optimal: with a point on weight + point in spring,
      IY = IY_PY is an equation
@@ -16,8 +18,6 @@ TODO:
   * or maybe learn from rejects? multi tier accept/reject phases?
 
 
-
-  * add in scalatest testing framework + unit tests
 
   * finish point generation
     ** add triangles

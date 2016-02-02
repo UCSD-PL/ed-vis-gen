@@ -11,7 +11,9 @@ import org.scalacheck.Test
 object EdGens {
 
   // helper shortcuts for picking strings and doubles
-  private def getNum = arbitrary[Double]
+  private def getNum = for {
+    num <- Gen.choose(-5, 5)
+  } yield (num.toDouble)
   private def getStr = for {
     id <- Gen.choose(0, 5)
   } yield "V_" ++ id.toString

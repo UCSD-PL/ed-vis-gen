@@ -168,7 +168,7 @@ function Image (x, y, h, w, name) {
       with (this) {
         ctx.save();
         var i = document.getElementById(name);
-        ctx.drawImage(i, x-w/2, y-h/2, h, w);
+        ctx.drawImage(i, x-w/2, y-h/2, w, h);
         ctx.restore();
       }
     }
