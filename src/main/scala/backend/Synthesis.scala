@@ -1,13 +1,11 @@
 package EDDIE.backend.synthesis
 
 import EDDIE.backend.syntax.JSTerms._
-//import EDDIE.backend.errors._
 import EDDIE.backend.Conversions._
 import EDDIE.backend.semantics._
 import EDDIE.backend.Helpers._
 import EDDIE.backend.Types._
 
-import scala.collection.mutable.{Set ⇒ MSet}
 
 // interaction point placements: given a shape, return all possible ipoints and
 // their respective positional equations. e.g. Circle((a,b), c) => (a,b) + 8 points
