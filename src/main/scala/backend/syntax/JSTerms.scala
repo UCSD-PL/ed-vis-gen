@@ -138,17 +138,34 @@ object Expr {
   def apply(binding:(Variable, Double)): Expr = Expr(0.0, Map(binding))
 }
 
-// lhs = rhs equation
-case class Eq(lhs: Expr, rhs: Expr) {
-  override def toString() = prettyPrint(lhs, "≡", rhs)
+
+
+trait EqLike {
+  val lhs: Expr
+  val rhs: Expr
   def count(vars: Set[Variable]) =
     ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
-  def contains(vars: Set[Variable]):Boolean = vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
-  def contains(v: Variable):Boolean = contains(Set(v))
-  def remove(vars: Set[Variable]):Set[Variable] = (lhs.vars.keySet ++ rhs.vars.keySet) -- vars
+  def contains(vars: Set[Variable]): Boolean =
+    vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
+  def contains(v: Variable): Boolean = contains(Set(v))
+  def remove(vars: Set[Variable]): Set[Variable] =
+    (lhs.vars.keySet ++ rhs.vars.keySet) -- vars
   def remove(v: Variable):Set[Variable] = remove(Set(v))
   def vars = remove(Set[Variable]())
-  def substitute(subst: Map[Variable, Variable]) = Eq(lhs.substitute(subst), rhs.substitute(subst))
+
+}
+// lhs = rhs equation
+case class Eq(lhs: Expr, rhs: Expr) extends EqLike {
+  override def toString() = prettyPrint(lhs, "≡", rhs)
+  def substitute(subst: Map[Variable, Variable]) =
+    Eq(lhs.substitute(subst), rhs.substitute(subst))
+}
+
+// lhs <= rhs equation
+case class Leq(lhs: Expr, rhs:Expr) extends EqLike {
+  override def toString() = prettyPrint(lhs, "≤", rhs)
+  def substitute(subst: Map[Variable, Variable]) =
+    Leq(lhs.substitute(subst), rhs.substitute(subst))
 }
 
 // recursive one-way constraints of the form
