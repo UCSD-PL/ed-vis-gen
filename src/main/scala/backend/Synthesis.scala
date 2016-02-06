@@ -270,7 +270,7 @@ object Positional extends SynthesisPass {
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(orig: Configuration): Set[Configuration] = orig match {
-    case State(p@Program(vars, ips, shapes, eqs, _, _, names), σ) ⇒ shapes.flatMap { s ⇒ {
+    case State(p@Program(vars, ips, shapes, eqs, _, _, _, names), σ) ⇒ shapes.flatMap { s ⇒ {
       val candidates = PointGeneration(s, σ)
 
       val res = candidates.flatMap { case (ip, es, δ) ⇒ {
@@ -339,7 +339,7 @@ object EquationPass extends SynthesisPass {
   // zip up all configs, filter out identical points, and keep configs that are
   // equal w.r.t fuzzEq
   def apply(orig: Configuration): Set[Configuration] = orig match {
-    case State(Program(vars, ips, shapes, eqs, _, _, names), σ) ⇒ {
+    case State(Program(vars, ips, shapes, eqs, _, _, _, names), σ) ⇒ {
       val allPoints = shapes.flatMap(s ⇒ PointGeneration(s, σ))
       val candidates = (for {
         l <- allPoints
@@ -362,7 +362,8 @@ object EquationPass extends SynthesisPass {
       val res = Set() + candidates.map{(mergeConfigs _).tupled}.foldLeft(orig) { case (State(prog, α), (vars, newEqs, γ)) ⇒
         State(prog.copy(
           vars = prog.vars ++ vars,
-          equations = prog.equations ++ newEqs
+          equations = prog.equations ++ newEqs,
+          names = prog.names ++ vars.map{v ⇒ (v.name → v)}
         ), α ++ γ)
       }
 
@@ -372,4 +373,3 @@ object EquationPass extends SynthesisPass {
     }
   }
 }
-//

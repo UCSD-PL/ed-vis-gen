@@ -16,6 +16,7 @@ trait Emitter extends PrettyPrinter {
   def ipPreamble: Doc
   def shpPreamble: Doc
   def eqPreamble: Doc
+  def leqPreamble: Doc
   def recPreamble: Doc
   def fvPreamble: Doc
 
@@ -23,6 +24,7 @@ trait Emitter extends PrettyPrinter {
   def printIP(p: IPoint, names: Map[String, Value]): Doc
   def printShape(s: Shape, names: Map[String, Value]): Doc
   def printLinear(e: Eq): Doc
+  def printLeq(e: Leq): Doc
   def printNonlinear(e: RecConstraint): Doc
 
   def emitExpr(e: Expression): Doc = e match {
@@ -59,13 +61,15 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es, recs, rfvs, names) ⇒ {
+    case Program(vs, ps, ss, es, leqs, recs, rfvs, names) ⇒ {
       vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
       , ipPreamble <@> sep(ps.map(printIP(_, names))(collection.breakOut))
       , shpPreamble <@>
         sep(ss.map(printShape(_, names))(collection.breakOut))
       , eqPreamble <@>
         sep(es.map(printLinear(_))(collection.breakOut))
+      , leqPreamble <@>
+        sep(leqs.map(printLeq(_))(collection.breakOut))
       , recPreamble <@>
           sep(recs.map(printNonlinear(_))(collection.breakOut))
       , fvPreamble <@> sep(rfvs.map(printFV(_, σ))(collection.breakOut))
@@ -85,6 +89,7 @@ object HighLevel extends Emitter {
   def ipPreamble = "IPOINTS:"
   def shpPreamble = "SHAPES:"
   def eqPreamble = "LINEAR CONSTRAINTS:"
+  def leqPreamble = "INEQUALITIES:"
   def recPreamble = "NONLINEAR CONSTRAINTS:"
   def fvPreamble = "WITH FREE VARIABLES:"
 
@@ -108,6 +113,8 @@ object HighLevel extends Emitter {
   def printLinear(e: Eq) = {
     text(e.lhs + " = " +  e.rhs)
   }
+
+  def printLeq(e: Leq) = text(e.lhs + " ≤ " + e.rhs)
 
   def printIP(p:IPoint, names: Map[String, Value]) = p match {
     case IPoint(x, y, links) ⇒ {
@@ -176,7 +183,8 @@ object LowLevel extends Emitter {
   def varPreamble = "//VARIABLES:"
   def ipPreamble = "//IPOINTS:"
   def shpPreamble = "//SHAPES:"
-  def eqPreamble = "init_stays(); // SUPER IMPORTANT NEED THIS CALL" <@> line <> "//EQUATIONS:"
+  def eqPreamble = "init_stays(); " <@> line <> "//EQUATIONS:"
+  def leqPreamble = "//INEQUALITIES:"
 
   def emitFunc(name: String, body: Doc = empty, args: Seq[Doc] = Seq()): Doc = {
     "function" <> ( if (name.length > 0) {space <> name} else empty) <+>
@@ -243,12 +251,18 @@ object LowLevel extends Emitter {
     ))
   }
 
+  def printLeq(e: Leq) = {
+    emitFCall("addLEQ", Seq(
+      printExpr(e.lhs), printExpr(e.rhs)
+    ))
+  }
+
   def printExpr(e: Expr) = e match { case Expr(c, vars) ⇒ {
     // optimization; elide fromConst(0.0) when possible
     val prefix = (if (c == 0 && (! vars.isEmpty)) {
       empty
     } else {
-      "fromConst" <> parens(text(c.toString)) <> ".plus"
+      "fromConst" <> parens(text(c.toString))
     })
     val suffix = (if (! vars.isEmpty) {
         // first, convert var → coeff mappings to coeff*var expressions
@@ -265,16 +279,16 @@ object LowLevel extends Emitter {
           )
         )(collection.breakOut)
         // finally, build a sum of coeff*var terms
-        folddoc( varE2CoeffE, (acc, nxt) ⇒ acc <> ".plus" <> parens(nxt))
+        if (c != 0) {
+          text(".plus")
+        } else {
+          empty
+        } <> parens(folddoc( varE2CoeffE, (acc, nxt) ⇒ acc <> ".plus" <> parens(nxt)))
     } else {
       empty
     })
 
-    prefix <> ( if ((c != 0) && (! vars.isEmpty)) {
-      parens(suffix)
-    } else {
-      suffix
-    })
+    prefix <> suffix
   }}
   def printIP(p:IPoint, names: Map[String, Value]) = p match {
     case IPoint(x, y, links) ⇒ {

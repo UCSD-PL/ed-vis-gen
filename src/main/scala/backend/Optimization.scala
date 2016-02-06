@@ -30,7 +30,7 @@ object EquationOpts extends OptimizationPass {
   // in the state.
   // arbitrarily pick r as the remaining variable
   def inlineOnce(l: Variable, r: Variable, s: State): State = s match {
-    case State(Program(vars, ips, shps, eqs, recs, freeRVs, nms), σ) ⇒ {
+    case State(Program(vars, ips, shps, eqs, leqs, recs, freeRVs, nms), σ) ⇒ {
       def subst(v: Variable) = {
         if (v == l)
           r
@@ -45,6 +45,7 @@ object EquationOpts extends OptimizationPass {
       }
       val newShps = shps.map{shapeMap(_, subst)}
       val newEqs = eqs.map{e ⇒ e.substitute(Map(l → r))}.filterNot(trivialEq)
+      val newLeqs = leqs.map{e ⇒ e.substitute(Map(l → r))}.filterNot(trivialEq)
       val newRecs = recs.map{decl ⇒ decl.substitute(Map(l → r))}
       val newFrees = (
         if (freeRVs.contains(l))
@@ -58,7 +59,7 @@ object EquationOpts extends OptimizationPass {
         case Point(x, y) ⇒ Point(subst(x), subst(y))
       }}
       val γ = σ - l
-      State(Program(newVars, newIPs, newShps, newEqs, newRecs, newFrees, newNames), γ)
+      State(Program(newVars, newIPs, newShps, newEqs, newLeqs, newRecs, newFrees, newNames), γ)
   }}
 
   // helper to check if an equation looks like a + x = a + y, where x and y are variables.
@@ -68,7 +69,7 @@ object EquationOpts extends OptimizationPass {
     (e.lhs.vars.size == 1) && (e.rhs.vars.size == 1) &&
     (e.lhs.vars.head._2 == 1.0) && (e.rhs.vars.head._2 == 1.0)
   }
-  def trivialEq(e: Eq): Boolean = e.lhs == e.rhs
+  def trivialEq[A <: EqLike](e: A): Boolean = e.lhs == e.rhs
   @tailrec
   def inlineAll(s: State) : State = s match { case State(prog, _) ⇒ {
     prog.equations.find(simpEq) match {

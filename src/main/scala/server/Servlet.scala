@@ -9,6 +9,7 @@ import org.scalatra.json._
 
 import EDDIE.server.JSONUtil.J2Scala._
 
+// just bring in all the damn things
 import EDDIE.backend.runner._
 import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.semantics._
@@ -17,6 +18,7 @@ import EDDIE.backend.synthesis._
 import EDDIE.backend.optimization._
 import EDDIE.backend.ranking._
 import EDDIE.backend.errors._
+import EDDIE.backend.InterOp._
 
 class Servlet extends Stack {
   object Mutables {
@@ -165,12 +167,21 @@ class Servlet extends Stack {
     def loadFile(src: String) {
       reset
       val orig = Run.loadSource(src)
-      ζ = OptimizeAll(EquationPass(orig).head)
+
+      ζ = processState(orig)
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
       }
       allPoints = removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
+    }
+
+    // run the noninteractive steps prior to synthesis in the pipeline (see PIPELINE)
+    def processState(s: State): State = {
+      val positions = EquationPass(s).head
+      val interOped = ShapeConstraints(positions)
+      val optimized = OptimizeAll(interOped)
+      optimized
     }
 
     def reset = {

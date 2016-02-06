@@ -17,7 +17,7 @@ object Validate {
     case VecLike(Point(x,y), dx, dy) ⇒ Set(x,y,dx,dy)
   }
   def getVars(ip: IPoint): SV = Set(ip.x, ip.y) ++ ip.links
-  def getVars(e: Eq): SV = e.lhs.vars.keySet ++ e.rhs.vars.keySet
+  def getVars[A <: EqLike](e: A): SV = e.lhs.vars.keySet ++ e.rhs.vars.keySet
   // @OPT: make tailrec
   def getVars(e: Expression): SV = e match {
     case Const(_) ⇒ Set()
@@ -29,19 +29,22 @@ object Validate {
   def getVars(e: RecConstraint): SV = getVars(e.rhs) + e.lhs
 
   def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs, recs, rfvs, names) ⇒ {
+    case Program(vars, ips, shapes, eqs, leqs, recs, rfvs, names) ⇒ {
       // check all defs with decls
       val allUses =
         ips.flatMap(getVars(_)) ++ shapes.flatMap(getVars(_)) ++
-        eqs.flatMap(getVars(_)) ++ recs.flatMap(getVars(_)) ++ rfvs
+        eqs.flatMap(getVars(_)) ++ leqs.flatMap(getVars(_)) ++
+        recs.flatMap(getVars(_)) ++ rfvs
       if ((allUses diff vars).nonEmpty) {
         println("error: undefined variables " ++ (allUses diff vars).toString)
         throw IllformedProgram
       }
       // validate names map with internal fields
       if (vars.exists{ v ⇒ !names.contains(v.name) || (names(v.name) != v)}) {
-        println("error: inconsistent variable names " ++
-          names.filter{case (nme, v) ⇒ vars.exists{vv ⇒ vv == v && nme != vv.name}})
+        println("error: missing names " ++ vars.filter{v ⇒ !names.contains(v.name)}.toString)
+        println("or inconsistent variable names " ++
+          names.filter{case (nme, v) ⇒ vars.exists{vv ⇒ vv == v && nme != vv.name}}.toString)
+
         throw IllformedProgram
       }
 

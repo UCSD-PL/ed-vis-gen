@@ -35,7 +35,7 @@ object State {
   def empty = State(Program.empty, Store.empty)
 
   // given a name map and IP, generate a name for the IP and extend the map
-  def nameIP(names: Map[String, Value], p: IPoint) = {
+  def nameIP(names: Map[String, Value], p: IPoint): Map[String, Value] = {
     names.find{ _ match {
       case (nme, v: IPoint) ⇒ v.x == p.x && v.y == p.y
       case _ ⇒ false
@@ -90,7 +90,7 @@ object State {
         names = nameIP(oldProg.names, newIP)
         // notice, free rec vars is not updated (and should be). however, it's unclear
         // at this stage whether both dimensions of the point should be added,
-        // so we rely on a later synthesis pass to add in correct FVs. 
+        // so we rely on a later synthesis pass to add in correct FVs.
         ),
         σ = ζ.σ ++ σ)
   }

@@ -227,12 +227,13 @@ object ¬ extends UOP
 // names to values
 case class Program(
   vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
-  equations : Set[Eq], recConstraints : Set[RecConstraint],
-  freeRecVars: Set[Variable], names: Map[String, Value]
+  equations : Set[Eq], inequalities: Set[Leq],
+  recConstraints : Set[RecConstraint], freeRecVars: Set[Variable],
+  names: Map[String, Value]
 )
 
 object Program {
-  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Map())
+  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
   def takePoints(kv: (String, Value)) = kv._2 match {
     case _:IPoint ⇒ true
     case _ ⇒ false

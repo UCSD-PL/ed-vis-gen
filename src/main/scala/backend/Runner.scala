@@ -12,23 +12,31 @@ import EDDIE.backend.optimization._
 object Run {
   // TODO: command line parsing
   // public api for backend
-  // given a source file, compile the file to a string
+  // given a source file, load the file into an AST
   def loadSource(name: String) : State = SRun.parseFromSource(name)
 
+  // compile a state to lowlevel javascript code
   def compileState(ζ: State, validate: Boolean = false) : String = {
     if (validate) {
       Validate(ζ.prog, ζ.σ)
     }
     LowLevel(ζ.prog, ζ.σ)
   }
-  def compileSource(name: String): String = {
 
-    compileState(loadSource(name), true)
+  // compile a source file to code and perform validation
+  def compileSource(name: String, highLevel: Boolean = false): String = {
+    val ζ = loadSource(name)
+
+    if (highLevel) {
+      HighLevel(ζ.prog, ζ.σ)
+    } else {
+      compileState(ζ, true)
+    }
   }
 
 
   def main(args: Array[String]) {
-    println(compileSource(args(0)))
+    println(compileSource(args(0), true))
   }
 
   def usage() = {

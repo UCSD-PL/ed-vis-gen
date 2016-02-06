@@ -1,19 +1,30 @@
 TODO:
 
-    ** canonicalize equations? maybe?
+  * box width/heights being negative are nonsensical:
+  ** add inequalities to enforce orientation
+  ** buffer between domain-specific stuff and interactive stuff
+
+  * canonicalize equations? maybe?
     ** > ARG_0: Set(V_1)
        > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
        (violated fuzz testing)
 
-
-  ** inlining isn't optimal: with a point on weight + point in spring,
+  * inlining isn't optimal: with a point on weight + point in spring,
      IY = IY_PY is an equation
 
-  * box width/heights being negative are nonsensical:
-    ** solve inversion
-    ** add inequalities to enforce orientation
+  * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
+  * find more benchmarks
+  ** http://www.malinc.se/math/
+  ** JSXGraph
+  ** my solar system
 
+  ranking:
   * box height/width resizing for center points is weird...
+  * penalty for shape w/o interactive components
+  ** penalty?? bonus!! foreach "moving shape", penalize diagram (+1)
+  * penalty for interactive points that don't move...for interactions
+
+
   * explore locked edges for locking variables (specifically height/width)
   * or maybe learn from rejects? multi tier accept/reject phases?
 
@@ -23,21 +34,9 @@ TODO:
     ** add triangles
   * finish AST
     ** add plots
-    ** add inequalities to expressions
 
   * make merging links more precise
 
-  * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
-  * find more benchmarks
-    ** http://www.malinc.se/math/
-    ** JSXGraph
-    ** my solar system
-
-ranking:
-  * interactions tend to be at connection points
-  * penalty for shape w/o interactive components
-  * filter out "functionally identical" diagrams...
-    ** positional equivalence: all points are in same place + have same links
 
 
 
