@@ -59,6 +59,7 @@ object State {
   }
 
   // @tailrec
+  // TODO: make this more precise
   def growLinks(links: Set[Variable], points: Set[IPoint]): Set[Variable] = {
     // val newLinks = points.filter{
     //   ip ⇒ !(ip.links & links).isEmpty

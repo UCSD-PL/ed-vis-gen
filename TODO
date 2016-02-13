@@ -1,8 +1,5 @@
 TODO:
 
-  * box width/heights being negative are nonsensical:
-  ** add inequalities to enforce orientation
-  ** buffer between domain-specific stuff and interactive stuff
 
   * canonicalize equations? maybe?
     ** > ARG_0: Set(V_1)
@@ -23,6 +20,7 @@ TODO:
   * penalty for shape w/o interactive components
   ** penalty?? bonus!! foreach "moving shape", penalize diagram (+1)
   * penalty for interactive points that don't move...for interactions
+  * big penalty for physics sim/buffer violation. need a lot for this...
 
 
   * explore locked edges for locking variables (specifically height/width)
