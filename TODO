@@ -1,6 +1,25 @@
 TODO:
 
 
+  * debug heuristics
+  * import more benchmarks
+    ** rework apparatus as a frontend:
+      *** make apparatus output sensible JSON files
+      *** write JSON fromfile importer for our stuff
+    ** add nonlinear equations to backend, runtime:
+    phet:
+    teeter-totter -> https://phet.colorado.edu/sims/html/balancing-act/latest/balancing-act_en.html
+    light-refraction (needs nonlinear constraints) -> https://phet.colorado.edu/sims/html/bending-light/latest/bending-light_en.html
+    force with static + moving friction -> https://phet.colorado.edu/en/simulation/legacy/forces-and-motion
+    springs (when a weight is attached) -> https://phet.colorado.edu/sims/mass-spring-lab/mass-spring-lab_en.html
+    pendulum -> https://phet.colorado.edu/sims/pendulum-lab/pendulum-lab_en.html
+    static electricity -> https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_en.html
+    geogebra:
+    vector decomposition -> http://www.geogebra.org/material/simple/id/87226#material/86995
+    tangent/cotangent -> http://www.geogebra.org/material/simple/id/87226#material/87133
+    unit circle triangle -> http://www.geogebra.org/material/simple/id/87226#material/87129
+    tangent/derivative -> http://www.geogebra.org/material/simple/id/87226#material/86589
+
   * canonicalize equations? maybe?
     ** > ARG_0: Set(V_1)
        > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
@@ -16,10 +35,7 @@ TODO:
   ** my solar system
 
   ranking:
-  * box height/width resizing for center points is weird...
   * penalty for shape w/o interactive components
-  ** penalty?? bonus!! foreach "moving shape", penalize diagram (+1)
-  * penalty for interactive points that don't move...for interactions
   * big penalty for physics sim/buffer violation. need a lot for this...
 
 
