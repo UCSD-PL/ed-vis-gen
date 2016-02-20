@@ -1,0 +1,6 @@
+{ "name": "EDDIE",
+  "scripts" : {
+    "build" : "browserify src/frontend/main.js -o src/main/webapp/resources/lib.js",
+    "watch" : "watchify src/frontend/main.js -o src/main/webapp/resources/lib.js --debug --verbose"
+  }
+}

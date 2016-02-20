@@ -1,0 +1,12 @@
+{
+  "compilerOptions" : {
+    "watch" : true,
+    "listFiles" : true,
+    "noEmitOnError" : false,
+    "noImplicitAny" : true,
+    "outFile" : "src/frontend/eddiflow.js",
+    "rootDir" : "src/frontend/eddiflow/"
+  }
+
+
+}

@@ -1,17 +1,47 @@
-[info] Set current project to ed-vis-gen (in build file:/C:/Users/Noah/Documents/School/ed-vis-gen/)
-`Arrow(' expected but `L' found
-[error] (run-main-0) EDDIE.errors.ParseError$: illformed source program
-EDDIE.errors.ParseError$: illformed source program
-	at EDDIE.errors.ParseError$.<clinit>(Errors.scala)
-	at EDDIE.runner.Run$.main(Runner.scala:20)
-	at EDDIE.runner.Run.main(Runner.scala)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
-	at java.lang.reflect.Method.invoke(Unknown Source)
-[trace] Stack trace suppressed: run last compile:run for the full output.
-java.lang.RuntimeException: Nonzero exit code: 1
-	at scala.sys.package$.error(package.scala:27)
-[trace] Stack trace suppressed: run last compile:run for the full output.
-[error] (compile:run) Nonzero exit code: 1
-[error] Total time: 1 s, completed Sep 6, 2015 10:06:48 PM
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Unimplemented = (function (_super) {
+    __extends(Unimplemented, _super);
+    function Unimplemented(message) {
+        this.message = message;
+        this.name = "unimplemented";
+        _super.call(this);
+    }
+    return Unimplemented;
+}(Error));
+var bop;
+(function (bop) {
+    bop[bop["Pls"] = 0] = "Pls";
+    bop[bop["Min"] = 1] = "Min";
+    bop[bop["Tim"] = 2] = "Tim";
+    bop[bop["Div"] = 3] = "Div";
+})(bop || (bop = {}));
+var uop;
+(function (uop) {
+    uop[uop["Neg"] = 0] = "Neg";
+})(uop || (uop = {}));
+var BinOp = (function () {
+    function BinOp(o, l, r) {
+        this.op = o;
+        this.lhs = l;
+        this.rhs = r;
+    }
+    return BinOp;
+}());
+var UnOp = (function () {
+    function UnOp(o, i) {
+        this.op = o;
+        this.inner = i;
+    }
+    return UnOp;
+}());
+var FunApp = (function () {
+    function FunApp() {
+        throw new Unimplemented("haven't done FunApp yet");
+    }
+    return FunApp;
+}());
+var texpr = new BinOp(bop.Pls, 1, 2);

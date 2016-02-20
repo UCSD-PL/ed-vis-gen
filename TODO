@@ -3,6 +3,7 @@ TODO:
 
   * debug heuristics
   * import more benchmarks
+    ** all phet newtonian mechanics
     ** rework apparatus as a frontend:
       *** make apparatus output sensible JSON files
       *** write JSON fromfile importer for our stuff
@@ -13,13 +14,15 @@ TODO:
     force with static + moving friction -> https://phet.colorado.edu/en/simulation/legacy/forces-and-motion
     springs (when a weight is attached) -> https://phet.colorado.edu/sims/mass-spring-lab/mass-spring-lab_en.html
     pendulum -> https://phet.colorado.edu/sims/pendulum-lab/pendulum-lab_en.html
-    static electricity -> https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_en.html
+
+
     geogebra:
     vector decomposition -> http://www.geogebra.org/material/simple/id/87226#material/86995
     tangent/cotangent -> http://www.geogebra.org/material/simple/id/87226#material/87133
     unit circle triangle -> http://www.geogebra.org/material/simple/id/87226#material/87129
     tangent/derivative -> http://www.geogebra.org/material/simple/id/87226#material/86589
 
+    static electricity -> https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_en.html
   * canonicalize equations? maybe?
     ** > ARG_0: Set(V_1)
        > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
