@@ -1,5 +1,21 @@
 
+
+
+
 module Eddiflow {
+  export interface Map<T> {
+    [K: string]: T;
+  }
+
+  export function filterMap<T> (m: Map<T>, filtee: (k: string, v: T) => boolean): Map<T> {
+    let ret: Map<T> = {};
+    for (var key in m) {
+      if (filtee(key, m[key]))
+        ret[key] = m[key];
+    }
+
+    return ret;
+  }
   export class Unimplemented extends Error {
     constructor(message: string) {
       this.message = message;
@@ -30,9 +46,14 @@ module Eddiflow {
     cases: [matchT, retT][],
     notFoundError?: errT
   ): retT {
-    _.each(cases, (tup:[matchT, retT]) => {
-      if (matcher(tup[0], obj)) return tup[1];
+    let res: [matchT, retT] = _.find(cases, (tup:[matchT, retT]) => {
+      console.log("matching " + tup[0].toString() + " vs " + obj.toString());
+      return matcher(obj, tup[0]);
     });
+
+    if (res !== undefined) {
+      return res[1];
+    }
 
     // typescript has default argument types, but getting one to work for an alloc'd expr
     // is beyond my wizardry

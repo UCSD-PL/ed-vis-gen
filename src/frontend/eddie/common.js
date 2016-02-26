@@ -54,6 +54,7 @@ function resetState() {
   dragged_obj = null;
 
   solver = new c.SimplexSolver();
+  dfnetwork = new Eddiflow.DFNetwork(dfparser);
   solver.autoSolve = false;
 
   constrained_vars = {};

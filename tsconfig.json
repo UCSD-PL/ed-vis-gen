@@ -1,12 +1,27 @@
 {
-  "compilerOptions" : {
-    "watch" : true,
-    "listFiles" : true,
-    "noEmitOnError" : false,
-    "noImplicitAny" : true,
-    "outFile" : "src/frontend/eddiflow.js",
-    "rootDir" : "src/frontend/eddiflow/"
+  "compilerOptions": {
+    "watch": true,
+    "listFiles": true,
+    "noEmitOnError": false,
+    "noImplicitAny": true,
+    "outFile": "src/frontend/eddiflow/out/eddiflow.js",
+    "rootDir": "src/frontend/eddiflow/"
+  },
+  "filesGlob": [
+    "src/frontend/eddiflow/*.ts",
+    "!node_modules/**"
+  ],
+  "files:": [
+    "src/frontend/eddiflow/util.ts",
+    "src/frontend/eddiflow/main.ts",
+    "src/frontend/eddiflow/DFExpr.ts"
+  ],
+  "files": [
+    "src/frontend/eddiflow/DFExpr.ts",
+    "src/frontend/eddiflow/main.ts",
+    "src/frontend/eddiflow/util.ts"
+  ],
+  "atom": {
+    "rewriteTsconfig": true
   }
-
-
 }

@@ -42,5 +42,4 @@ module Eddiflow {
       this.ref = name;
     }
   }
-
 }
