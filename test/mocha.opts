@@ -1,2 +1,2 @@
-../src/test/js
+src/test/js
 --recursive

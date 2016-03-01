@@ -4,24 +4,20 @@
     "listFiles": true,
     "noEmitOnError": false,
     "noImplicitAny": true,
-    "outFile": "src/frontend/eddiflow/out/eddiflow.js",
-    "rootDir": "src/frontend/eddiflow/"
+    "outDir": "src/frontend/eddiflow/out/",
+    "rootDir": "src/frontend/eddiflow/",
+    "module": "commonjs"
   },
   "filesGlob": [
     "src/frontend/eddiflow/*.ts",
     "!node_modules/**"
   ],
-  "files:": [
-    "src/frontend/eddiflow/util.ts",
-    "src/frontend/eddiflow/main.ts",
-    "src/frontend/eddiflow/DFExpr.ts"
-  ],
-  "files": [
-    "src/frontend/eddiflow/DFExpr.ts",
-    "src/frontend/eddiflow/main.ts",
-    "src/frontend/eddiflow/util.ts"
-  ],
   "atom": {
     "rewriteTsconfig": true
-  }
+  },
+  "files": [
+    "src/frontend/eddiflow/dfexpr.ts",
+    "src/frontend/eddiflow/dfnetwork.ts",
+    "src/frontend/eddiflow/util.ts"
+  ]
 }
