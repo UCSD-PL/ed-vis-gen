@@ -15,7 +15,7 @@
 ")"                   {return ')';}
 "PI"                  {return 'PI';}
 "E"                   {return 'E';}
-([a-z]|[A-Z]|"_"|"-")([a-z]|[A-Z]|"_"|"-"|[0-9])* {return 'IDENT'}
+([a-z]|[A-Z]|"_"|"-")([a-z]|[A-Z]|"_"|[0-9])* {return 'IDENT'}
 <<EOF>>;               {return 'EOF';}
 
 /lex

@@ -73,10 +73,6 @@ function main() {
   init_state();
   init_frames();
 
-
-
-
-
   loadMain( function() {
     getPoints( function (payload) {
       var points = JSON.parse(payload);
