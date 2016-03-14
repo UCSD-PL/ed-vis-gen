@@ -259,8 +259,8 @@ function intersection(x0, y0, r0, x1, y1, r1) {
 // wrappers for cassowary constructors
 function makeVariable(name, value) {
   var tmp = new c.Variable({name:name, value:value});
-  constrained_vars[name] = tmp;
-  constrained_inits[name] = value;
+  linear_vars[name] = tmp;
+  linear_inits[name] = value;
   return tmp;
 }
 
@@ -280,9 +280,9 @@ function LEQ(a1, a2) { return new c.Inequality(a1, c.LEQ, a2)};
 
 function init_stays() {
   //var logstr = "adding stays: "
-  for (cv in constrained_vars) {
+  for (cv in linear_vars) {
     //logstr += (cv + ", ");
-    stay_equations[cv] = makeStay(constrained_vars[cv]);
+    stay_equations[cv] = makeStay(linear_vars[cv]);
   }
   //console.log(logstr);
   add_stays();
@@ -303,19 +303,19 @@ function addGEQ(lhs, rhs) {
 
 function resetCVs() {
 
-  for (var cv in constrained_vars) {
-    //if (constrained_vars[cv].value != constrained_inits[cv]) {
-      solver.addEditVar(constrained_vars[cv]);
+  for (var cv in linear_vars) {
+    //if (linear_vars[cv].value != linear_inits[cv]) {
+      solver.addEditVar(linear_vars[cv]);
     //}
   }
 
   remove_stays();
   solver.beginEdit();
 
-  for (var cv in constrained_vars) {
-    //if (constrained_vars[cv].value != constrained_inits[cv]) {
+  for (var cv in linear_vars) {
+    //if (linear_vars[cv].value != linear_inits[cv]) {
       try {
-        solver.suggestValue(constrained_vars[cv], constrained_inits[cv]);
+        solver.suggestValue(linear_vars[cv], linear_inits[cv]);
       } catch (err) {
         console.log("err on " + cv + " " + err.toString());
       }
@@ -326,7 +326,7 @@ function resetCVs() {
 
   solver.endEdit();
   for (var cv in stay_equations) {
-    stay_equations[cv] = makeStay(constrained_vars[cv]);
+    stay_equations[cv] = makeStay(linear_vars[cv]);
   }
   add_stays();
 }

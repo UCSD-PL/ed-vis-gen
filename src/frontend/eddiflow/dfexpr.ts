@@ -1,4 +1,5 @@
 
+import _ = require('underscore');
 import Util = require('./util')
 
   // expression AST for dataflow expressions
@@ -47,7 +48,7 @@ export function mkString(e: expr): string {
   let outstr: string;
   if (e instanceof BinOp) {
     let bopstr = Util.match(e.op, Util.eq,
-      [[bop.Pls, '+'], [bop.Min, '-'], [bop.Pls, '*'], [bop.Min, '/']]);
+      [[bop.Pls, '+'], [bop.Min, '-'], [bop.Tim, '*'], [bop.Div, '/']]);
     outstr = mkString(e.lhs).concat(" ", bopstr, " ", mkString(e.rhs));
   } else if (e instanceof UnOp) {
     let uopstr = Util.match(e.op, Util.eq,
@@ -60,6 +61,7 @@ export function mkString(e: expr): string {
   } else if (typeof(e) == 'number') {
     outstr = e.toString();
   } else {
+    console.log(typeof(e||0));
     throw new Util.Unimplemented("unimplemented expr: " + e.toString());
   }
 

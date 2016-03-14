@@ -36,8 +36,8 @@ function init() {
   var newVars = { P1X: P1.x, P1Y: P1.y, R1X: R1.x, R1Y: R1.y,
                        P2X: P2.x, P2Y: P2.y, R2X: R2.x, R2Y: R2.y};
   for (var cv in newVars) {
-    constrained_vars[cv] = newVars[cv];
-    constrained_inits[cv] = newVars[cv].value;
+    linear_vars[cv] = newVars[cv];
+    linear_inits[cv] = newVars[cv].value;
   }
 
 

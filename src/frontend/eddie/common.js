@@ -54,11 +54,15 @@ function resetState() {
   dragged_obj = null;
 
   solver = new c.SimplexSolver();
-  dfnetwork = new DFNetwork(dfparser);
   solver.autoSolve = false;
+  dfnetwork = new DFNetwork(dfparser);
 
-  constrained_vars = {};
-  constrained_inits = {};
+  linear_vars = {};
+  linear_inits = {};
+
+  df_vars = {};
+  df_inits = {};
+
   stay_equations = {};
 
   all_objects = [];
@@ -120,8 +124,8 @@ function doLeftClick(e) {
 
     add_stays();
 
-    addEdit(solver, dragged_obj.x);
-    addEdit(solver, dragged_obj.y);
+    //addEdit(solver, dragged_obj.x);
+    //addEdit(solver, dragged_obj.y);
     solver.beginEdit();
     // console.log("after edit");
     // console.log(solver.getDebugInfo());
@@ -139,8 +143,8 @@ function doMouseUp(e) {
     on_release();
     // clear stay constraints in solver
     remove_stays();
-    for (var cv in constrained_vars) {
-      stay_equations[cv] = makeStay(constrained_vars[cv]);
+    for (var cv in linear_vars) {
+      stay_equations[cv] = makeStay(linear_vars[cv]);
     }
     add_stays();
     //console.log("after cleanup: ");
@@ -155,8 +159,8 @@ function doMouseMove(e) {
   if (dragged_obj != null) {
 
     //console.log("move at: " + e.layerX + ", " + e.layerY);
-    solver.suggestValue(dragged_obj.x, e.detail.x);
-    solver.suggestValue(dragged_obj.y, e.detail.y);
+    dfnetwork.suggestValue(dragged_obj.x.name, e.detail.x);
+    dfnetwork.suggestValue(dragged_obj.y.name, e.detail.y);
 
     // console.log("before move");
     // console.log(solver.getDebugInfo());
@@ -166,6 +170,7 @@ function doMouseMove(e) {
     drag_update();
     // after edits are suggested, recalculate values
     solver.solve();
+    dfnetwork.resolve();
     // update drawing WRT current constrained values
     update_constraints();
     global_redraw();
@@ -194,7 +199,7 @@ function remove_stays() {
   //console.log("clearing stays:")
   for (var cv in stay_equations) {
     solver.removeConstraint(stay_equations[cv]);
-    stay_equations[cv] = makeStay(constrained_vars[cv]);
+    stay_equations[cv] = makeStay(linear_vars[cv]);
     //console.log(cv + " : " + stay_equations[cv].toString());
   }
 }
@@ -237,8 +242,8 @@ function update_rec_constraints(work, fvs) {
 
   if (clash) { return; }
   var cvs = {};
-  for (var cv in constrained_vars) {
-    cvs[cv] = constrained_vars[cv].value;
+  for (var cv in linear_vars) {
+    cvs[cv] = linear_vars[cv].value;
   }
   var newVs = work(cvs);
 
@@ -246,14 +251,14 @@ function update_rec_constraints(work, fvs) {
   fvs.forEach(function (cv) {delete stay_equations[cv];});
 
   for (var cv in newVs) {
-    addEdit(solver, constrained_vars[cv]);
+    addEdit(solver, linear_vars[cv]);
   }
   //add_stays();
   solver.beginEdit();
   //var logstr = "adding values: "
   for (var cv in newVs) {
     //logstr += (cv + " -> " + newVs[cv]);
-    solver.suggestValue(constrained_vars[cv], newVs[cv]);
+    solver.suggestValue(linear_vars[cv], newVs[cv]);
   }
   //refresh_stays();
   //console.log(logstr);
@@ -264,8 +269,8 @@ function update_rec_constraints(work, fvs) {
   //refresh_stays();
   //add_stays();
   remove_stays();
-  for (var cv in constrained_vars) {
-    stay_equations[cv] = makeStay(constrained_vars[cv]);
+  for (var cv in linear_vars) {
+    stay_equations[cv] = makeStay(linear_vars[cv]);
   }
   add_stays();
 }

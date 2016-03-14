@@ -7,6 +7,15 @@ export interface Map<T> {
   [K: string]: T;
 }
 
+export function flatMap<U, T>(m: U[], f: (v: U) => T[]): T[] {
+  let flatmp = _.compose(_.flatten, _.map);
+  return flatmp(m, f);
+}
+
+export function eq<T>(l: T, r: T): boolean {
+  return l == r;
+}
+
 export function filterMap<T> (m: Map<T>, filtee: (k: string, v: T) => boolean): Map<T> {
   let ret: Map<T> = {};
   for (var key in m) {
@@ -39,10 +48,10 @@ export class PatternMatchFailed extends Error {
     this.name = "Inexaustive pattern match";
   }
 }
-
-export function eq(l: any, r: any): boolean {
-  return l == r;
-}
+// Use _.identity instead
+// export function eq(l: any, r: any): boolean {
+//   return l == r;
+// }
 
 export function match<matchT, retT, errT extends Error>(
   obj: matchT,
@@ -62,8 +71,10 @@ export function match<matchT, retT, errT extends Error>(
   // typescript has default argument types, but getting one to work for an alloc'd expr
   // is beyond my wizardry
 
-  if (!notFoundError)
+  if (!notFoundError) {
+    console.log(obj);
     throw new PatternMatchFailed("can't match " + obj.toString() + " to " + cases.toString());
+  }
   else
     throw notFoundError;
 

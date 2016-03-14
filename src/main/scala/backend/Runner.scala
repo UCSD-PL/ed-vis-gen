@@ -13,7 +13,7 @@ object Run {
   // TODO: command line parsing
   // public api for backend
   // given a source file, load the file into an AST
-  def loadSource(name: String) : State = SRun.parseFromSource(name)
+  def loadSource(name: String) : State = SRun.parseJSonFromFile(name) //SRun.parseFromSource(name)
 
   // compile a state to lowlevel javascript code
   def compileState(ζ: State, validate: Boolean = false) : String = {

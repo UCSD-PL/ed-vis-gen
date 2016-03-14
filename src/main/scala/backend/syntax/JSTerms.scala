@@ -62,6 +62,8 @@ object VecLike {
 sealed abstract class Shape extends Value {
   def toVars: Set[Variable]
 }
+
+// """{"center": {"x": {"name": "X"}, "y": {"name": "Y"}, "radius": {"name": "R"}}}"""
 case class Circle(center: Point, radius: Variable) extends Shape {
   def toVars = Set(center.x, center.y, radius)
 }

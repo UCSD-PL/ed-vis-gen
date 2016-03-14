@@ -221,13 +221,13 @@ function InteractionPoint (x,y) {
   // c.assert(x instanceof c.Variable && y instanceof c.Variable,
   //   "InteractionPoint requires c.Variable arguments");
   // backwards compatible interface
-  if (! (x instanceof c.Variable) ) {
-    x = new c.Variable({value: x});
-  }
+  // if (! (x instanceof c.Variable) ) {
+  //   x = new c.Variable({value: x});
+  // }
 
-  if (! (y instanceof c.Variable) ) {
-    y = new c.Variable({value: y});
-  }
+  // if (! (y instanceof c.Variable) ) {
+  //   y = new c.Variable({value: y});
+  // }
   return {
     x: x,
     y: y,
@@ -235,7 +235,7 @@ function InteractionPoint (x,y) {
     r: 3.5,
     fill: "green",
     links: [], // transitive cassowary data dependencies,
-               // need to be keys in constrained_vars.
+               // need to be keys in linear_vars.
     translate: function(dx, dy) {
 			c.assert(false, "translation interface not supported");
 		},
