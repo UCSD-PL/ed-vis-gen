@@ -39,20 +39,30 @@ object Json2Ast {
   @inline
   def getLField(json: JValue)(name: String): List[JValue] = (json \ name).extract[List[JValue]]
 
+  @inline
+  def log(msg: String, json: JValue) {
+    ()
+    // println("parsing as " + msg + " :")
+    // println(pretty(render(json)))
+  }
+
   // convert a {name: value} json to a (Variable -> value) binding
   def getBinding(json: JValue): (Variable, Double) = {
+    log("binding", json)
     val (bnd, value) = json.extract[(String, Double)]
     (Variable(bnd), value)
   }
 
   // convert a {x: name, y: name} json to an IPoint
   def mkIPoint(json: JValue): IPoint = {
+    log("ipoint", json)
     val x = getSField(json, "x")
     val y = getSField(json, "y")
     IPoint(Variable(x),Variable(y))
   }
   // ditto, but a regular point
   def mkPoint(json: JValue): Point = {
+    log("point", json)
     val x = getSField(json, "x")
     val y = getSField(json, "y")
     Point(Variable(x),Variable(y))
@@ -65,10 +75,12 @@ object Json2Ast {
     val nme = getSField(json, "name")
     getSField(json, "type") match {
       case "circle" ⇒
+        log("circle", json)
         val center = mkPoint(args \ "center")
         val r = Variable(getSField(args, "r"))
         nme → Circle(center, r)
       case "rectangle" ⇒
+        log("rectangle", json)
         val center = mkPoint(args \ "center")
         val dx = Variable(getSField(args, "dx"))
         val dy = Variable(getSField(args, "dy"))
@@ -78,6 +90,7 @@ object Json2Ast {
   }
 
   def mkProgram(json: JValue): State = {
+    log("program", json)
     val getter = getLField(json) _
     val σ = getter("vars").map(getBinding).toMap[Variable, Double]
     val shapeNames = getter("shapes").map(mkShape).toMap[String, Shape]
@@ -86,13 +99,14 @@ object Json2Ast {
     val vars = σ.keySet
     val shps = shapeNames.values.toSet
 
-    val ips = Set[IPoint]() //TODO
+    // TODO
+    val ips = Set[IPoint]()
     val eqs = Set[Eq]()
     val ineqs = Set[Leq]()
     val rcs = Set[RecConstraint]()
     val frees = Set[Variable]()
+    //println("finished parsing, returning: ")
     State(Program(vars, ips, shps, eqs, ineqs, rcs, frees, names), Store(σ))
-
   }
 
   def shpFromString(input: String) : Shape = mkShape(parse(input))._2

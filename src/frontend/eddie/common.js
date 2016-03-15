@@ -124,8 +124,8 @@ function doLeftClick(e) {
 
     add_stays();
 
-    //addEdit(solver, dragged_obj.x);
-    //addEdit(solver, dragged_obj.y);
+    addEdit(solver, dragged_obj.x);
+    addEdit(solver, dragged_obj.y);
     solver.beginEdit();
     // console.log("after edit");
     // console.log(solver.getDebugInfo());
@@ -159,8 +159,8 @@ function doMouseMove(e) {
   if (dragged_obj != null) {
 
     //console.log("move at: " + e.layerX + ", " + e.layerY);
-    dfnetwork.suggestValue(dragged_obj.x.name, e.detail.x);
-    dfnetwork.suggestValue(dragged_obj.y.name, e.detail.y);
+    solver.suggestValue(dragged_obj.x, e.detail.x);
+    solver.suggestValue(dragged_obj.y, e.detail.y);
 
     // console.log("before move");
     // console.log(solver.getDebugInfo());

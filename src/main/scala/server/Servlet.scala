@@ -167,8 +167,9 @@ class Servlet extends Stack {
     def loadFile(src: String) {
       reset
       val orig = Run.loadSource(src)
-
       ζ = processState(orig)
+      // println("loaded:")
+      // println(ζ)
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
