@@ -267,12 +267,12 @@ function makeVariable(name, value) {
 // for some reason, c.Expression.fromVar doesn't work like I think it should...
 // but fromConstant does... specifically, using fromVar in a constraint does not
 // evaluate to the current value of the variable, but fromConstant does
-function fromVar(args) {
-  return c.Expression.fromConstant.apply(this, arguments);
+function fromVar(v) {
+  return c.Expression.fromVariable(v, solver);
 }
 
-function fromConst(args) {
-  return c.Expression.fromConstant.apply(this, arguments);
+function fromConst(k) {
+  return c.Expression.fromConstant(k, solver);
 }
 
 function GEQ(a1, a2) { return new c.Inequality(a1, c.GEQ, a2)};

@@ -164,7 +164,7 @@ case class Eq(lhs: Expr, rhs: Expr) extends EqLike {
 }
 
 // lhs <= rhs equation
-case class Leq(lhs: Expr, rhs:Expr) extends EqLike {
+case class Leq(lhs: Expr, rhs: Expr) extends EqLike {
   override def toString() = prettyPrint(lhs, "≤", rhs)
   def substitute(subst: Map[Variable, Variable]) =
     Leq(lhs.substitute(subst), rhs.substitute(subst))

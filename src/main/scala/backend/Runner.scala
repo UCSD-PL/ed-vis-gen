@@ -34,6 +34,8 @@ object Run {
     }
   }
 
+  def emitIR(ζ: State): String = Pretty(ζ.prog, ζ.σ)
+
 
   def main(args: Array[String]) {
     println(compileSource(args(0), true))

@@ -19,11 +19,16 @@
 <script src="eddie/common.js"></script>
 <script src="eddie/display.js"></script>
 <script src="eddie/events.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jcarousel/0.3.4/jquery.jcarousel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="eddiflow/out/dfparser.js"></script>
 <script src="eddiflow/out/eddiflow.js"></script>
+<script src="utils.js"></script>
+<script src="view.js"></script>
 <script src="main.js"></script>
 
 
@@ -32,12 +37,15 @@
     <title>EDDIE interactive diagram synthesis</title>
 </head>
 
-<body style="width:1200px; height:1300px;" onload="main();">
-  <div id="loading"> </div>
+<body style="width:1200px; height:1300px;" onload="initView(); init_frames(); main();">
   <div style="text-align:center">
     <div>
       <button onclick="main();">Load source</button>
       <input type="text" name="filename" id="filename" value="t1.json">
+    </div>
+    <div>
+      <button onclick="save();">Save result</button>
+      <div id ="currentProgram"></div>
     </div>
     <div>
       <button onclick="acceptPoints();">Accept points </button>

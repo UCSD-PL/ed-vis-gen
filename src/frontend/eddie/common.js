@@ -94,7 +94,7 @@ function doLeftClick(e) {
   dragged_obj = null;
   var x = e.detail.x;
   var y = e.detail.y;
-  // console.log('clicked: ' + x.toString() + ", " + y.toString());
+  // console.log('clicked: ' + x + ", " + y);
   // console.log('targets: ' + drag_points.toString());
   for (var i = 0; i < drag_points.length; i++) {
     if (withinRadius(x, y, drag_points[i])) {
@@ -135,8 +135,9 @@ function doLeftClick(e) {
 function doRightClick(e) {
 }
 
-function doMouseUp(e) {
-  //console.log("released at: " + e.layerX + ", " + e.layerY);
+function doMouseUp() {
+  //console.log("released");
+  // console.log("released at: " + e.detail.x + ", " + e.detail.y);
   //drag_update();
   if (dragged_obj != null) {
     solver.endEdit();
@@ -158,7 +159,7 @@ function doMouseUp(e) {
 function doMouseMove(e) {
   if (dragged_obj != null) {
 
-    //console.log("move at: " + e.layerX + ", " + e.layerY);
+    //console.log("move at: " + e.detail.x + ", " + e.detail.y);
     solver.suggestValue(dragged_obj.x, e.detail.x);
     solver.suggestValue(dragged_obj.y, e.detail.y);
 
@@ -240,12 +241,18 @@ function update_rec_constraints(work, fvs) {
     });
   }
 
-  if (clash) { return; }
   var cvs = {};
   for (var cv in linear_vars) {
     cvs[cv] = linear_vars[cv].value;
   }
+
+
+
   var newVs = work(cvs);
+
+  var noEdits = false //_.isEmpty(newVs);
+
+  if (clash || noEdits) { return; }
 
   remove_stays();
   fvs.forEach(function (cv) {delete stay_equations[cv];});

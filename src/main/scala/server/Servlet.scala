@@ -167,6 +167,7 @@ class Servlet extends Stack {
     def loadFile(src: String) {
       reset
       val orig = Run.loadSource(src)
+      println(Run.emitIR(orig))
       ζ = processState(orig)
       // println("loaded:")
       // println(ζ)

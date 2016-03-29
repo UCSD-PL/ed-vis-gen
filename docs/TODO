@@ -1,12 +1,17 @@
+BUGS:
+  * LEQs are failing for some apparatus benchmarks, disabled for now
+    ** planets, hooke_2, hooke_par, normal_modes_2d
+  * generated program for normal_modes_2d is ass: see biggun.html. takes
+    1 minute to load...10k lines of JS??
+
 TODO:
 
+COMMIT!!!
 
+  * implement output, rewrite lines to vectors/springs.
   * debug heuristics
   * import more benchmarks
     ** all phet newtonian mechanics
-    ** rework apparatus as a frontend:
-      *** make apparatus output sensible JSON files
-      *** write JSON fromfile importer for our stuff
     ** add nonlinear equations to backend, runtime:
     phet:
     teeter-totter -> https://phet.colorado.edu/sims/html/balancing-act/latest/balancing-act_en.html

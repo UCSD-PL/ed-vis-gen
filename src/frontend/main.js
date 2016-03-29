@@ -1,3 +1,65 @@
+
+// initialize jcarousel frames
+function init_frames() {
+  var jc = function(str){ return $('.variants').jcarousel(str); };
+  var transition = function (forward) {
+    // stop current sim, start next sim
+    var currIdx = jc('items').index(jc('first'));
+    var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
+    // index is for old frame
+    // we're going to the right...
+    if (forward && (currIdx < jc('items').length - 1)) {
+      currIdx += 1;
+    } else if (!forward && currIdx > 0) {
+      // we're going to the left
+      currIdx -= 1;
+    }
+
+    var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
+
+    // we're either learning interactions, or learning physics configurations.
+    if (learningInteractions) {
+      // if the former, call start/stop display.
+      oldFrame.contentWindow['stopDisplay']();
+      nextFrame.contentWindow['startDisplay']();
+    } else {
+      // if the latter, stop and reset the old frame and start the new frame.
+      oldFrame.contentWindow['stop']();
+      oldFrame.contentWindow['reset']();
+      nextFrame.contentWindow['start']();
+    }
+
+  };
+  $('.variants').jcarousel();
+  $('.variant-prev')
+  .on('jcarouselcontrol:active', function() {
+    $(this).removeClass('inactive');
+  })
+  .on('jcarouselcontrol:inactive', function() {
+    $(this).addClass('inactive');
+  })
+  .on('click', function() {
+    transition(false);
+    // stop current sim, start next sim
+  })
+  .jcarouselControl({
+    target: '-=1'
+  });
+
+  $('.variant-next')
+  .on('jcarouselcontrol:active', function() {
+    $(this).removeClass('inactive');
+  })
+  .on('jcarouselcontrol:inactive', function() {
+    $(this).addClass('inactive');
+  })
+  .on('click', function() {
+    transition(true);
+  })
+  .jcarouselControl({
+    target: '+=1'
+  });
+}
 function init_state() {
   current_points = [];
   accepted_points = {};
@@ -5,73 +67,23 @@ function init_state() {
   mainWindow = {};
   clearFrames();
   learningInteractions = false;
+  clearView();
 }
 
-function init_frames() {
-  var jc = function(str){ return $('.variants').jcarousel(str); };
-  var transition = function (forward) {
-      // stop current sim, start next sim
-      var currIdx = jc('items').index(jc('first'));
-      var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
-      // index is for old frame
-      // we're going to the right...
-      if (forward && (currIdx < jc('items').length - 1)) {
-        currIdx += 1;
-      } else if (!forward && currIdx > 0) {
-        // we're going to the left
-        currIdx -= 1;
-      }
-
-      var nextFrame = $(jc('items')[currIdx]).children('iframe')[0];
-
-      // we're either learning interactions, or learning physics configurations.
-      if (learningInteractions) {
-        // if the former, call start/stop display.
-        oldFrame.contentWindow['stopDisplay']();
-        nextFrame.contentWindow['startDisplay']();
-      } else {
-        // if the latter, stop and reset the old frame and start the new frame.
-        oldFrame.contentWindow['stop']();
-        oldFrame.contentWindow['reset']();
-        nextFrame.contentWindow['start']();
-      }
-
-    };
-  $('.variants').jcarousel();
-  $('.variant-prev')
-    .on('jcarouselcontrol:active', function() {
-        $(this).removeClass('inactive');
-    })
-    .on('jcarouselcontrol:inactive', function() {
-        $(this).addClass('inactive');
-    })
-    .on('click', function() {
-      transition(false)
-      // stop current sim, start next sim
-    })
-    .jcarouselControl({
-        target: '-=1'
-    });
-
-  $('.variant-next')
-      .on('jcarouselcontrol:active', function() {
-          $(this).removeClass('inactive');
-      })
-      .on('jcarouselcontrol:inactive', function() {
-          $(this).addClass('inactive');
-      })
-      .on('click', function() {
-        transition(true);
-      })
-      .jcarouselControl({
-          target: '+=1'
-      });
+function save() {
+  clearView();
+  calculateView();
+  $("#currentProgram").dialog("open");
+  // getSource( function() {
+  //   $("save").dialog("open");
+  //   // @TODO
+  // }
 }
+
 
 function main() {
 
   init_state();
-  init_frames();
 
   loadMain( function() {
     getPoints( function (payload) {
@@ -216,10 +228,7 @@ function learnFVs() {
 
 function clearFrames(){
   var frames = $(".variants")[0].children[0];
-
-  while (frames.firstChild) {
-    frames.removeChild(frames.firstChild);
-  }
+  clearChildren(frames);
 }
 function learnMotive(i, Κ) {
   clearFrames();
@@ -281,7 +290,6 @@ function loadFromSource(name, h, w, Κ, reset) {
 
 
 function acceptVariant(ident, Κ) {
-  // disableInterface();
   sendGet("accept-variant/" + ident, function () {
     Κ();
     learnNextMotive();
@@ -326,36 +334,4 @@ function getVariants(i, h, w, Κ) {
 
 function getPoints(Κ) {
   sendGet("points", Κ);
-}
-// pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
-function sendGet(urlTail, Κ, resType) {
-  var url = "http://localhost:8080/" + urlTail;
-  log('sending GET ' + urlTail);
-  var req = new XMLHttpRequest();
-  req.onreadystatechange = function() {
-    if (req.readyState == 4 && req.status == 200) {
-      log("received response for " + urlTail);
-      Κ(req.responseText);
-    }
-  }
-  req.open("GET", url, true); // true for asynchronous
-  req.send(null);
-}
-
-// converts a plain JS object into a json object and posts it to the server.
-function sendPost(body, urlTail, Κ) {
-  urlTail = urlTail || "";
-  var url = "http://localhost:8080/" + urlTail;
-  log('sending POST ' + urlTail);
-  var req = new XMLHttpRequest();
-  req.onreadystatechange = function() {
-    if (req.readyState == 4 && req.status == 200) {
-      log("received response for " + urlTail);
-      Κ(req.responseText);
-    }
-  }
-  req.open("POST", url, true); // true for asynchronous
-  // it turns out headers need to be set after opening the connection
-  req.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-  req.send(JSON.stringify(body));
 }

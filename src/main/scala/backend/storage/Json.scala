@@ -85,6 +85,11 @@ object Json2Ast {
         val dx = Variable(getSField(args, "dx"))
         val dy = Variable(getSField(args, "dy"))
         nme → Rectangle(center, dy, dx)
+      case "line" ⇒
+        log("line", json)
+        val start = mkPoint(args \ "begin")
+        val end = mkPoint(args \ "end")
+        nme → LineSegment(start, end)
       case _ ⇒ throw Incomplete
     }
   }

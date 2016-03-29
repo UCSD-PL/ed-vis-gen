@@ -157,10 +157,13 @@ c.SimplexSolver = c.inherit({
           );
         }
       }
+      // console.log(n);
+      // console.log(this._editVarMap.size);
       this._editVarList.length = n;
       c.assert(this._editVarMap.size == n, "_editVarMap.size == n");
       return this;
     } catch (e /*ConstraintNotFound*/){
+      console.log(e);
       throw new c.InternalError("Constraint not found in removeEditVarsTo");
     }
   },
@@ -477,6 +480,7 @@ c.SimplexSolver = c.inherit({
     this.optimize(az);
     var azTableauRow = this.rows.get(az);
     if (!c.approx(azTableauRow.constant, 0)) {
+      console.log(expr.toString())
       this.removeRow(az);
       this.removeColumn(av);
       throw new c.RequiredFailure();

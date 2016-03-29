@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- JNLP File for Fluid Pressure and Flow -->
+
+<jnlp spec="1.0+" codebase="http://phet.colorado.edu/sims/fluid-pressure-and-flow" href="fluid-pressure-and-flow_en.jnlp">
+
+    <information>
+
+        <title>Fluid Pressure and Flow</title>
+
+        <vendor>University of Colorado, Department of Physics</vendor>
+
+        <description>The Fluid Pressure and Flow Simulation</description>
+
+        <offline-allowed/>
+
+    </information>
+
+    <resources>
+
+        <j2se version="1.4+"/>
+
+        <property name="javaws.phet.locale" value="en" />
+<property name="javaws.user.language" value="en" />
+
+        <jar href="fluid-pressure-and-flow_all.jar"/>
+
+    </resources>
+
+    
+
+    
+
+    <application-desc main-class="edu.colorado.phet.fluidpressureandflow.FluidPressureAndFlowApplication">
+
+        
+
+    </application-desc>
+
+</jnlp>
+

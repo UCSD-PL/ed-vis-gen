@@ -10,6 +10,7 @@ import scala.collection.mutable.{HashMap ⇒ MMap}
 trait Emitter extends PrettyPrinter {
   // for some reason, the library doesn't define it...
   def sep(ds: Seq[Doc], sep: Doc) = group(vsep(ds, sep))
+  override def sep(ds: Seq[Doc]) = sep(ds, primSep)
 
   def TODO: Doc = "TODO"
   def varPreamble: Doc
@@ -19,6 +20,8 @@ trait Emitter extends PrettyPrinter {
   def leqPreamble: Doc
   def recPreamble: Doc
   def fvPreamble: Doc
+  def closer: Doc = empty
+  def primSep: Doc = empty
 
   def printVar(v: Variable, initσ: Store): Doc
   def printIP(p: IPoint, names: Map[String, Value]): Doc
@@ -49,7 +52,7 @@ trait Emitter extends PrettyPrinter {
       args.map(emitExpr _)(collection.breakOut), empty)
   }
 
-  def printFV(v: Variable, σ: Store) = printVar(v, σ)
+  def printFV(v: Variable, σ: Store) = text(v.name)
 
   // extract values from variable arguments and append style arguments
   def printConstructor(name:String, args:Seq[Doc], end: Doc = semi ) = {
@@ -62,7 +65,8 @@ trait Emitter extends PrettyPrinter {
 
   def emitProg(p: Program, σ: Store): Doc = p match {
     case Program(vs, ps, ss, es, leqs, recs, rfvs, names) ⇒ {
-      vsep(Seq(varPreamble <@> sep(vs.map(printVar(_, σ))(collection.breakOut))
+      vsep(Seq(varPreamble <@>
+        sep(vs.map(printVar(_, σ))(collection.breakOut))
       , ipPreamble <@> sep(ps.map(printIP(_, names))(collection.breakOut))
       , shpPreamble <@>
         sep(ss.map(printShape(_, names))(collection.breakOut))
@@ -73,7 +77,7 @@ trait Emitter extends PrettyPrinter {
       , recPreamble <@>
           sep(recs.map(printNonlinear(_))(collection.breakOut))
       , fvPreamble <@> sep(rfvs.map(printFV(_, σ))(collection.breakOut))
-      ), line)
+    ), line <> closer <> line) <> line <> closer <> line
     }
   }
 
@@ -107,7 +111,7 @@ object HighLevel extends Emitter {
       case Spring(Point(a,b), dx, dy) ⇒ ("Spring", Seq(a,b,dx,dy))
       case Arrow(Point(a,b), dx, dy) ⇒ ("Arrow", Seq(a,b,dx,dy))
     }
-    printConstructor(cname, args.map(v ⇒ text(v.name)))
+    printConstructor(cname, args.map(v ⇒ text(v.name)), comma)
   }
 
   def printLinear(e: Eq) = {
@@ -127,6 +131,72 @@ object HighLevel extends Emitter {
   }
 }
 
+// output s.t. running parse on the result gives the same program
+object Pretty extends Emitter {
+  // VARS (ident = num (, ident = num)*);
+  // IPOINTS (ident = ipoint (, ident = ipoint)*);
+  // SHAPES (ident = shape (, ident = shape)*);
+  // LINEAR (eq (, eq)*);
+  // LEQS (leq (, leq)*);
+  // NONLINEAR (rec, (, rec)*);
+  // WITH FREE (ident (, ident)*);
+  def varPreamble = "VARS("
+  def ipPreamble = "IPOINTS("
+  def shpPreamble = "SHAPES("
+  def eqPreamble = "LINEAR("
+  def leqPreamble = "LEQS("
+  def recPreamble = "NONLINEAR("
+  def fvPreamble = "WITH FREE("
+
+  override def closer: Doc = ");"
+  override def primSep: Doc = ","
+
+  def printNonlinear(e: RecConstraint) = sep(Seq(text(e.lhs.name), emitExpr(e.rhs)), " <-")
+
+  def printVar(v: Variable, σ: Store) = v.name <+> "=" <+> σ(v).toString()
+
+  def ePoint(p: Point): Doc = parens(p.x.name <+> comma <+> p.y.name)
+  def printShape(s: Shape, names: Map[String, Value]) =  names.map(_.swap).apply(s) <+> "=" <+> {
+    val (cname: String, args) = s match {
+      case LineSegment(p1, p2) ⇒
+        ("Line", Seq(ePoint(p1), ePoint(p2)))
+      case Rectangle(c, h, w) ⇒
+        ("Rectangle", Seq(ePoint(c),text(h.name),text(w.name)))
+      case Image(c, h, w, src) ⇒
+        ("Image", Seq(ePoint(c),text(h.name),text(w.name),squotes(text(src))))
+      case Circle(c, r) ⇒
+        ("Circle", Seq(ePoint(c),text(r.name)))
+      case Triangle(a, b, c) ⇒
+        ("Triangle", Seq(ePoint(a), ePoint(b), ePoint(c)))
+      case Spring(c, dx, dy) ⇒
+        ("Spring", Seq(ePoint(c),text(dx.name),text(dy.name)))
+      case Arrow(c, dx, dy) ⇒
+        ("Arrow", Seq(ePoint(c),text(dx.name),text(dy.name)))
+    }
+    printConstructor(cname, args, empty)
+  }
+
+
+  def emitLinExpr(e: Expr): Doc = sep(
+    text(e.constant.toString) +: e.vars.map{case (v, coeff) ⇒
+      coeff.toString <+> "*" <+> v.name
+    }(collection.breakOut),
+    " + "
+  )
+  def printLinear(e: Eq) = emitLinExpr(e.lhs) <+> "+" <+> emitLinExpr(e.rhs)
+  def printLeq(e: Leq) = emitLinExpr(e.lhs) <+> "<=" <+> emitLinExpr(e.rhs)
+
+  def printIP(p:IPoint, names: Map[String, Value]) = names.map(_.swap).apply(p) <+> "=" <+> (p match {
+    case IPoint(x, y, links) ⇒ {
+      parens( space <>
+        nest( text(x.name) <> comma <+> text(y.name) <> comma <+> braces(
+              fillsep(links.map(v ⇒ text(v.name))(collection.breakOut), ",")
+        )) <> space
+      )
+    }
+  })
+}
+
 // print out a low-level javascript version of the program
 object LowLevel extends Emitter {
   override def TODO = "//@TODO"
@@ -144,6 +214,7 @@ object LowLevel extends Emitter {
       squotes(v.name)
     }(collection.breakOut), comma))
   ))
+
   def initPreamble =
     vsep(Seq("all_objects", "drag_points", "inc_objects").map(s ⇒ text(s ++ " = [];")))
   def timestep = text("20")
@@ -251,11 +322,13 @@ object LowLevel extends Emitter {
     ))
   }
 
-  def printLeq(e: Leq) = {
-    emitFCall("addLEQ", Seq(
-      printExpr(e.lhs), printExpr(e.rhs)
-    ))
-  }
+  // TODO: this is broken, debug
+  def printLeq(e: Leq) = empty
+  // def printLeq(e: Leq) = {
+  //   emitFCall("addLEQ", Seq(
+  //     printExpr(e.lhs), printExpr(e.rhs)
+  //   ))
+  // }
 
   def printExpr(e: Expr) = e match { case Expr(c, vars) ⇒ {
     // optimization; elide fromConst(0.0) when possible
