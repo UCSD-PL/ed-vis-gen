@@ -58,25 +58,26 @@ trait Emitter extends PrettyPrinter {
   def printConstructor(name:String, args:Seq[Doc], end: Doc = semi ) = {
     name <> parens(
       if (args.isEmpty) empty else
-        nest(sep( args ,
-      ",")
-    )) <> end
+        nest(sep(args , ","))
+      ) <> end
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
     case Program(vs, ps, ss, es, leqs, recs, rfvs, names) ⇒ {
       vsep(Seq(varPreamble <@>
-        sep(vs.map(printVar(_, σ))(collection.breakOut))
-      , ipPreamble <@> sep(ps.map(printIP(_, names))(collection.breakOut))
+        indent(sep(vs.map(printVar(_, σ))(collection.breakOut)))
+      , ipPreamble <@>
+        indent(sep(ps.map(printIP(_, names))(collection.breakOut)))
       , shpPreamble <@>
-        sep(ss.map(printShape(_, names))(collection.breakOut))
+        indent(sep(ss.map(printShape(_, names))(collection.breakOut)))
       , eqPreamble <@>
-        sep(es.map(printLinear(_))(collection.breakOut))
+        indent(sep(es.map(printLinear(_))(collection.breakOut)))
       , leqPreamble <@>
-        sep(leqs.map(printLeq(_))(collection.breakOut))
+        indent(sep(leqs.map(printLeq(_))(collection.breakOut)))
       , recPreamble <@>
-          sep(recs.map(printNonlinear(_))(collection.breakOut))
-      , fvPreamble <@> sep(rfvs.map(printFV(_, σ))(collection.breakOut))
+        indent(sep(recs.map(printNonlinear(_))(collection.breakOut)))
+      , fvPreamble <@>
+        indent(sep(rfvs.map(printFV(_, σ))(collection.breakOut)))
     ), line <> closer <> line) <> line <> closer <> line
     }
   }
@@ -134,14 +135,14 @@ object HighLevel extends Emitter {
 // output s.t. running parse on the result gives the same program
 object Pretty extends Emitter {
   // VARS (ident = num (, ident = num)*);
-  // IPOINTS (ident = ipoint (, ident = ipoint)*);
+  // POINTS (ident = ipoint (, ident = ipoint)*);
   // SHAPES (ident = shape (, ident = shape)*);
   // LINEAR (eq (, eq)*);
   // LEQS (leq (, leq)*);
   // NONLINEAR (rec, (, rec)*);
   // WITH FREE (ident (, ident)*);
   def varPreamble = "VARS("
-  def ipPreamble = "IPOINTS("
+  def ipPreamble = "POINTS("
   def shpPreamble = "SHAPES("
   def eqPreamble = "LINEAR("
   def leqPreamble = "LEQS("
@@ -181,15 +182,15 @@ object Pretty extends Emitter {
     text(e.constant.toString) +: e.vars.map{case (v, coeff) ⇒
       coeff.toString <+> "*" <+> v.name
     }(collection.breakOut),
-    " + "
+    " +"
   )
-  def printLinear(e: Eq) = emitLinExpr(e.lhs) <+> "+" <+> emitLinExpr(e.rhs)
+  def printLinear(e: Eq) = emitLinExpr(e.lhs) <+> "=" <+> emitLinExpr(e.rhs)
   def printLeq(e: Leq) = emitLinExpr(e.lhs) <+> "<=" <+> emitLinExpr(e.rhs)
 
   def printIP(p:IPoint, names: Map[String, Value]) = names.map(_.swap).apply(p) <+> "=" <+> (p match {
     case IPoint(x, y, links) ⇒ {
-      parens( space <>
-        nest( text(x.name) <> comma <+> text(y.name) <> comma <+> braces(
+      "IPoint" <> parens( space <>
+        nest( text(x.name) <> comma <+> text(y.name) <> comma <+> brackets(
               fillsep(links.map(v ⇒ text(v.name))(collection.breakOut), ",")
         )) <> space
       )

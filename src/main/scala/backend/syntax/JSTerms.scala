@@ -135,6 +135,10 @@ case class Expr(constant: Double, vars: Map[Variable, Double]) {
 }
 
 object Expr {
+  def apply(either: Either[(Variable, Double), Double]): Expr = either match {
+    case Left(bnding) ⇒ Expr(bnding)
+    case Right(konst) ⇒ Expr(konst)
+  }
   def apply(c: Double): Expr = Expr(c, Map())
   def apply(v: Variable): Expr = Expr((v → 1.0))
   def apply(binding:(Variable, Double)): Expr = Expr(0.0, Map(binding))

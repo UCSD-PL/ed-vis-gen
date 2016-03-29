@@ -83,3 +83,22 @@ function generateMD(point) {
 function generateMM(point) {
   return generateME("mousemove", point);
 }
+
+
+// add wrappers for eddie-style events
+// receiver should be a canvas of some sort
+// (e.g. doc.getElementById('mainCanvas'))
+function addEddieWrappers(receiver) {
+  var offset = receiver.getBoundingClientRect();
+  offset = {dx: -offset.left, dy: -offset.top};
+
+  receiver.addEventListener("mousedown", function (e) {
+      dispatchEvent(receiver, wrapEvent(e, offset));
+    }, true);
+  receiver.addEventListener("mouseup", function (e) {
+      dispatchEvent(receiver, wrapEvent(e, offset));
+    }, true);
+  receiver.addEventListener("mousemove", function (e) {
+      dispatchEvent(receiver, wrapEvent(e, offset));
+    }, true);
+}

@@ -60,6 +60,15 @@ function init_frames() {
     target: '+=1'
   });
 }
+
+function save() {
+  clearView();
+  sendGet("view-ir", function(src) {
+    calculateView(src);
+    $("#currentProgram").dialog("open");
+  });
+}
+
 function init_state() {
   current_points = [];
   accepted_points = {};
@@ -68,66 +77,58 @@ function init_state() {
   clearFrames();
   learningInteractions = false;
   clearView();
+
+
 }
 
-function save() {
-  clearView();
-  calculateView();
-  $("#currentProgram").dialog("open");
-  // getSource( function() {
-  //   $("save").dialog("open");
-  //   // @TODO
-  // }
-}
-
-
-function main() {
+// TODO: refactor
+function learnInteraction() {
 
   init_state();
 
-  loadMain( function() {
-    getPoints( function (payload) {
-      var points = JSON.parse(payload);
-      loadMain( function () {
-        mainWindow = document.getElementById("mainFrame").contentWindow
 
-        // the order of points matters, so we can't use mainWindow.drag_points
-        for (var i in points) {
-          current_points[i] = mainWindow[points[i]];
-        }
-        mainWindow.drag_points = [];
+  getPoints( function (payload) {
+    var points = JSON.parse(payload);
+    loadMain( function () {
+      mainWindow = document.getElementById("mainFrame").contentWindow
 
-        for (var i in current_points) {
-          var newPoint = current_points[i];
-          newPoint.fill = "red";
-          newPoint.selected = false;
-        }
+      // the order of points matters, so we can't use mainWindow.drag_points
+      for (var i in points) {
+        current_points[i] = mainWindow[points[i]];
+      }
+      mainWindow.drag_points = [];
 
-        mainWindow.global_redraw();
+      for (var i in current_points) {
+        var newPoint = current_points[i];
+        newPoint.fill = "red";
+        newPoint.selected = false;
+      }
 
-        mainWindow.addEventListener("mousedown", function (e) {
-          if (e.button == 0) {
-            var x = e.layerX;
-            var y = e.layerY;
-            for (var i = 0; i < current_points.length; i++) {
-              if (withinRadius(x, y, current_points[i])) {
-                var currPoint = current_points[i]
-                if (currPoint.selected) {
-                  currPoint.fill = "red";
-                } else {
-                  currPoint.fill = "green";
-                }
-                currPoint.selected = !currPoint.selected;
-                mainWindow.global_redraw();
+      mainWindow.global_redraw();
+
+      mainWindow.addEventListener("mousedown", function (e) {
+        if (e.button == 0) {
+          var x = e.layerX;
+          var y = e.layerY;
+          for (var i = 0; i < current_points.length; i++) {
+            if (withinRadius(x, y, current_points[i])) {
+              var currPoint = current_points[i]
+              if (currPoint.selected) {
+                currPoint.fill = "red";
+              } else {
+                currPoint.fill = "green";
               }
+              currPoint.selected = !currPoint.selected;
+              mainWindow.global_redraw();
             }
           }
-        }, true);
+        }
+      }, true);
 
 
-      });
     });
-  }, true);
+  });
+
 
 }
 
@@ -334,4 +335,10 @@ function getVariants(i, h, w, Κ) {
 
 function getPoints(Κ) {
   sendGet("points", Κ);
+}
+
+function passMouseEvents () {
+  var innerFrame = document.getElementById('mainFrame').contentWindow;
+  var innerCanvas = innerFrame.document.getElementById('mainCanvas');
+  addEddieWrappers(innerCanvas);
 }

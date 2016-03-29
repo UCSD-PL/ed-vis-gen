@@ -23,3 +23,7 @@ object Inconceivable extends RuntimeException {
 object InconsistentServerState extends RuntimeException {
   override def getMessage = "server state is inconsistent"
 }
+
+object BadFileFormat extends RuntimeException {
+  override def getMessage = "unsupported input file"
+}

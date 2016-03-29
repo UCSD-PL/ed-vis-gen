@@ -89,9 +89,10 @@ object Parser extends JavaTokenParsers with PackratParsers {
   lazy val ipoint = threeArg("IPoint", vrbl, vrbl, links) ^^ {case l ~ r ~ ls ⇒ IPoint(l,r, ls.toSet)}
   // expressions and equations
   // variable, either with an implicit coefficient of 1 or an explicit coefficient
-  lazy val term =
-    (decimalNumber <~ "*") ~ vrbl ^^ {case n ~ v ⇒ (v → n.toDouble)} |
-    vrbl ^^ {_ → 1.0}
+  lazy val term: P[Either[(Variable, Double), Double]] =
+    (decimalNumber <~ "*") ~ vrbl ^^ {case n ~ v ⇒ Left(v → n.toDouble)} |
+    vrbl ^^ {case v ⇒ Left(v → 1.0)} |
+    decimalNumber ^^ {case n ⇒ Right(n.toDouble)}
 
   // holy one-liners batman. parse a sequence of either constants or terms,
   // separated by additions
@@ -149,7 +150,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
 
   // programs look like:
   // VARS (ident = num (, ident = num)*);
-  // IPOINTS (ident = ipoint (, ident = ipoint)*);
+  // POINTS (ident = ipoint (, ident = ipoint)*);
   // SHAPES (ident = shape (, ident = shape)*);
   // LINEAR (eq (, eq)*);
   // LEQS (leq (, leq)*);

@@ -57,6 +57,7 @@ object EquationOpts extends OptimizationPass {
         case s:Shape ⇒ shapeMap(s, subst)
         case vrble:Variable ⇒ subst(vrble)
         case Point(x, y) ⇒ Point(subst(x), subst(y))
+        case IPoint(x, y, lnks) ⇒ IPoint(subst(x), subst(y), lnks.map(subst))
       }}
       val γ = σ - l
       State(Program(newVars, newIPs, newShps, newEqs, newLeqs, newRecs, newFrees, newNames), γ)

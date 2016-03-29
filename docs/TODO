@@ -6,8 +6,6 @@ BUGS:
 
 TODO:
 
-COMMIT!!!
-
   * implement output, rewrite lines to vectors/springs.
   * debug heuristics
   * import more benchmarks

@@ -142,7 +142,7 @@ class Servlet extends Stack {
       val retP = try {
         Run.compileState(s)
       } catch {
-        case e: Throwable ⇒ println("exception in compiling"); println(e); throw e
+        case e: Throwable ⇒ println("exception in compiling"); println(e.printStackTrace()); throw e
       }
       val wParams = params.withDefaultValue("false")
       jade("/empty.jade", "scrpt" → retP,
@@ -166,18 +166,28 @@ class Servlet extends Stack {
     // load a new file
     def loadFile(src: String) {
       reset
-      val orig = Run.loadSource(src)
-      println(Run.emitIR(orig))
-      ζ = processState(orig)
-      // println("loaded:")
-      // println(ζ)
+      // load either a json or a .txt
+      // we recall scala's string.split uses regexes...gross
+      val splits: Array[String] = src.split("\\.")
+      val ext = splits(1) match {
+        case "txt" ⇒ true
+        case "json" ⇒ false
+        case _ ⇒ throw BadFileFormat
+      }
+      ζ = Run.loadSource(src, ext)
+      ℵ = ζ
+    }
+
+    // initialize state prior to a round of interaction synthesis
+    // TODO: maybe set a state variable and toss around a bunch of asserts?
+    def initSynthesis() {
+      ζ = processState(ζ)
       ℵ = ζ
       allConfigs = ζ.prog.shapes.flatMap(_.toVars).flatMap{v ⇒
         Positional.extendLinksAll(Set(v), ζ.prog.equations)
       }
       allPoints = removeDuplicates(ζ.prog.shapes.flatMap{PointGeneration(_, ζ.σ)})
     }
-
     // run the noninteractive steps prior to synthesis in the pipeline (see PIPELINE)
     def processState(s: State): State = {
       val positions = EquationPass(s).head
@@ -214,7 +224,13 @@ class Servlet extends Stack {
     serveProgram(params)
   }
 
+  get("/view-ir") {
+    contentType = "text/plain"
+    Run.emitIR(ζ)
+  }
+
   get("/points") {
+    initSynthesis()
     generatePoints
   }
 

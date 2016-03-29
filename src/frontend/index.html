@@ -37,17 +37,18 @@
     <title>EDDIE interactive diagram synthesis</title>
 </head>
 
-<body style="width:1200px; height:1300px;" onload="initView(); init_frames(); main();">
+<body style="width:1200px; height:1300px;" onload="initView(); init_frames();">
   <div style="text-align:center">
     <div>
-      <button onclick="main();">Load source</button>
+      <button onclick="loadMain(passMouseEvents, true);">Load file</button>
       <input type="text" name="filename" id="filename" value="t1.json">
     </div>
     <div>
-      <button onclick="save();">Save result</button>
-      <div id ="currentProgram"></div>
+      <button onclick="save();">Display source</button>
+      <div id ="currentProgram" style='white-space:pre-wrap'></div>
     </div>
     <div>
+      <button onclick="learnInteraction();">Learn interactions</button>
       <button onclick="acceptPoints();">Accept points </button>
     </div>
     <iframe id="mainFrame" class="smallFrame" srcdoc="<html></html>">
