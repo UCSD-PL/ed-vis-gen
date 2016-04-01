@@ -1,6 +1,7 @@
 package EDDIE.backend.optimization
 
 import EDDIE.backend.semantics._
+import EDDIE.backend.validation._ // for usedVars
 import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.Conversions._
 import scala.annotation.tailrec
@@ -16,6 +17,13 @@ object OptimizeAll extends OptimizationPass {
 
 // optimizations centered around cassowary equations
 object EquationOpts extends OptimizationPass {
+
+  // removed unused variables
+  def pruneVars(s: State): State = {
+    val used = Validate.getUsedVars(s.prog)
+    State(s.prog.copy(vars = s.prog.vars & used), s.σ.restrict(used))
+  }
+
   def shapeMap(s: Shape, f: Variable ⇒ Variable): Shape = s match {
     case LineSegment(Point(sx, sy), Point(ex, ey)) ⇒ LineSegment((f(sx), f(sy)), (f(ex), f(ey)))
     case Rectangle(Point(a,b), h, w) ⇒ Rectangle((f(a), f(b)), f(h), f(w))
@@ -77,5 +85,5 @@ object EquationOpts extends OptimizationPass {
       case Some(se) ⇒ inlineAll(inlineOnce(se.lhs.vars.head._1, se.rhs.vars.head._1, s))
       case _ ⇒ s
     }}}
-  def apply(s: State): State = inlineAll(s)
+  def apply(s: State): State = pruneVars(inlineAll(s))
 }

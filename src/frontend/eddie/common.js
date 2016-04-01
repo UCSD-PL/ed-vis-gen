@@ -18,10 +18,10 @@ function common_init(height, width, alwaysRun) {
   global_ctx = ctx;
   ctx.canvas.width  = width-20;
   ctx.canvas.height = height-20;
-  ctx = document.getElementById("incCanvas").getContext("2d");
-  inc_ctx = ctx;
-  ctx.canvas.width  = 0; //width-20;
-  ctx.canvas.height = 0; //height-20;
+  // ctx = document.getElementById("incCanvas").getContext("2d");
+  // inc_ctx = ctx;
+  // ctx.canvas.width  = 1000;
+  // ctx.canvas.height = 1000;
 
   canvas.addEventListener("eddiemousedown", doMouseDown);
   canvas.addEventListener("eddiemouseup", doMouseUp);
@@ -69,6 +69,8 @@ function resetState() {
   drag_points = [];
   inc_objects = [];
   timers = [];
+
+  chartInit(250, 300);
 }
 
 function removePoint(point) {
@@ -208,10 +210,14 @@ function remove_stays() {
 function global_redraw() {
   var ctx = global_ctx;
   ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
+
+  recordChartValues();
   draw_all(ctx);
+  drawCharts();
+
 
   inc_objects.forEach(function(e) {
-    e.incDraw(inc_ctx);
+    //e.incDraw(inc_ctx);
   });
 }
 

@@ -485,50 +485,105 @@ function Plot (x, y, h, w, xFieldName, yFieldName, ranges, stroke, resolution, s
     }},
     // draws the axes and labels.
     draw: function (ctx) { with (this) {
-      if (simple) {
-        return;
+      if (!simple) {
+        var config = {
+          xmin: ranges[xFieldName].mn,
+          ymin: ranges[yFieldName].mn,
+          xmax: ranges[xFieldName].mx,
+          ymax: ranges[yFieldName].mx,
+          xtitle: xFieldName,
+          ytitle: yFieldName,
+          x: x, y: y, h: h, w: w
+        }
+        Plot.drawAxes(ctx, config);
       }
-      ctx.save();
-      ctx.fillStyle = stroke;
-      ctx.beginPath();
+    }}
+  }
+}
 
-      var xMx = ranges[xFieldName].mx;
-      var xMn = ranges[xFieldName].mn;
+// config needs to define:
+// ymin, ymax, xmin, xmax, (axes dimensions, e.g. out of 200),
+// xtitle, ytitle, (strings), and x,y,h,w (top-left and dimensions)
+Plot.drawAxes = function (ctx, config) {
 
-      var yMx = ranges[yFieldName].mx;
-      var yMn = ranges[yFieldName].mn;
+  ctx.save();
+  ctx.fillStyle = config.stroke | 'black';
+  ctx.beginPath();
 
-      // axes
-      ctx.moveTo(x, y + h/2); // x axis
-      ctx.lineTo(x + w, y + h/2);
-      ctx.moveTo(x + w/2, y); // y axis
-      ctx.lineTo(x + w/2, y + h);
+  var xMx = config.xmax;
+  var xMn = config.xmin;
 
-      // y ticks
-      ctx.moveTo(x + w/2 - 10, y + h/4);
-      ctx.lineTo(x + w/2 + 10, y + h/4);
-      Text(x + w/2 + 15, y + h/4 + 5, (3*yMx/4 + yMn/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
-      ctx.moveTo(x + w/2 - 10, y + 3*h/4);
-      ctx.lineTo(x + w/2 + 10, y + 3*h/4);
-      Text(x + w/2 + 15, y + 3*h/4 + 5, (3*yMn/4 + yMx/4).toFixed(2), "12pt MS Comic Sans").draw(ctx);
+  var yMx = config.ymax;
+  var yMn = config.ymin;
+  var x = config.x;
+  var y = config.y;
+  var h = config.h;
+  var w = config.w;
 
-      // x ticks
-      ctx.moveTo(x + w/4, y + h/2 - 10);
-      ctx.lineTo(x + w/4, y + h/2 + 10);
-      var txt = (3*xMn/4 + xMx/4).toFixed(2);
-      Text(x + w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
-      ctx.moveTo(x + 3*w/4, y + h/2 - 10);
-      ctx.lineTo(x + 3*w/4, y + h/2 + 10);
-      txt = (3*xMx/4 + xMn/4).toFixed(2);
-      Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
-      ctx.strokeStyle = "black";
+  // axes
+  ctx.moveTo(x, y + h/2); // x axis
+  ctx.lineTo(x + w, y + h/2);
+  ctx.moveTo(x + w/2, y); // y axis
+  ctx.lineTo(x + w/2, y + h);
 
-      Text(x + w/2 - 5*yFieldName.length, y + h + 20, yFieldName, "18pt MS Comic Sans").draw(ctx) // y label
-      Text(x + w + 10, y + h/2 + 5, xFieldName, "18pt MS Comic Sans").draw(ctx) // x label
+  // y ticks
+  ctx.moveTo(x + w/2 - 10, y + h/4);
+  ctx.lineTo(x + w/2 + 10, y + h/4);
+  Text(x + w/2 + 15, y + h/4 + 5, (3*yMx/4 + yMn/4).toFixed(0), "12pt MS Comic Sans").draw(ctx);
+  ctx.moveTo(x + w/2 - 10, y + 3*h/4);
+  ctx.lineTo(x + w/2 + 10, y + 3*h/4);
+  Text(x + w/2 + 15, y + 3*h/4 + 5, (3*yMn/4 + yMx/4).toFixed(0), "12pt MS Comic Sans").draw(ctx);
 
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+  // // x ticks
+  // ctx.moveTo(x + w/4, y + h/2 - 10);
+  // ctx.lineTo(x + w/4, y + h/2 + 10);
+  // var txt = (3*xMn/4 + xMx/4).toFixed(2);
+  // Text(x + w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+  // ctx.moveTo(x + 3*w/4, y + h/2 - 10);
+  // ctx.lineTo(x + 3*w/4, y + h/2 + 10);
+  // txt = (3*xMx/4 + xMn/4).toFixed(2);
+  // Text(x + 3*w/4 - 3*txt.length, y + h/2 + 25, txt, "12pt MS Comic Sans").draw(ctx);
+  // ctx.strokeStyle = "black";
+
+  Text(x + w/2 - 5*config.ytitle.length, y + h + 20, config.ytitle, "18pt MS Comic Sans").draw(ctx) // y label
+//  Text(x + w + 10, y + h/2 + 5, config.xtitle, "18pt MS Comic Sans").draw(ctx) // x label
+
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+
+// draw a vector/column chart
+function VecChart(x, y, h, w, config, stroke, simple) {
+  return {
+    x: x,
+    y: y,
+    dx: 0,
+    dy: 0,
+    h: h,
+    w: w,
+    stroke: stroke,
+    config: config, // record holding ymin, ymax, xmin, xmax, xtitle, ytitle
+    // takes input of the form {x: val, y: val}
+    record: function(data) { with (this) {
+
+      // scale data to axis
+      var hCnst = (config.ymax-config.ymin);
+      dy = 2*h * (1 - (data.y - config.ymin)/hCnst) - h;
+      // ymax -> -h, ymin -> h
+    }},
+    draw: function(ctx) { with (this) {
+      //draw labels, plot vector at center w/ dy, dx
+      // TODO
+      var plotConfig = _.extend(config, {
+        x: x, y: y, h: h, w: w
+      });
+      Plot.drawAxes(ctx, plotConfig);
+      // Arrow(x, y, dx, dy, color)
+
+      Arrow(x + w/2, y + h/2, dx, dy, stroke).draw(ctx);
+
     }}
   }
 }

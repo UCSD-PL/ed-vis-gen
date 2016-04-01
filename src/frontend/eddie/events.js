@@ -93,7 +93,9 @@ function addEddieWrappers(receiver) {
   offset = {dx: -offset.left, dy: -offset.top};
 
   receiver.addEventListener("mousedown", function (e) {
-      dispatchEvent(receiver, wrapEvent(e, offset));
+      var evnt = wrapEvent(e, offset);
+      console.log('clicked at: ' +  evnt.detail.x + ", " + evnt.detail.y);
+      dispatchEvent(receiver, evnt);
     }, true);
   receiver.addEventListener("mouseup", function (e) {
       dispatchEvent(receiver, wrapEvent(e, offset));

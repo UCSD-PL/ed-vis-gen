@@ -174,7 +174,7 @@ class Servlet extends Stack {
         case "json" ⇒ false
         case _ ⇒ throw BadFileFormat
       }
-      ζ = Run.loadSource(src, ext)
+      ζ = EquationOpts.pruneVars(Run.loadSource(src, ext))
       ℵ = ζ
     }
 

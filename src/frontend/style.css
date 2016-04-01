@@ -40,6 +40,12 @@
     float: left;
 }
 
+.mainFrame {
+  height: 350px;
+  width: 700px;
+  border-style: none;
+}
+
 .smallFrame {
   height: 350px;
   width: 344px;
