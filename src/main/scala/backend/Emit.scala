@@ -6,6 +6,7 @@ import EDDIE.backend.semantics._
 import org.kiama.output.PrettyPrinter
 import scala.collection.immutable.{Seq ⇒ Seq}
 import scala.collection.mutable.{HashMap ⇒ MMap}
+import EDDIE.backend.validation._ // for getVars
 
 trait Emitter extends PrettyPrinter {
   // for some reason, the library doesn't define it...
@@ -20,6 +21,7 @@ trait Emitter extends PrettyPrinter {
   def leqPreamble: Doc
   def recPreamble: Doc
   def fvPreamble: Doc
+  def chrtPreamble(charts: Set[Chart]): Doc
   def closer: Doc = empty
   def primSep: Doc = empty
 
@@ -29,6 +31,7 @@ trait Emitter extends PrettyPrinter {
   def printLinear(e: Eq): Doc
   def printLeq(e: Leq): Doc
   def printNonlinear(e: RecConstraint): Doc
+  def printChrt(c: Chart, names: Map[String, Value]): Doc
 
   def emitExpr(e: Expression): Doc = e match {
     case Const(c) ⇒ text(c.toString)
@@ -63,7 +66,7 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es, leqs, recs, rfvs, names) ⇒ {
+    case Program(vs, ps, ss, es, leqs, recs, rfvs, cs, names) ⇒ {
       vsep(Seq(varPreamble <@>
         indent(sep(vs.map(printVar(_, σ))(collection.breakOut)))
       , ipPreamble <@>
@@ -78,6 +81,8 @@ trait Emitter extends PrettyPrinter {
         indent(sep(recs.map(printNonlinear(_))(collection.breakOut)))
       , fvPreamble <@>
         indent(sep(rfvs.map(printFV(_, σ))(collection.breakOut)))
+      , chrtPreamble(cs) <@>
+          indent(sep(cs.map(printChrt(_, names))(collection.breakOut)))
     ), line <> closer <> line) <> line <> closer <> line
     }
   }
@@ -95,8 +100,9 @@ object HighLevel extends Emitter {
   def shpPreamble = "SHAPES:"
   def eqPreamble = "LINEAR CONSTRAINTS:"
   def leqPreamble = "INEQUALITIES:"
-  def recPreamble = "NONLINEAR CONSTRAINTS:"
+  def recPreamble = "PHYSICS EQUATIONS:"
   def fvPreamble = "WITH FREE VARIABLES:"
+  def chrtPreamble(charts: Set[Chart]) = "WITH CHARTS:"
 
   def printNonlinear(e: RecConstraint) = sep(Seq(text(e.lhs.name), emitExpr(e.rhs)), " <-")
 
@@ -130,6 +136,15 @@ object HighLevel extends Emitter {
       )
     }
   }
+
+  def printChrt(c: Chart, names: Map[String, Value]) = c match {
+    case Chart(e, lo, hi) ⇒ {
+      text(names.map(_.swap).apply(c)) <+> "=" <+> emitExpr(e) <+>
+      colon <+> brackets(
+        lo.toString <+> comma <+> hi.toString
+      )
+    }
+  }
 }
 
 // output s.t. running parse on the result gives the same program
@@ -139,15 +154,17 @@ object Pretty extends Emitter {
   // SHAPES (ident = shape (, ident = shape)*);
   // LINEAR (eq (, eq)*);
   // LEQS (leq (, leq)*);
-  // NONLINEAR (rec, (, rec)*);
+  // PHYSICS (rec, (, rec)*);
   // WITH FREE (ident (, ident)*);
+  // CHARTS (ident = chart (, ident = chart)*);
   def varPreamble = "VARS("
   def ipPreamble = "POINTS("
   def shpPreamble = "SHAPES("
   def eqPreamble = "LINEAR("
   def leqPreamble = "LEQS("
-  def recPreamble = "NONLINEAR("
+  def recPreamble = "PHYSICS("
   def fvPreamble = "WITH FREE("
+  def chrtPreamble(charts: Set[Chart]) = "CHARTS("
 
   override def closer: Doc = ");"
   override def primSep: Doc = ","
@@ -196,6 +213,13 @@ object Pretty extends Emitter {
       )
     }
   })
+
+  def printChrt(c: Chart, names: Map[String, Value]) = names.map(_.swap).apply(c) <+>
+    "=" <+> (c match { case Chart(e, lo, hi) ⇒ {
+      val args:Seq[Doc] = Seq(emitExpr(e), lo.toString, hi.toString)
+      printConstructor("Chart", args, empty)
+    }
+  })
 }
 
 // print out a low-level javascript version of the program
@@ -207,6 +231,24 @@ object LowLevel extends Emitter {
   def fvPreamble = empty
   def recFunName = "recursive_constraints"
   def recLocalSuffix = "_local"
+
+
+  // for charts, also emit free variables and a default config object
+  def chrtPreamble(charts: Set[Chart]) = {
+    val msg = text("// chart free variables and default config")
+    val freeVars = charts.flatMap(c ⇒ Validate.getVars(c.expr))
+    val freeVDecl = "freeChartVars" <+> "=" <+> braces(
+      sep(freeVars.map(v ⇒ text(v.name))(collection.breakOut), comma)
+    ) <> semi
+
+    val confDecl =
+      text("var defaultChartConfig = {xmin: -25, xmax: 25, xtitle: 'deadbeef'};")
+
+
+    vsep(Seq(msg, freeVDecl, confDecl), empty)
+  }
+
+
   override def printFV(v: Variable, σ: Store) = empty
 
   def emitRecs(p: Program) = emitFCall("update_rec_constraints", Seq(
@@ -324,12 +366,43 @@ object LowLevel extends Emitter {
   }
 
   // TODO: this is broken, debug
-  def printLeq(e: Leq) = empty
+  def printLeq(e: Leq) = TODO
   // def printLeq(e: Leq) = {
   //   emitFCall("addLEQ", Seq(
   //     printExpr(e.lhs), printExpr(e.rhs)
   //   ))
   // }
+
+  // foreach chart, emit a function implementing the expression, a local object
+  // extending defaultChartConfig with ymin, ymax, ytitle = chart.name,
+  // and a decl of the form
+  // chart.name = addChart(chart.name, func, config)
+  def printChrt(c: Chart, names: Map[String, Value]) = {
+    val name = names.map(_.swap).apply(c)
+    val optName = "_" + name + "Config"
+    val exprName = "_" + name + "Expr"
+
+
+    val exprFunc = "var" <+> exprName <+> "=" <+> emitFunc("",
+      "return" <+> emitExpr(c.expr) <> semi,
+      Seq("args")
+    )
+
+    val args:Seq[Doc] = Seq(squotes(name), c.lo.toString, c.hi.toString)
+    val newOpts = "var" <+> optName <+> "=" <+> braces(
+      sep(Seq("ytitle", "ymin", "ymax").zip(args).map(
+        kv ⇒ kv._1 <+> ":" <+> kv._2
+      ), comma)
+    )
+    val newConfig = optName <+> "=" <+> "_." <>
+      emitFCall("extend", Seq("defaultChartConfig", optName))
+
+    val cTor = emitFCall("addChart", Seq(squotes(name), exprName, optName))
+
+
+    vsep(Seq(exprFunc, newOpts, newConfig, cTor), empty)
+
+  }
 
   def printExpr(e: Expr) = e match { case Expr(c, vars) ⇒ {
     // optimization; elide fromConst(0.0) when possible

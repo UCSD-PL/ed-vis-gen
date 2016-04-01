@@ -31,10 +31,11 @@ object Validate {
   def getUsedVars(p: Program): SV =
     p.ipoints.flatMap(getVars(_)) ++ p.shapes.flatMap(getVars(_)) ++
     p.equations.flatMap(getVars(_)) ++ p.inequalities.flatMap(getVars(_)) ++
-    p.recConstraints.flatMap(getVars(_)) ++ p.freeRecVars
+    p.recConstraints.flatMap(getVars(_)) ++ p.charts.flatMap(c ⇒ getVars(c.expr)) ++
+    p.freeRecVars
 
   def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs, leqs, recs, rfvs, names) ⇒ {
+    case Program(vars, ips, shapes, eqs, leqs, recs, rfvs, cs, names) ⇒ {
       // check all defs with decls
       val allUses = getUsedVars(p)
       if ((allUses diff vars).nonEmpty) {

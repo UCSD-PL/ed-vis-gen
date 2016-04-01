@@ -38,7 +38,7 @@ object EquationOpts extends OptimizationPass {
   // in the state.
   // arbitrarily pick r as the remaining variable
   def inlineOnce(l: Variable, r: Variable, s: State): State = s match {
-    case State(Program(vars, ips, shps, eqs, leqs, recs, freeRVs, nms), σ) ⇒ {
+    case State(Program(vars, ips, shps, eqs, leqs, recs, freeRVs, chrts, nms), σ) ⇒ {
       def subst(v: Variable) = {
         if (v == l)
           r
@@ -51,10 +51,11 @@ object EquationOpts extends OptimizationPass {
         val newy = subst(y)
         IPoint(newx, newy, lnks.map(subst _))
       }
+      val mapper = Map(l → r)
       val newShps = shps.map{shapeMap(_, subst)}
-      val newEqs = eqs.map{e ⇒ e.substitute(Map(l → r))}.filterNot(trivialEq)
-      val newLeqs = leqs.map{e ⇒ e.substitute(Map(l → r))}.filterNot(trivialEq)
-      val newRecs = recs.map{decl ⇒ decl.substitute(Map(l → r))}
+      val newEqs = eqs.map{e ⇒ e.substitute(mapper)}.filterNot(trivialEq)
+      val newLeqs = leqs.map{e ⇒ e.substitute(mapper)}.filterNot(trivialEq)
+      val newRecs = recs.map{decl ⇒ decl.substitute(mapper)}
       val newFrees = (
         if (freeRVs.contains(l))
           freeRVs - l + r
@@ -67,8 +68,10 @@ object EquationOpts extends OptimizationPass {
         case Point(x, y) ⇒ Point(subst(x), subst(y))
         case IPoint(x, y, lnks) ⇒ IPoint(subst(x), subst(y), lnks.map(subst))
       }}
+
+      val newChrts = chrts.map{c ⇒ c.copy(expr = Expression.substitute(c.expr, l → r))}
       val γ = σ - l
-      State(Program(newVars, newIPs, newShps, newEqs, newLeqs, newRecs, newFrees, newNames), γ)
+      State(Program(newVars, newIPs, newShps, newEqs, newLeqs, newRecs, newFrees, newChrts, newNames), γ)
   }}
 
   // helper to check if an equation looks like a + x = a + y, where x and y are variables.

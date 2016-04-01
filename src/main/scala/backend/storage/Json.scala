@@ -105,13 +105,9 @@ object Json2Ast {
     val shps = shapeNames.values.toSet
 
     // TODO
-    val ips = Set[IPoint]()
-    val eqs = Set[Eq]()
-    val ineqs = Set[Leq]()
-    val rcs = Set[RecConstraint]()
-    val frees = Set[Variable]()
+    val newProg = Program.empty.copy(vars = vars, shapes = shps, names = names)
     //println("finished parsing, returning: ")
-    State(Program(vars, ips, shps, eqs, ineqs, rcs, frees, names), Store(σ))
+    State(newProg, Store(σ))
   }
 
   def shpFromString(input: String) : Shape = mkShape(parse(input))._2

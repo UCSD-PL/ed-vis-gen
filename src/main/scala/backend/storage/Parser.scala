@@ -148,6 +148,10 @@ object Parser extends JavaTokenParsers with PackratParsers {
     case x ~ e ⇒ RecConstraint(x, e)
   }
 
+  lazy val chrt = threeArg("Chart", expression, decimalNumber, decimalNumber) ^^ {
+    case e ~ lo ~ hi ⇒ Chart(e, lo.toDouble, hi.toDouble)
+  }
+
   // programs look like:
   // VARS (ident = num (, ident = num)*);
   // POINTS (ident = ipoint (, ident = ipoint)*);
@@ -156,24 +160,27 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // LEQS (leq (, leq)*);
   // NONLINEAR (rec, (, rec)*);
   // WITH FREE (ident (, ident)*);
+  // CHARTS (ident = chrt (, ident = chrt)*);
 
-  // TODO: refactor
 
-  lazy val vars = commas(decl(decimalNumber)) ^^ { is ⇒
-    val bndings = is.map(_ match {case v ~ d ⇒ (Variable(v) → d.toDouble)}).toMap
-    (bndings.keySet, Store(bndings))
+
+  // HOLY ONE LINERS BATMAN!!!!!!!
+  // given a bunch of decls, of the form
+  // ident = thing (, ident = thing)*,
+  // parse into a Map from fk(ident) -> fv(thing)
+  // (hehehe)
+  def decls[A, B, C](thing: P[A])(fk: String => B)(fv: A => C): P[Map[B, C]] = commas(decl(thing)) ^^ {thngs ⇒ thngs.map{_ match {case k ~ v ⇒ (fk(k) → fv(v))}}.toMap}
+
+  def plainVDecls[A <: Value](thing: P[A]): P[(Set[A], Map[String, Value])] =
+    decls(thing)(identity)(identity) ^^ { bnds ⇒ (bnds.map(_._2).toSet, bnds)}
+
+  lazy val vars = decls(decimalNumber)(Variable(_))(_.toDouble) ^^ {
+    bndings ⇒
+      (bndings.keySet, Store(bndings))
   }
-
-  lazy val ipoints = commas(decl(ipoint)) ^^ {is ⇒
-    val bndings: Map[String, IPoint] = is.map{_ match {case v ~ p ⇒ (v → p)}}.toMap
-    (bndings.map(_._2).toSet, bndings)
-  }
-
-
-  lazy val shps: P[(Set[Shape], Map[String, Value])] = commas(decl(shp)) ^^ {ss ⇒
-    val bndings: Map[String, Shape] = ss.map{_ match {case v ~ s ⇒ (v → s)}}.toMap
-    (bndings.map(_._2).toSet, bndings)
-  }
+  lazy val ipoints = plainVDecls(ipoint)
+  lazy val shps = plainVDecls(shp)
+  lazy val chrts = plainVDecls(chrt)
 
   lazy val eqs: SP[Eq]              = collect(equation)
   lazy val leqs: SP[Leq]            = collect(leq)
@@ -181,12 +188,15 @@ object Parser extends JavaTokenParsers with PackratParsers {
   lazy val fvs: SP[Variable] = collect(vrbl)
 
 
+  // TODO: refactor
   lazy val program =
     (unary("VARS", vars) <~ ';')  ~ (unary("POINTS", ipoints) <~ ';') ~
-    (unary("SHAPES", shps) <~ ';') ~ (unary("LINEAR", eqs) <~ ';') ~ (unary("LEQS", leqs) <~ ';') ~ (unary("NONLINEAR", recs) <~ ';') ~
-    (unary("WITH FREE", fvs) <~ ';') ^^ {
-      case (vs, σ) ~ ips ~ ss ~ es ~ les ~ rcs ~ rfvs ⇒
-      (Program(vs, ips._1, ss._1, es, les, rcs, rfvs, ss._2 ++ ips._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
+    (unary("SHAPES", shps) <~ ';') ~ (unary("LINEAR", eqs) <~ ';') ~
+    (unary("LEQS", leqs) <~ ';') ~ (unary("PHYSICS", recs) <~ ';') ~
+    (unary("WITH FREE", fvs) <~ ';') ~ (unary("CHARTS", chrts) <~ ';') ^^ {
+      case (vs, σ) ~ ips ~ ss ~ es ~ les ~ rcs ~ rfvs ~ cs ⇒
+      (Program(vs, ips._1, ss._1, es, les, rcs, rfvs, cs._1,
+        cs._2 ++ ss._2 ++ ips._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
     }
 
   def tryParsing[T](start: P[T])(input: String) = parseAll(start, input) match {

@@ -228,6 +228,10 @@ sealed abstract class UOP
 object Paren extends UOP
 object ¬ extends UOP
 
+
+// charts/tickers
+case class Chart(expr: Expression, lo: Double, hi: Double) extends Value
+
 // programs are sets of variables, ipoints, primitives, constraint equations,
 // recursive constraints, free variables in the recursive constraints, and a mapping of
 // names to values
@@ -235,11 +239,11 @@ case class Program(
   vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
   equations : Set[Eq], inequalities: Set[Leq],
   recConstraints : Set[RecConstraint], freeRecVars: Set[Variable],
-  names: Map[String, Value]
+  charts: Set[Chart], names: Map[String, Value]
 )
 
 object Program {
-  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
+  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
   def takePoints(kv: (String, Value)) = kv._2 match {
     case _:IPoint ⇒ true
     case _ ⇒ false
