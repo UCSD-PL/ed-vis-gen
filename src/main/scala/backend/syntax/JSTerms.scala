@@ -37,8 +37,7 @@ trait Boxy {
   def hheight: Variable
   def hwidth: Variable
 
-  def toVars = Set(center.x, center.y, hheight, hwidth)
-}
+  def toVars = Set(center.x, center.y, hheight, hwidth) }
 
 object BoxLike {
     // extractor method
@@ -149,8 +148,9 @@ object Expr {
 trait EqLike {
   val lhs: Expr
   val rhs: Expr
-  def count(vars: Set[Variable]) =
+  def count(vars: Set[Variable]): Double =
     ((lhs.vars.keySet ++ rhs.vars.keySet) & vars).size
+  def count(v: Variable): Double = count(Set(v))
   def contains(vars: Set[Variable]): Boolean =
     vars.exists((lhs.vars.keySet ++ rhs.vars.keySet).contains(_))
   def contains(v: Variable): Boolean = contains(Set(v))
@@ -236,14 +236,14 @@ case class Chart(expr: Expression, lo: Double, hi: Double) extends Value
 // recursive constraints, free variables in the recursive constraints, and a mapping of
 // names to values
 case class Program(
-  vars: Set[Variable], ipoints: Set[IPoint], shapes: Set[Shape],
-  equations : Set[Eq], inequalities: Set[Leq],
+  vars: Set[Variable], ipoints: Set[IPoint], releaseUpdates: Set[RecConstraint],
+  shapes: Set[Shape], equations : Set[Eq], inequalities: Set[Leq],
   recConstraints : Set[RecConstraint], freeRecVars: Set[Variable],
   charts: Set[Chart], names: Map[String, Value]
 )
 
 object Program {
-  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
+  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
   def takePoints(kv: (String, Value)) = kv._2 match {
     case _:IPoint ⇒ true
     case _ ⇒ false

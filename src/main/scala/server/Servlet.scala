@@ -91,7 +91,7 @@ class Servlet extends Stack {
         ζ.prog.names(name) match {
           case IPoint(x, y, _) ⇒
             if (!ζ.prog.ipoints.exists{ p ⇒ p.x == x && p.y == y}) {
-              println("error: point named " + name + " not in program")
+              println("error: point named " + name + " not in program" + ζ.prog.ipoints)
               throw InconsistentServerState
             }
           case _ ⇒ Unit

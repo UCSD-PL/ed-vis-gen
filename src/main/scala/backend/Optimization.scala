@@ -38,7 +38,7 @@ object EquationOpts extends OptimizationPass {
   // in the state.
   // arbitrarily pick r as the remaining variable
   def inlineOnce(l: Variable, r: Variable, s: State): State = s match {
-    case State(Program(vars, ips, shps, eqs, leqs, recs, freeRVs, chrts, nms), σ) ⇒ {
+    case State(Program(vars, ips, rups, shps, eqs, leqs, recs, freeRVs, chrts, nms), σ) ⇒ {
       def subst(v: Variable) = {
         if (v == l)
           r
@@ -56,6 +56,7 @@ object EquationOpts extends OptimizationPass {
       val newEqs = eqs.map{e ⇒ e.substitute(mapper)}.filterNot(trivialEq)
       val newLeqs = leqs.map{e ⇒ e.substitute(mapper)}.filterNot(trivialEq)
       val newRecs = recs.map{decl ⇒ decl.substitute(mapper)}
+      val newRups = rups.map{decl ⇒ decl.substitute(mapper)}
       val newFrees = (
         if (freeRVs.contains(l))
           freeRVs - l + r
@@ -71,7 +72,7 @@ object EquationOpts extends OptimizationPass {
 
       val newChrts = chrts.map{c ⇒ c.copy(expr = Expression.substitute(c.expr, l → r))}
       val γ = σ - l
-      State(Program(newVars, newIPs, newShps, newEqs, newLeqs, newRecs, newFrees, newChrts, newNames), γ)
+      State(Program(newVars, newIPs, newRups, newShps, newEqs, newLeqs, newRecs, newFrees, newChrts, newNames), γ)
   }}
 
   // helper to check if an equation looks like a + x = a + y, where x and y are variables.

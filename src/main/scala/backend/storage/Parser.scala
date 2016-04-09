@@ -155,6 +155,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // programs look like:
   // VARS (ident = num (, ident = num)*);
   // POINTS (ident = ipoint (, ident = ipoint)*);
+  // ONRELEASE (rec, (, rec)*);
   // SHAPES (ident = shape (, ident = shape)*);
   // LINEAR (eq (, eq)*);
   // LEQS (leq (, leq)*);
@@ -191,11 +192,12 @@ object Parser extends JavaTokenParsers with PackratParsers {
   // TODO: refactor
   lazy val program =
     (unary("VARS", vars) <~ ';')  ~ (unary("POINTS", ipoints) <~ ';') ~
-    (unary("SHAPES", shps) <~ ';') ~ (unary("LINEAR", eqs) <~ ';') ~
-    (unary("LEQS", leqs) <~ ';') ~ (unary("PHYSICS", recs) <~ ';') ~
+    (unary("ON RELEASE", recs) <~ ';') ~ (unary("SHAPES", shps) <~ ';') ~
+    (unary("LINEAR", eqs) <~ ';') ~ (unary("LEQS", leqs) <~ ';') ~
+    (unary("PHYSICS", recs) <~ ';') ~
     (unary("WITH FREE", fvs) <~ ';') ~ (unary("CHARTS", chrts) <~ ';') ^^ {
-      case (vs, σ) ~ ips ~ ss ~ es ~ les ~ rcs ~ rfvs ~ cs ⇒
-      (Program(vs, ips._1, ss._1, es, les, rcs, rfvs, cs._1,
+      case (vs, σ) ~ ips ~ ups ~ ss ~ es ~ les ~ rcs ~ rfvs ~ cs ⇒
+      (Program(vs, ips._1, ups, ss._1, es, les, rcs, rfvs, cs._1,
         cs._2 ++ ss._2 ++ ips._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
     }
 

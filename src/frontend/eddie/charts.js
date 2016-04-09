@@ -35,7 +35,8 @@ function addChart(name, expr, config) {
   var h = chart_ctx.canvas.height/1.5;
   var ncx = (w + 10) * charts.length;
   // x, y, h, w, config, stroke, simple
-  var nc = new VecChart(ncx, 20, h, w, config, 'black', true);
+  console.log(config);
+  var nc = VecChart(ncx, 20, h, w, config, 'black', true);
   chartData[name] = {visible: true, expr: expr};
   charts.push({chart: nc, name: name});
 

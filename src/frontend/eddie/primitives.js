@@ -236,6 +236,7 @@ function InteractionPoint (x,y) {
     fill: "green",
     links: [], // transitive cassowary data dependencies,
                // need to be keys in linear_vars.
+    snapData: false, // pair of set of cass equations, physics function | boolean
     translate: function(dx, dy) {
 			c.assert(false, "translation interface not supported");
 		},

@@ -4,6 +4,8 @@ import EDDIE.backend.syntax.JSTerms._
 import EDDIE.backend.Types._
 import scala.collection.immutable.{Map ⇒ Map}
 import scala.annotation.tailrec
+import EDDIE.backend.errors._
+
 
 // default value of 0
 case class Store(vars: Map[Variable, Double]) extends Iterable[(Variable, Double)] {
@@ -50,45 +52,59 @@ object State {
         while (names.contains(prefix + suffix.toString)) {
           suffix += 1
         }
-        names.map{ kv ⇒ kv match {
-          case (nme, IPoint(x, y, lnks)) ⇒ (nme, IPoint(x, y, lnks + p.x + p.y))
-          case _ ⇒ kv
-        }} + ((prefix + suffix.toString) → p)
+        names + ((prefix + suffix.toString) → p)
       }
 
   }
 
-  // @tailrec
-  // TODO: make this more precise
-  def growLinks(links: Set[Variable], points: Set[IPoint]): Set[Variable] = {
-    // val newLinks = points.filter{
-    //   ip ⇒ !(ip.links & links).isEmpty
-    // }.flatMap{ip ⇒
-    //   Set(ip.x, ip.y)
-    // }
-    // val ret = links ++ newLinks
-    // if (links == ret)
-    //   ret
-    // else
-    //   growLinks(ret, points)
-    links ++ points.flatMap{ip ⇒ Set(ip.x, ip.y)}
+  // given a new point and a program, integrate the new point into the program
+  def mergePoints(newConfig: IPConfig, oldProg: Program): (IPoint, Set[IPoint], Map[String, Value]) = {
+    val oldNames: Map[Value, String] = oldProg.names.filter(Program.takePoints).map(_.swap)
+    // update old point's links if necessary
+    def mergeNP(cand: IPoint, eqs: Set[Eq], dst: IPoint): IPoint = cand.copy(links = cand.links ++
+      Set(dst.x, dst.y).filter(v ⇒ eqs.exists(e ⇒
+        e.count(cand.links) == 1 && e.count(v) == 1)
+      )
+    )
+    val newPoint = oldProg.ipoints.foldLeft(newConfig._1)((vnew, vold) ⇒ mergeNP(vnew, oldProg.equations, vold))
+    val newPoints = oldProg.ipoints.map(v ⇒ mergeNP(v, newConfig._2, newPoint))
+    val newNames = newPoints.map(p ⇒ oldNames.find{
+      case (IPoint(x, y, _), nme) ⇒ (x == p.x && y == p.y)
+      } match {
+          case Some((_, nme)) ⇒ (nme → p)
+          case _ ⇒ println("can't find point", p, "in map", oldNames); throw Inconceivable
+    }).toMap ++ oldProg.names.filter(! Program.takePoints(_))
+    (
+      newPoint,
+      newPoints + newPoint,
+      nameIP(newNames, newPoint)
+    )
+    // foreach old point, detect if the oldPoint's coordinates should be sinks
+
+    // links ++ points.flatMap{ip ⇒ Set(ip.x, ip.y)}
   }
 
   def merge(ipc: IPConfig, ζ: State, mergeLinks: Boolean = true): State = ipc match {
     case (ip, eqs, σ) ⇒
-      val newLinks = growLinks(ip.links, ζ.prog.ipoints)
-      val newIP =
+
+      // foreach point in the new state, if
+      val (newPoint, newPoints, newNames) =
         if (mergeLinks)
-          ip.copy(links = newLinks)
+          mergePoints(ipc, ζ.prog)
         else
-          ip
+          (ip, ζ.prog.ipoints + ip, nameIP(ζ.prog.names, ip))
+
+
+
       val oldProg = ζ.prog
+    //  println("new point:" + newPoint.toString)
+    //  println("old names:" + oldProg.names)
+  //    println("new names:" + nameIP(oldProg.names, newPoint))
       ζ.copy( prog = oldProg.copy(
-        vars = oldProg.vars ++ Set(newIP.x, newIP.y),
-        // TODO: be more precise
-        ipoints = oldProg.ipoints.map(point ⇒ point.copy(links = point.links + newIP.x + newIP.y)) + newIP,
+        vars = oldProg.vars ++ Set(newPoint.x, newPoint.y),
+        ipoints = newPoints,
         equations = oldProg.equations ++ eqs,
-        names = nameIP(oldProg.names, newIP)
+        names = newNames
         // notice, free rec vars is not updated (and should be). however, it's unclear
         // at this stage whether both dimensions of the point should be added,
         // so we rely on a later synthesis pass to add in correct FVs.

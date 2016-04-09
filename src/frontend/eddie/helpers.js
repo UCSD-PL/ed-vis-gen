@@ -187,7 +187,7 @@ function addWindowConstraints(slvr, window, xs, ys) {
 // CV is in point.links
 
 function makeStay(cvar, w) {
-  var e = c.Expression.fromConstant(cvar).minus(c.Expression.fromConstant(cvar.value));
+  var e = fromVar(cvar).minus(fromConst(cvar.value));
   //console.log(e.toString());
   return new c.Constraint(e, c.Strength.strong, w || 1);
 }
@@ -268,11 +268,11 @@ function makeVariable(name, value) {
 // but fromConstant does... specifically, using fromVar in a constraint does not
 // evaluate to the current value of the variable, but fromConstant does
 function fromVar(v) {
-  return c.Expression.fromVariable(v, solver);
+  return c.Expression.fromConstant(v);
 }
 
 function fromConst(k) {
-  return c.Expression.fromConstant(k, solver);
+  return c.Expression.fromConstant(k);
 }
 
 function GEQ(a1, a2) { return new c.Inequality(a1, c.GEQ, a2)};

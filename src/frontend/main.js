@@ -101,6 +101,7 @@ function learnInteraction() {
       for (var i in current_points) {
         var newPoint = current_points[i];
         newPoint.fill = "red";
+        newPoint.cr = 2;
         newPoint.selected = false;
       }
 

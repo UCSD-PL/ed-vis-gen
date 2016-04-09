@@ -3,7 +3,9 @@ BUGS:
     ** planets, hooke_2, hooke_par, normal_modes_2d
   * generated program for normal_modes_2d is ass: see biggun.html. takes
     1 minute to load...10k lines of JS??
-  * planets_aug circle radius is being zero'd ???
+
+  * bug in pretty emit...? maybe optimizations? export of spring died (see test.html
+    and test2.html)
 
 TODO:
 
@@ -30,7 +32,7 @@ TODO:
            input, they're run prior to state transition.
     ** add check on release: state is determined by conjunction of
        (src, target) pairs, check all pairs to determine new state.
-    
+
 
 
 

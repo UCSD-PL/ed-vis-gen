@@ -1,6 +1,6 @@
 
 import _ = require('underscore');
-import Util = require('./util')
+import Util = require('./util');
 
   // expression AST for dataflow expressions
   // standard expression grammar

@@ -30,29 +30,26 @@ object Validate {
 
   def getUsedVars(p: Program): SV =
     p.ipoints.flatMap(getVars(_)) ++ p.shapes.flatMap(getVars(_)) ++
-    p.equations.flatMap(getVars(_)) ++ p.inequalities.flatMap(getVars(_)) ++
-    p.recConstraints.flatMap(getVars(_)) ++ p.charts.flatMap(c ⇒ getVars(c.expr)) ++
-    p.freeRecVars
+    p.releaseUpdates.flatMap(getVars(_)) ++ p.equations.flatMap(getVars(_)) ++
+    p.inequalities.flatMap(getVars(_)) ++ p.recConstraints.flatMap(getVars(_)) ++
+    p.charts.flatMap(c ⇒ getVars(c.expr)) ++ p.freeRecVars
 
-  def checkVarDecls(p:Program) { p match {
-    case Program(vars, ips, shapes, eqs, leqs, recs, rfvs, cs, names) ⇒ {
-      // check all defs with decls
-      val allUses = getUsedVars(p)
-      if ((allUses diff vars).nonEmpty) {
-        println("error: undefined variables " ++ (allUses diff vars).toString)
-        throw IllformedProgram
-      }
-      // validate names map with internal fields
-      if (vars.exists{ v ⇒ !names.contains(v.name) || (names(v.name) != v)}) {
-        println("error: missing names " ++ vars.filter{v ⇒ !names.contains(v.name)}.toString)
-        println("or inconsistent variable names " ++
-          names.filter{case (nme, v) ⇒ vars.exists{vv ⇒ vv == v && nme != vv.name}}.toString)
-
-        throw IllformedProgram
-      }
-
+  def checkVarDecls(p:Program) {
+    // check all defs with decls
+    val allUses = getUsedVars(p)
+    if ((allUses diff p.vars).nonEmpty) {
+      println("error: undefined variables " ++ (allUses diff p.vars).toString)
+      throw IllformedProgram
     }
-  }}
+    // validate names map with internal fields
+    if (p.vars.exists{ v ⇒ !p.names.contains(v.name) || (p.names(v.name) != v)}) {
+      println("error: missing names " ++ p.vars.filter{v ⇒ !p.names.contains(v.name)}.toString)
+      println("or inconsistent variable names " ++
+        p.names.filter{case (nme, v) ⇒ p.vars.exists{vv ⇒ vv == v && nme != vv.name}}.toString)
+
+      throw IllformedProgram
+    }
+  }
 
   // make sure definitions of variables are consistent with equations
   // evaluator for expressions

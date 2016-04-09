@@ -16,6 +16,7 @@ trait Emitter extends PrettyPrinter {
   def TODO: Doc = "TODO"
   def varPreamble: Doc
   def ipPreamble: Doc
+  def relPreamble: Doc
   def shpPreamble: Doc
   def eqPreamble: Doc
   def leqPreamble: Doc
@@ -32,6 +33,7 @@ trait Emitter extends PrettyPrinter {
   def printLeq(e: Leq): Doc
   def printNonlinear(e: RecConstraint): Doc
   def printChrt(c: Chart, names: Map[String, Value]): Doc
+  def printRelease(e: RecConstraint): Doc = printNonlinear(e)
 
   def emitExpr(e: Expression): Doc = e match {
     case Const(c) ⇒ text(c.toString)
@@ -66,11 +68,13 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, ss, es, leqs, recs, rfvs, cs, names) ⇒ {
+    case Program(vs, ps, rups, ss, es, leqs, recs, rfvs, cs, names) ⇒ {
       vsep(Seq(varPreamble <@>
         indent(sep(vs.map(printVar(_, σ))(collection.breakOut)))
       , ipPreamble <@>
         indent(sep(ps.map(printIP(_, names))(collection.breakOut)))
+      , relPreamble <@>
+        indent(sep(rups.map(printRelease(_))(collection.breakOut)))
       , shpPreamble <@>
         indent(sep(ss.map(printShape(_, names))(collection.breakOut)))
       , eqPreamble <@>
@@ -97,6 +101,7 @@ trait Emitter extends PrettyPrinter {
 object HighLevel extends Emitter {
   def varPreamble = "VARIABLES:"
   def ipPreamble = "IPOINTS:"
+  def relPreamble = "ON RELEASE:"
   def shpPreamble = "SHAPES:"
   def eqPreamble = "LINEAR CONSTRAINTS:"
   def leqPreamble = "INEQUALITIES:"
@@ -159,6 +164,7 @@ object Pretty extends Emitter {
   // CHARTS (ident = chart (, ident = chart)*);
   def varPreamble = "VARS("
   def ipPreamble = "POINTS("
+  def relPreamble = "ON RELEASE("
   def shpPreamble = "SHAPES("
   def eqPreamble = "LINEAR("
   def leqPreamble = "LEQS("
@@ -181,7 +187,7 @@ object Pretty extends Emitter {
       case Rectangle(c, h, w) ⇒
         ("Rectangle", Seq(ePoint(c),text(h.name),text(w.name)))
       case Image(c, h, w, src) ⇒
-        ("Image", Seq(ePoint(c),text(h.name),text(w.name),squotes(text(src))))
+        ("Image", Seq(ePoint(c),text(h.name),text(w.name),text(src)))
       case Circle(c, r) ⇒
         ("Circle", Seq(ePoint(c),text(r.name)))
       case Triangle(a, b, c) ⇒
@@ -227,6 +233,8 @@ object LowLevel extends Emitter {
   override def TODO = "//@TODO"
   // don't print out recursive constraints in body of init
   def recPreamble = empty
+  // ditto for onrelease equations
+  def relPreamble = empty
   def printNonlinear(e: RecConstraint) = empty
   def fvPreamble = empty
   def recFunName = "recursive_constraints"
@@ -544,7 +552,7 @@ object LowLevel extends Emitter {
       emitFunc("start", text("tau.shouldRun = true; tau.start();")),
       emitFunc("stop", text("tau.shouldRun = false; tau.stop();")),
       emitFunc("reset", text("tau.reset();")),
-      emitFunc("on_release", empty),
+      emitFunc("on_release", emitRecConstraints(p.releaseUpdates), Seq("args")),
       emitFunc("on_click", empty)
     ), line)
 

@@ -1,8 +1,8 @@
 VARS (
   // base
-  BX = 150, BY = 200, BH = 30, BW = 100,
+  BX = 150, BY = 195, BH = 25, BW = 50,
   // spring
-  SX = 150, SY = 170, DX = 0, DY = -70,
+  SX = 150, SY = 170, DX = 0, DY = -60,
   // platform
   PX = 150, PY = 100, PH = 10, PW = 20,
   // image
@@ -14,6 +14,8 @@ VARS (
 
 POINTS (
 );
+ON RELEASE (
+);
 SHAPES (
   Base = Rectangle((BX, BY), BH, BW),    // base
   S = Spring((SX, SY), DX, DY),       // spring
@@ -24,7 +26,7 @@ LINEAR (
 );
 LEQS (
 );
-NONLINEAR (
+PHYSICS (
   T  <- (T + 0.01) % 100,
   RL <- InitRL - M*G/K,
   F <- (-K*(DY + RL) - (C*V))/M,
@@ -32,4 +34,7 @@ NONLINEAR (
   DY <- DY + V
 );
 WITH FREE (
+);
+CHARTS (
+
 );

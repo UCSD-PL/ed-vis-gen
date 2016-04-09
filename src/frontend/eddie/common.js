@@ -71,6 +71,9 @@ function resetState() {
   timers = [];
 
   chartInit(250, 300);
+
+  snapRegions = [];
+
 }
 
 function removePoint(point) {
@@ -142,8 +145,9 @@ function doMouseUp() {
   // console.log("released at: " + e.detail.x + ", " + e.detail.y);
   //drag_update();
   if (dragged_obj != null) {
+    var newOutput = on_release(getCurrValues());
     solver.endEdit();
-    on_release();
+    // copy vals to arg object
     // clear stay constraints in solver
     remove_stays();
     for (var cv in linear_vars) {
@@ -227,6 +231,10 @@ function draw_all(ctx) {
   }
 }
 
+function getCurrValues() {
+  return _.mapObject(linear_vars, function(v){ return v.value; });
+}
+
 // given a function for recursive constraints, which expects an object of
 // {"cvname":cvalue}, pass all current cvalues to the function, suggest the values
 // to the solver, and update. second argument specifies which stay equations
@@ -247,14 +255,7 @@ function update_rec_constraints(work, fvs) {
     });
   }
 
-  var cvs = {};
-  for (var cv in linear_vars) {
-    cvs[cv] = linear_vars[cv].value;
-  }
-
-
-
-  var newVs = work(cvs);
+  var newVs = work(getCurrValues());
 
   var noEdits = false //_.isEmpty(newVs);
 
