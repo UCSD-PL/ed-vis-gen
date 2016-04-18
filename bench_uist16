@@ -1,0 +1,61 @@
+totals: [14, 14, 24, 3, 3, 11/2, 33/6, 44/8, 14, 53]
+
+custom code: see count_phys_lines.sh
+gravity_inst.txt
+3
+hooke_2_inst.txt
+10
+pendulum_inst.txt
+20
+planets_3body_inst.txt
+64
+hooke_1_inst.txt
+4
+hooke_par_inst.txt
+4
+planets_2body_inst.txt
+18
+planets_4body_inst.txt
+103
+hookes law: 3 benchmarks, (hooke_1.txt, hooke_2.txt, hooke_par.txt)
+(hooke_1_inst.txt, hooke_2_inst.txt, hooke_par_inst.txt)
+
+hooke_1: {clicks: 5, points: 1, viewed: 2, total: 14}
+hooke_2: {clicks: 10, points: 2, viewed: 7, total: 28}
+hooke_par: {clicks: 7, points: 1, viewed: 5, total: 24}
+
+5278 JavaScript
+
+pendulum: 1 benchmark, 1 diagram (pendulum_new2.txt)()
+pendulum_inst.txt
+
+pendulum_new2: {clicks: 5, points: 2, viewed: 2, total: 6}
+
+3821 javascript
+
+gravity and orbits/my solar system/gravity force lab: 16/4 benchmarks (planets_sp.txt, gravity_lab.txt, planets_4body.txt, planets_3body.txt)
+
+gravity_lab2.txt: {clicks: 7, points: 2, viewed: 4, total: 6}
+gravity_inst.txt
+
+986 javascript
+
+planets_sp: {clicks: 9, points: 4, viewed: 4, total: 22}
+planets_2body_inst.txt
+planets_3body: {clicks: 13, points: 6, viewed: 6, total: 33}
+planets_3body_inst.txt
+planets_4body: {clicks: 17, points: 8, viewed: 8, total: 44}
+planets_4body_inst.txt
+
+4642 javascript
+
+resonance: 2 benchmarks, (resonance_1sp.txt, resonance_2sp.txt)
+resonance_1sp: {clicks: 4, points: 1, viewed: 2, total: 14}
+resonance_2sp: {clicks: 7, points: 2, viewed: 4, total: 106}
+
+
+22/24
+
+
+
+normal modes: 2 benchmarks ()(normal_modes_1d.txt, normal_modes_2d.json)

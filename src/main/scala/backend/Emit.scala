@@ -402,8 +402,7 @@ object LowLevel extends Emitter {
         kv ⇒ kv._1 <+> ":" <+> kv._2
       ), comma)
     )
-    val newConfig = optName <+> "=" <+> "_." <>
-      emitFCall("extend", Seq("defaultChartConfig", optName))
+    val newConfig = "_." <> emitFCall("extend", Seq(optName, "defaultChartConfig"))
 
     val cTor = emitFCall("addChart", Seq(squotes(name), exprName, optName))
 

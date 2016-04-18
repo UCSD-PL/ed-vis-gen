@@ -3,6 +3,7 @@
 function init_frames() {
   var jc = function(str){ return $('.variants').jcarousel(str); };
   var transition = function (forward) {
+    data.viewed = data.viewed + 1; // @BENCH
     // stop current sim, start next sim
     var currIdx = jc('items').index(jc('first'));
     var oldFrame = $(jc('items')[currIdx]).children('iframe')[0];
@@ -78,6 +79,8 @@ function init_state() {
   learningInteractions = false;
   clearView();
 
+  data = {clicks:0, points: 0, viewed:0, total:0}; // @BENCH
+
 
 }
 
@@ -86,6 +89,13 @@ function learnInteraction() {
 
   init_state();
 
+  // benchmarking: measure num of clicks, num of diagrams viewed, total num of diagrams
+
+
+  document.body.addEventListener("mousedown", function() {
+    console.log('clicking');
+    data.clicks = data.clicks + 1; // @BENCH
+  });
 
   getPoints( function (payload) {
     var points = JSON.parse(payload);
@@ -98,6 +108,7 @@ function learnInteraction() {
       }
       mainWindow.drag_points = [];
 
+
       for (var i in current_points) {
         var newPoint = current_points[i];
         newPoint.fill = "red";
@@ -109,6 +120,8 @@ function learnInteraction() {
 
       mainWindow.addEventListener("mousedown", function (e) {
         if (e.button == 0) {
+          console.log('clicking');
+          data.clicks = data.clicks + 1; // @BENCH
           var x = e.layerX;
           var y = e.layerY;
           for (var i = 0; i < current_points.length; i++) {
@@ -162,6 +175,8 @@ function acceptPoints() {
     }
   }
 
+  data.points = acceptedPoints.length; // @BENCH
+
   mainWindow.global_redraw();
 
   sendPost(acceptedPoints, "accept-points", learnNextMotive);
@@ -178,6 +193,7 @@ function learnNextMotive() {
     nextPoint.cr = 8;
     mainWindow.global_redraw();
     learnMotive(nextI, function () {
+      data.viewed = data.viewed + 1; // @BENCH
       nextPoint.fill = 'green';
       nextPoint.cr = 3.5;
       delete accepted_points[nextI];
@@ -188,8 +204,13 @@ function learnNextMotive() {
 function learnFVs() {
   clearFrames();
 
+  console.log(data);
+
   sendGet("free-vars/300/300", function(variants) {
     var newFrames = responseToArray(variants);
+
+
+
     for (var i = 0; i < newFrames.length; ++i) {
       initFrame(i, 32.3, "variants", newFrames[i], function(index) {
         sendGet("accept-fv/" + index, function() {
@@ -210,6 +231,8 @@ function learnFVs() {
                   dispatchEvent(mFrame, newEv);
               });
             });
+
+
           }, false);
         });
       });
@@ -237,6 +260,7 @@ function learnMotive(i, Κ) {
 
   sendGet("variants/" + i.toString() + "/300/300", function(variants) {
     var newFrames = responseToArray(variants);
+    data.total = data.total + newFrames.length; // @BENCH
     for (var j = 0; j < newFrames.length; ++j) {
       initFrame(j, 32.3, "variants", newFrames[j], function(index) {
         acceptVariant(index, Κ);

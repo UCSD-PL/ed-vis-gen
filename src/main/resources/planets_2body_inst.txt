@@ -1,0 +1,94 @@
+VARS(
+    DY1 = 0.0,
+    V21 = 90.0,
+    M1 = 200000.0,
+    V4_P_1$0_T_DY0 = 165.75,
+    DX1 = -70.0,
+    M2 = 200.0,
+    V5 = 7.75,
+    V1X = 0.0,
+    Theta21 = 0.0,
+    DY0 = 0.0,
+    V1Y = 0.0,
+    V2 = 18.25,
+    V20_P_1$0_T_DX1 = 71.75,
+    V21_IY = 90.0,
+    V2X = 3.65,
+    V6_IX = 141.5,
+    V6_P_1$0_T_DX0 = 191.5,
+    Theta12 = 0.0,
+    DX0 = 50.0,
+    F12 = 0.0,
+    V4 = 165.75,
+    G = 0.00667,
+    V4_IY = 165.75,
+    V20 = 141.75,
+    V6 = 141.5,
+    V20_IX = 141.75,
+    V2Y = 0.0,
+    V21_P_1$0_T_DY1 = 90.0,
+    VScaling = 2.5
+);
+
+POINTS(
+    IP0 = IPoint( V20_P_1$0_T_DX1, V21_P_1$0_T_DY1, [V20_P_1$0_T_DX1, DX1, V21_P_1$0_T_DY1,
+        DY1] ),
+    IP1 = IPoint( V6_P_1$0_T_DX0, V4_P_1$0_T_DY0, [V6_P_1$0_T_DX0, DX0, V4_P_1$0_T_DY0,
+        DY0] ),
+    IP2 = IPoint( V20_IX, V21_IY, [V21, V20_P_1$0_T_DX1, V21_IY, V20, V20_IX,
+        V21_P_1$0_T_DY1] ),
+    IP3 = IPoint( V6_IX, V4_IY, [V4_P_1$0_T_DY0, V6_IX, V6_P_1$0_T_DX0, V4,
+        V4_IY, V6] )
+);
+
+ON RELEASE(
+    V2X <- DX0 / VScaling,
+    V2Y <- DY0 / VScaling,
+    V1X <- DX1 / VScaling,
+    V1Y <- DY1 / VScaling
+);
+
+SHAPES(
+    S2 = Arrow((V6 , V4), DX0, DY0),
+    S6 = Arrow((V20 , V21), DX1, DY1),
+    S1 = Circle((V6 , V4), V5),
+    S0 = Circle((V20 , V21), V2)
+);
+
+LINEAR(
+    0.0 + 1.0 * V6_P_1$0_T_DX0 = 0.0 + 1.0 * DX0 + 1.0 * V6,
+    0.0 + 1.0 * V6_IX = 0.0 + 1.0 * V6,
+    0.0 + 1.0 * V21_P_1$0_T_DY1 = 0.0 + 1.0 * DY1 + 1.0 * V21,
+    0.0 + 1.0 * V21_IY = 0.0 + 1.0 * V21,
+    0.0 + 1.0 * V20_P_1$0_T_DX1 = 0.0 + 1.0 * DX1 + 1.0 * V20,
+    0.0 + 1.0 * V20_IX = 0.0 + 1.0 * V20,
+    0.0 + 1.0 * V4_P_1$0_T_DY0 = 0.0 + 1.0 * DY0 + 1.0 * V4,
+    0.0 + 1.0 * V4_IY = 0.0 + 1.0 * V4
+);
+
+LEQS(
+    5.0 <= 0.0 + 1.0 * V5, 5.0 <= 0.0 + 1.0 * V2
+);
+
+PHYSICS(
+    F12 <- G * M1 * M2 / (pow(V6 - V20, 2.0) + pow(V4 - V21, 2.0)),
+    V1Y <- F12 * sin(Theta12) / M1 + V1Y,
+    Theta21 <- atan2(-(V4 - V21), -(V6 - V20)),
+    V6 <- V6 + V2X,
+    V4 <- V4 + V2Y,
+    V21 <- V21 + V1Y,
+    Theta12 <- atan2(V4 - V21, V6 - V20),
+    V2Y <- F12 * sin(Theta21) / M2 + V2Y,
+    V1X <- F12 * cos(Theta12) / M1 + V1X,
+    V2X <- F12 * cos(Theta21) / M2 + V2X,
+    V20 <- V20 + V1X
+);
+
+WITH FREE(
+    V21, V1X, Theta21, V1Y, V2X, Theta12, F12, V4, V20, V6, V2Y,
+    V20_P_1$0_T_DX1, V21_P_1$0_T_DY1, V6_P_1$0_T_DX0, V4_P_1$0_T_DY0,
+    V20_IX, V21_IY, V6_IX, V4_IY,
+);
+
+CHARTS(
+);

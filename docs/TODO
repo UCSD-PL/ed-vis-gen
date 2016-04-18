@@ -3,25 +3,20 @@ BUGS:
     ** planets, hooke_2, hooke_par, normal_modes_2d
   * generated program for normal_modes_2d is ass: see biggun.html. takes
     1 minute to load...10k lines of JS??
+  * onrelease is broken.
+  * planets takes forever to load ???
 
-  * bug in pretty emit...? maybe optimizations? export of spring died (see test.html
-    and test2.html)
 
 TODO:
 
   * visuals/controls, for physics sim:
-    ** expressions to visualize, with a title. graph on plot, requires min/max
 
     ** variables for sliders, with a title/min/max
 
     concrete:
     emit constructor foreach exposed expression.
 
-    add graphic synthesis to backend. make new type, graphics elements,
-    which have sliders/tickers/plots. change emit/parser/PP.
-    ticker: name, expression, min/max.
     slider: variable, min/max.
-    plot: no arguments...implicit? ok.
 
   * state transition system for drag-and-drop:
     ** change system of alignment equations on click, release. specify
@@ -60,30 +55,24 @@ TODO:
   * inlining isn't optimal: with a point on weight + point in spring,
      IY = IY_PY is an equation
 
-  * convert current benchmarks (on benchmarking branch) to linear/nonlinear version
   * find more benchmarks
   ** http://www.malinc.se/math/
   ** JSXGraph
 
   ranking:
-  * penalty for shape w/o interactive components
   * big penalty for physics sim/buffer violation. need a lot for this...
 
 
   * explore locked edges for locking variables (specifically height/width)
   * or maybe learn from rejects? multi tier accept/reject phases?
 
-
-
   * finish point generation
     ** add triangles
   * finish AST
     ** add plots
 
-  * make merging links more precise
 
-
-
+long term:
 
 distinguish between recursive updates and nonlinear one-way constraints:
   * recursive update semantics are: take old values of variable references.
@@ -99,9 +88,6 @@ distinguish between recursive updates and nonlinear one-way constraints:
     ** type system: DFValues can't appear in cass equations and vice versa
   * runtime semantics:
     ** interactions: suggestValue for x, y values. reevaluate both networks.
-
-  * user input:
-
 
 
 

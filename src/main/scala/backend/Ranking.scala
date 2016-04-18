@@ -206,6 +206,21 @@ case class Poset(vals: Map[Int, Set[Configuration]], order: Ranker) extends Set[
   }
   override def empty = Poset.empty(order)
 
+  def debug {
+    // println("top 5 scores:" +
+    //   vals.toSeq.sortWith{case (l, r) ⇒ l._1 <= r._1}.map{case (rnk, vl) ⇒
+    //     (rnk → vl.size)
+    //   }.take(5)
+    // )
+
+    // val sorted = vals.toSeq.sortWith{case (l, r) ⇒ l._1 <= r._1}.flatMap(_._2)
+    //
+    // println("fv for number 2, in ranking:" + sorted(1).prog.ipoints.map(_.links))
+
+
+    // println("fv")
+  }
+
   // convert the contents into a seq, respecting the ordering of the keys
   // (and thus the ranker)
   override def iterator: Iterator[Configuration] = {

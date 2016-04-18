@@ -115,7 +115,9 @@ class Servlet extends Stack {
         case ((states, configs), (prog, config)) ⇒ (states + prog, configs + (prog → config))
       }
 
+      //results._1.debug
       val ret = results._1.toSeq
+      //println("fv for number 2:" + ret(1).prog.ipoints.map(_.links))
 
       currVariants = ret.zipWithIndex.map{case (state, i) ⇒ (i → results._2(state))}.toMap
 
@@ -230,8 +232,12 @@ class Servlet extends Stack {
   }
 
   get("/points") {
-    initSynthesis()
-    generatePoints
+    try {
+      initSynthesis()
+      generatePoints
+    } catch {
+      case e: Exception => e.printStackTrace(); throw e
+    }
   }
 
   post("/accept-points") {

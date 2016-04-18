@@ -258,8 +258,8 @@ function update_rec_constraints(work, fvs) {
   var newVs = work(getCurrValues());
 
   var noEdits = false //_.isEmpty(newVs);
-
   if (clash || noEdits) { return; }
+
 
   remove_stays();
   fvs.forEach(function (cv) {delete stay_equations[cv];});

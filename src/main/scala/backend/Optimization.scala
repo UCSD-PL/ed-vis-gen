@@ -68,6 +68,7 @@ object EquationOpts extends OptimizationPass {
         case vrble:Variable ⇒ subst(vrble)
         case Point(x, y) ⇒ Point(subst(x), subst(y))
         case IPoint(x, y, lnks) ⇒ IPoint(subst(x), subst(y), lnks.map(subst))
+        case Chart(e, lo, hi) ⇒ Chart(Expression.substitute(e, l → r), lo, hi)
       }}
 
       val newChrts = chrts.map{c ⇒ c.copy(expr = Expression.substitute(c.expr, l → r))}
