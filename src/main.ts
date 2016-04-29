@@ -28,5 +28,6 @@ let circ = new SModel.Circle(vars[0], vars[1], vars[2], 'black', 'black')
 let finalModel = initModel.addShape(circ)
 
 console.log(finalModel.eval())
+console.log(circ instanceof SModel.Line)
 
 //SView.drawLine(mainCtx, [[10,10], [100, 10], [100, 150], [10, 170], [10, 10]])

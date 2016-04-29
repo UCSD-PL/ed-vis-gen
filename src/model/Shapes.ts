@@ -1,9 +1,11 @@
 import v = require('./Variable')
 
 type Var = v.Variable
-export interface Drawable {
+export interface Shape {}
+export interface Drawable extends Shape {
   stroke: string
 }
+
 
 // Line primitive. Points is an array of (x,y) pairs, stroke specifies the
 // color of the line stroke, and dash specifies whether to use a dashed line
@@ -107,5 +109,5 @@ export class DragPoint implements Drawable {
 
 
 
-export type Shape =
-  Line | Arrow | Spring | Text | Circle | Rectangle | Image | DragPoint
+// export type Shape =
+//   Line | Arrow | Spring | Text | Circle | Rectangle | Image | DragPoint
