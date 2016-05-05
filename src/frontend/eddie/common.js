@@ -55,7 +55,7 @@ function resetState() {
 
   solver = new c.SimplexSolver();
   solver.autoSolve = false;
-  dfnetwork = new DFNetwork(dfparser);
+  //dfnetwork = new DFNetwork(dfparser);
 
   linear_vars = {};
   linear_inits = {};
@@ -177,7 +177,7 @@ function doMouseMove(e) {
     drag_update();
     // after edits are suggested, recalculate values
     solver.solve();
-    dfnetwork.resolve();
+    // dfnetwork.resolve();
     // update drawing WRT current constrained values
     update_constraints();
     global_redraw();
