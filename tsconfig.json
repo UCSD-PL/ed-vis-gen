@@ -21,9 +21,11 @@
     "rewriteTsconfig": true
   },
   "files": [
+    "src/controller/Controller.ts",
     "src/main.ts",
     "src/model/Model.ts",
     "src/model/Shapes.ts",
+    "src/model/Synthesis.ts",
     "src/model/Variable.ts",
     "src/util/Util.ts",
     "src/view/Shapes.ts",

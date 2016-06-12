@@ -109,19 +109,19 @@ function drawLine(ctx: Context, line: S.Line, store: Env) {
 }
 
 function drawCircle (ctx: Context, circ: S.Circle, store: Env) {
-  let [x, y, r] = U.map3Tup([circ.x, circ.y, circ.r], store.get)
+  let [x, y, r] = U.map3Tup([circ.x, circ.y, circ.r], i => store.get(i))
   _drawCircle(ctx, x, y, r, circ.stroke, "white")
 }
 
 function drawImage(ctx: Context, i: S.Image, src: HTMLImageElement, store: Env) {
   ctx.save()
-  let [x, y, dx, dy] = U.map4Tup([i.x, i.y, i.dx, i.dy], store.get)
+  let [x, y, dx, dy] = U.map4Tup([i.x, i.y, i.dx, i.dy], i => store.get(i))
   ctx.drawImage(src, x-dx/2, y-dy/2, dx, dy)
   ctx.restore()
 }
 
 function drawRectangle(ctx: Context, r: S.Rectangle, store: Env) {
-  let [x, y, dx, dy] = U.map4Tup([r.x, r.y, r.dx, r.dy], store.get)
+  let [x, y, dx, dy] = U.map4Tup([r.x, r.y, r.dx, r.dy], i => store.get(i))
   let [x1, y1] = [x-dx/2, y-dy/2]
   let [x2, y2] = [x+dx/2, y+dy/2]
   let topLeft: NT = [x1, y1], topRight: NT = [x2, y1]
@@ -131,7 +131,7 @@ function drawRectangle(ctx: Context, r: S.Rectangle, store: Env) {
 
 function drawArrow(ctx: Context, arr:S.Arrow, store: Env) {
 
-  let [x, y, dx, dy] = U.map4Tup([arr.x, arr.y, arr.dx, arr.dy], store.get)
+  let [x, y, dx, dy] = U.map4Tup([arr.x, arr.y, arr.dx, arr.dy], i => store.get(i))
   _drawLine(ctx, [[x,y], [x+dx,y+dy]], false, arr.stroke)
 
   // arrows are hard, adapted from here:
@@ -164,7 +164,7 @@ function drawSpring(ctx: Context, spring:S.Spring, store: Env) {
   ctx.strokeStyle = spring.stroke
   ctx.beginPath()
 
-  let [x, y, dx, dy] = U.map4Tup([spring.x, spring.y, spring.dx, spring.dy], store.get)
+  let [x, y, dx, dy] = U.map4Tup([spring.x, spring.y, spring.dx, spring.dy], i => store.get(i))
 
   // it's all black magic and really only looks good for horizontal springs
   // intuition: draw a circle and translate over time.
@@ -206,6 +206,9 @@ function drawText(ctx: Context, txt:S.Text, store: Env) {
 }
 
 function drawDragPoint(ctx: Context, point:S.DragPoint, store: Env) {
-  let [x,y,r] = U.map3Tup([point.x, point.y, point.r], store.get)
+  let [x,y,r] = U.map3Tup([point.x, point.y, point.r], i => store.get(i))
   _drawCircle(ctx, x, y, r, point.stroke, point.stroke)
 }
+
+
+// let foo: [number, number] = [1,2,'3']

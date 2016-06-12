@@ -13,22 +13,25 @@ declare module "cassowary" {
   export class SimplexSolver {
     // new () : SimplexSolver
     addConstraint: (c: Constraint | Inequality) => SimplexSolver
+    removeConstraint: (c: Constraint | Inequality) => SimplexSolver
     addEditVar: (v: Variable, s: Strength, w: number) => SimplexSolver
     beginEdit: () => void
     endEdit: () => void
+    solve: () => void
     suggestValue: (v:Variable, c: number) => void
     constructor()
+    public autoSolve: boolean
   }
   export enum Strength {weak, medium, strong, required}
   export enum BinOp {GEQ, LEQ}
   export class Inequality {
-    new (l:Expression, o:BinOp, r:Expression) : Inequality
+    constructor(l:Expression, o:BinOp, r:Expression)
   }
   export class Equation {
-    new (l:Expression, r:Expression): Equation;
+    constructor(l:Expression, r:Expression)
   }
   export class Constraint {
-    new (e:Equation | Inequality, s:Strength, w:number) : Constraint
+    constructor(e:Equation | Inequality, s:Strength, w:number)
   }
   export class Expression {
     static fromVariable: (v: Variable) => Expression

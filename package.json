@@ -1,9 +1,10 @@
 {
   "name": "EDDIE",
   "scripts": {
-    "build": "tsc || browserify src/main.js -o target/lib.js && rsync -az src/static/html target/ && rsync -az src/resources target/",
+    "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
-    "test": "echo \"no tests yet\""
+    "test": "echo \"no tests yet\"",
+    "refresh-typings": "typings install --ambient file:src/typings/cassowary.d.ts"
   },
   "description": "Educational Visualization DSL and Synthesis =============",
   "version": "1.0.0",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "better-assert": "^1.0.2",
+    "cassowary": "^0.1.0",
     "es6-collections": "^0.5.6",
     "requirejs": "^2.1.22",
     "typescript-require": "^0.2.9",

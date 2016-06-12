@@ -1,7 +1,6 @@
 {
   "ambientDependencies": {
     "assert": "registry:dt/assert#0.0.0+20160317120654",
-    "cassowary": "file:./src/typings/cassowary.d.ts",
-    "es6-collections": "registry:dt/es6-collections#0.5.1+20160316155526"
+    "cassowary": "file:./src/typings/cassowary.d.ts"
   }
 }
