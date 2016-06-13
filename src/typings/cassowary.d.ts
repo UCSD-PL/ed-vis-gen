@@ -36,5 +36,10 @@ declare module "cassowary" {
   export class Expression {
     static fromVariable: (v: Variable) => Expression
     static fromConstant: (c: number) => Expression
+    plus: (that: Expression) => Expression
+    times: (that: Expression | number) => Expression
+    minus: (that: Expression) => Expression
+    divide: (that: Expression | number) => Expression
+    constant: number
   }
 }

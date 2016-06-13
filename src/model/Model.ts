@@ -92,6 +92,10 @@ export class Store {
     this.addStays(frees)
   }
 
+  public addEq(e: Cass.Equation): void {
+    this.csolver.addConstraint(e)
+  }
+
   public suggestEdits(edits: Map<V.Variable, number>, frees: Set<V.Variable>): void {
 
     // foreach free variable: remove the corresponding stay from cass's system
@@ -204,9 +208,6 @@ export class Store {
 }
 
 // package up a program and store
-// logically, this is a good place to handle interactions...
-
-
 export class State {
 
   // TODO: convert dragged to option
@@ -221,8 +222,127 @@ export class State {
   public addVar(typ: V.VType, name: string, val: number): V.Variable {
     return this.store.addVar(typ, name, val)
   }
+
+
+  // given a store and x,y coordinates, make new cassowary variables corresponding
+  // to the x, y values and wrap in a point.
+  // mutates this to add the new variable
+  public allocVar(v: number, prefix?: string): V.CassVar {
+    prefix = prefix || "V"
+    let suffix = 0
+    let sVals = this.eval()
+    while (U.exists(sVals, ([k, v]) => k.name == (prefix + suffix.toString())))
+      ++suffix
+
+    return this.addVar(V.VType.Cass, prefix + suffix.toString(), v) as V.CassVar
+  }
+  // mutates this to add x, y, and r
+  allocPoint(p: U.Point): S.DragPoint {
+    let [x, y, r] = [this.allocVar(p.x), this.allocVar(p.y), this.allocVar(5)]
+    return new S.DragPoint(x, y, r, "blue")
+  }
+
+  // given an expression, allocate a new variable, add to the store, and
+  // return an equation for var = expr.
+  public makeEquation(e: Cass.Expression, v: number): [V.CassVar, Cass.Equation] {
+    let varValue = -e.constant
+    console.log(e)
+    let retVar = this.allocVar(v)
+    let eq = new Cass.Equation(retVar.toCExpr(), e)
+    return [retVar, eq]
+  }
+
+
   public addShape(s: S.Shape): State {
-    return new State(this.prog.addShape(s), this.store, this.dragging, this.draggedPoint)
+    // add the shape, as well as edit-points, edit-equations, and free variables
+    let editPoints = new Map<S.DragPoint, Set<V.Variable>>()
+    let editEqs = new Set<Cass.Equation>()
+    let vals = this.eval()
+
+    let newProg = this.prog
+    // assumes each shape has CassVar variables, which is not realistic... TODO
+    if (s instanceof S.Line) {
+      // foreach point on the line, add a drag point with the underlying variables
+      s.points.forEach(([x, y]) => {
+        let r = this.allocVar(5)
+        let np = new S.DragPoint(x, y, r, "blue")
+        let newFrees = (new Set<V.Variable>()).add(x).add(y)
+        editPoints.set(np, newFrees)
+      })
+
+    } else if (s instanceof S.Arrow || s instanceof S.Spring) {
+      // put a drag point on the base, and a drag point at the end. fix
+      // the end with equations.
+      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+
+      let endXExpr = (s.x as V.CassVar).toCExpr().plus(
+        (s.dx as V.CassVar).toCExpr()
+      ) // TODO
+      let endYExpr = (s.y as V.CassVar).toCExpr().plus(
+        (s.dy as V.CassVar).toCExpr()
+      ) // TODO
+
+      let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx))
+      let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) + vals.get(s.dy))
+      let baseFrees = (new Set<V.Variable>()).add(s.x).add(s.y).add(endX).add(endY) // gross
+      let endFrees = (new Set<V.Variable>()).add(s.dx).add(s.dy).add(endX).add(endY)
+      let ep = new S.DragPoint(endX, endY, r2, "blue")
+
+      editEqs.add(endXEq).add(endYEq)
+      editPoints.set(bp, baseFrees).set(ep, endFrees)
+
+    } else if (s instanceof S.Circle) {
+      // point in the middle, point on the right edge
+      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+
+      let endXExpr = (s.x as V.CassVar).toCExpr().plus(
+        (s.r as V.CassVar).toCExpr()
+      ) // TODO
+
+      let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.r))
+      let baseFrees = (new Set<V.Variable>()).add(s.x).add(s.y).add(endX)
+      let endFrees = (new Set<V.Variable>()).add(s.r).add(endX)
+      let ep = new S.DragPoint(endX, s.y, r2, "blue")
+
+      editEqs.add(endXEq)
+      editPoints.set(bp, baseFrees).set(ep, endFrees)
+    } else if (s instanceof S.Rectangle || s instanceof S.Image) {
+      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+
+      let endXExpr = (s.x as V.CassVar).toCExpr().plus(
+        (s.dx as V.CassVar).toCExpr().divide(2)
+      ) // TODO
+      let endYExpr = (s.y as V.CassVar).toCExpr().minus(
+        (s.dy as V.CassVar).toCExpr().divide(2)
+      ) // TODO
+
+      let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx)/2)
+      let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) - vals.get(s.dy)/2)
+      let baseFrees = (new Set<V.Variable>()).add(s.x).add(s.y).add(endX).add(endY) // gross
+      let endFrees = (new Set<V.Variable>()).add(s.dx).add(s.dy).add(endX).add(endY)
+      let ep = new S.DragPoint(endX, endY, r2, "blue")
+
+      editEqs.add(endXEq).add(endYEq)
+      editPoints.set(bp, baseFrees).set(ep, endFrees)
+    } else {
+      console.log('unhandled shape for adding edit points: ' + s.toString())
+      assert(false)
+    }
+
+    newProg = newProg.addShape(s)
+
+    for (let [dp, frees] of editPoints) {
+      newProg = newProg.addShape(dp)
+      newProg = newProg.addFrees(dp, frees)
+    }
+
+    for (let editEq of editEqs)
+      this.store.addEq(editEq)
+
+    return new State(newProg, this.store, this.dragging, this.draggedPoint)
   }
   public addFrees(p: S.DragPoint, fvs: Set<V.Variable>): State {
     return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint)

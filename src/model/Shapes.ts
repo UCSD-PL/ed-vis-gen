@@ -18,7 +18,7 @@ export class Line implements Drawable {
   ){}
 }
 
-interface VecLike extends Drawable {
+export interface VecLike extends Drawable {
   x: Var
   y: Var
   dx: Var

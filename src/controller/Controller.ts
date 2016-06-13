@@ -5,7 +5,7 @@ import S = require('../model/Shapes')
 import V = require('../view/View')
 import U = require('../util/Util')
 
-type Point = {x: number, y: number}
+type Point = U.Point
 
 function makePoint(e: MouseEvent): Point { return {x: e.clientX, y: e.clientY} }
 function pointFromDrag(d: S.DragPoint, s: M.Store): Point {
@@ -14,12 +14,14 @@ function pointFromDrag(d: S.DragPoint, s: M.Store): Point {
 }
 
 function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
-  thresh = thresh || 25
+  thresh = thresh || 30
   let [dx, dy] = [Math.abs(lx - rx), Math.abs(ly - ry)]
   return (dx*dx + dy*dy) <= thresh
 }
 
-export class ClickController {
+
+
+export class DragController {
   constructor(public m: M.Model, public receiver: HTMLElement) {
 
     this.enableDrags()
@@ -49,6 +51,10 @@ export class ClickController {
       // console.log("drag at: ")
       // console.log(d)
       if (overlap(p, pointFromDrag(d, this.m.main.store))) {
+        // console.log("clicked:")
+        // console.log(d)
+        // console.log("drag frees:")
+        // console.log(this.m.main.prog.allFrees.get(d))
         this.m.main.draggedPoint = d
         this.m.main.dragging = true
         break

@@ -4,7 +4,7 @@
     "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",
-    "refresh-typings": "typings install --ambient file:src/typings/cassowary.d.ts"
+    "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts"
   },
   "description": "Educational Visualization DSL and Synthesis =============",
   "version": "1.0.0",

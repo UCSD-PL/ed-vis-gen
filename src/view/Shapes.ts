@@ -50,7 +50,7 @@ function _drawLine(
 ) {
   close = close || false
   stroke = stroke || "black"
-  fill = fill || "white"
+  fill = fill || "rgba(0,0,0,0)"
   dash = dash || false
 
   ctx.save()

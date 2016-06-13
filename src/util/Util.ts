@@ -87,3 +87,4 @@ export function exists<U>(vals: Iterable<U>, f: (u: U) => boolean): boolean {
 }
 
 export var DEBUG = false
+export type Point = {x: number, y: number}

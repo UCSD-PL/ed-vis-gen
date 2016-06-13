@@ -11,6 +11,7 @@ export class CassVar implements Variable {
   constructor(public name: string, value: number) {
     this._value = new c.Variable( {name: name, value: value})
   }
+  public toCExpr() { return c.Expression.fromVariable(this._value) }
 }
 
 

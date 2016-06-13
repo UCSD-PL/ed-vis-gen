@@ -1,6 +1,6 @@
 {
-  "ambientDependencies": {
+  "globalDependencies": {
     "assert": "registry:dt/assert#0.0.0+20160317120654",
-    "cassowary": "file:./src/typings/cassowary.d.ts"
+    "cassowary": "file:src/typings/cassowary.d.ts"
   }
 }

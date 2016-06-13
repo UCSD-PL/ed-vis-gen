@@ -1,3 +1,10 @@
+immediate:
+  * for "learn interactions button":
+    ** convert store to json: (Json.scala)
+    ** plug json into cannibalized old frontend + backend
+    ** open result in new window
+
+
 BUGS:
   * LEQs are failing for some apparatus benchmarks, disabled for now
     ** planets, hooke_2, hooke_par, normal_modes_2d
