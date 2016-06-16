@@ -22,12 +22,14 @@ trait Emitter extends PrettyPrinter {
   def leqPreamble: Doc
   def recPreamble: Doc
   def fvPreamble: Doc
+  def snpPreamble: Doc
   def chrtPreamble(charts: Set[Chart]): Doc
   def closer: Doc = empty
   def primSep: Doc = empty
 
   def printVar(v: Variable, initσ: Store): Doc
   def printIP(p: IPoint, names: Map[String, Value]): Doc
+  def printSnap(p: IPoint, names: Map[String, Value]) = printIP(p, names)
   def printShape(s: Shape, names: Map[String, Value]): Doc
   def printLinear(e: Eq): Doc
   def printLeq(e: Leq): Doc
@@ -68,7 +70,7 @@ trait Emitter extends PrettyPrinter {
   }
 
   def emitProg(p: Program, σ: Store): Doc = p match {
-    case Program(vs, ps, rups, ss, es, leqs, recs, rfvs, cs, names) ⇒ {
+    case Program(vs, ps, rups, ss, es, leqs, recs, rfvs, cs, names, snaps) ⇒ {
       vsep(Seq(varPreamble <@>
         indent(sep(vs.map(printVar(_, σ))(collection.breakOut)))
       , ipPreamble <@>
@@ -87,6 +89,8 @@ trait Emitter extends PrettyPrinter {
         indent(sep(rfvs.map(printFV(_, σ))(collection.breakOut)))
       , chrtPreamble(cs) <@>
           indent(sep(cs.map(printChrt(_, names))(collection.breakOut)))
+      , snpPreamble <@>
+        indent(sep(snaps.map(printSnap(_, names))(collection.breakOut)))
     ), line <> closer <> line) <> line <> closer <> line
     }
   }
@@ -108,6 +112,7 @@ object HighLevel extends Emitter {
   def recPreamble = "PHYSICS EQUATIONS:"
   def fvPreamble = "WITH FREE VARIABLES:"
   def chrtPreamble(charts: Set[Chart]) = "WITH CHARTS:"
+  def snpPreamble = "WITH SNAPS:"
 
   def printNonlinear(e: RecConstraint) = sep(Seq(text(e.lhs.name), emitExpr(e.rhs)), " <-")
 
@@ -171,6 +176,7 @@ object Pretty extends Emitter {
   def recPreamble = "PHYSICS("
   def fvPreamble = "WITH FREE("
   def chrtPreamble(charts: Set[Chart]) = "CHARTS("
+  def snpPreamble = "SNAPS("
 
   override def closer: Doc = ");"
   override def primSep: Doc = ","
@@ -304,6 +310,7 @@ object LowLevel extends Emitter {
 
   def varPreamble = "//VARIABLES:"
   def ipPreamble = "//IPOINTS:"
+  def snpPreamble = "//SNAPS:"
   def shpPreamble = "//SHAPES:"
   def eqPreamble = "init_stays(); " <@> line <> "//EQUATIONS:"
   def leqPreamble = "//INEQUALITIES:"
@@ -525,6 +532,28 @@ object LowLevel extends Emitter {
     r.lhs.name <+> colon <+> (r.lhs.name ++ recLocalSuffix)
   }(collection.breakOut), comma)) <> semi
 
+  def emitShapeCtors(shapes: Set[Shape], points: Set[IPoint], snaps: Set[IPoint], names: Map[Value, String]) : Doc = sep( shapes.map(s => {
+    val prefix = names(s) <> ".ctor = "
+    val (ctor, args) = s match {
+      case LineSegment(Point(a,b), Point(c,d)) ⇒ ("Line", Seq(a,b,c,d))
+      case Circle(Point(a,b), r) ⇒ ("Circle", Seq(a,b,r))
+      case Triangle(Point(a,b), Point(c,d), Point(e,f)) ⇒ ("Triangle", Seq(a,b,c,d,e,f))
+      case Image(Point(a,b), h, w, _) ⇒ ("Image", Seq(a,b,h,w))
+      case Spring(Point(a,b), dx, dy) ⇒ ("Spring", Seq(a,b,dx,dy))
+      case Arrow(Point(a,b), dx, dy) ⇒ ("Arrow", Seq(a,b,dx,dy))
+      // ugh. this is hackish as hell for rectangles, but it works...
+      case Rectangle(Point(a,b), h, w) ⇒ ("Rectangle", Seq(a,b,w,h))
+    }
+    prefix <> squotes(emitFCall(ctor, args.map(v => text(v.name)))) <> semi
+  })(collection.breakOut) ++ points.map(ip => {
+    val prefix = names(ip) <> ".ctor = "
+    val (ctor, args) = ("DragPoint", Seq(ip.x.name, ip.y.name))
+    prefix <> squotes(emitFCall(ctor, args.map(text(_)))) <> semi
+  }) ++ snaps.map(ip => {
+    val prefix = names(ip) <> ".ctor = "
+    val (ctor, args) = ("SnapPoint", Seq(ip.x.name, ip.y.name))
+    prefix <> backquote <> emitFCall(ctor, args.map(text(_))) <> backquote <> semi
+  }))
 
   override def emitProg(p: Program, σ: Store): Doc = {
 
@@ -532,16 +561,25 @@ object LowLevel extends Emitter {
     // rely on superclass for most of the gruntwork. in addition to variable declarations,
     // foreach shape + ip, we need to emit a call to push(all_objects, s)
     // and foreach ip, we need to emit a call to push(drag_objects, ip)
-    val nms = p.names.map(_.swap)
+    val newNames = p.snaps.foldLeft(p.names){case (acc, ip) => State.nameIP(acc, ip)} // TODO
+    val newP = p.copy(names = newNames)
+    val nms = newNames.map(_.swap)
+    // val printer = nms.filter{case (IPoint(_, _, _), _) => true; case _ => false}
+    // println(printer)
+    // println(p.snaps)
+
     val ipoints = p.ipoints.map(nms(_))
-    val objects = Seq("all_objects") ++ p.shapes.map(nms(_)) ++ ipoints
-    val initBody = super.emitProg(p, σ)
+    val snapPoints = p.snaps.map(nms(_))
+    val objects = Seq("all_objects") ++ newP.shapes.map(nms(_)) ++ ipoints
+    val initBody = super.emitProg(newP, σ)
     val initEnd =
       emitFCall("push", objects.map(text(_))) <@>
       emitFCall("push", (Seq("drag_points") ++ ipoints).map(text _)) <@>
-      emitFCall("push", (Seq("timers", "tau")).map(text _))
+      emitFCall("push", (Seq("snap_points") ++ snapPoints).map(text _)) <@>
+      emitFCall("push", (Seq("timers", "tau")).map(text _)) <@>
+      emitShapeCtors(p.shapes, p.ipoints, p.snaps, nms)
     vsep(Seq(
-      emitInit(p, σ, initBody, initEnd),
+      emitInit(newP, σ, initBody, initEnd),
       // emit update_constraints
       emitFunc("update_constraints", emitDrawUpdates(p.shapes, nms)),
       // emit recursive_constraints

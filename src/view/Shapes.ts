@@ -12,8 +12,7 @@ type VT = [V.Variable, V.Variable]
 export function drawShape(
   ctx: Context,
   s:S.Shape,
-  store: Env,
-  imgSrc?: HTMLImageElement
+  store: Env
 ): void {
   // Line | Arrow | Spring | Text | Circle | Rectangle | Image | DragPoint
   if (s instanceof S.Line) {
@@ -29,7 +28,8 @@ export function drawShape(
   } else if (s instanceof S.Rectangle) {
     drawRectangle(ctx, s, store)
   } else if (s instanceof S.Image) {
-    drawImage(ctx, s, imgSrc, store)
+    let img: HTMLImageElement = document.getElementById(s.name) as HTMLImageElement
+    drawImage(ctx, s, img, store)
   } else if (s instanceof S.DragPoint) {
     drawDragPoint(ctx, s, store)
   } else {
@@ -83,7 +83,7 @@ function _drawLine(
 
 // helper function: draw a triangle between the input points
 function _drawTriangle(ctx: Context, points:[NT, NT, NT], stroke: string, fill: string) {
-  _drawLine(ctx, points.concat(points[0]), true, stroke, fill)
+  _drawLine(ctx, points.concat([points[0]]), true, stroke, fill)
 }
 
 function _drawCircle(ctx: Context, x: number, y: number, r: number, stroke: string, fill: string) {
@@ -116,14 +116,15 @@ function drawCircle (ctx: Context, circ: S.Circle, store: Env) {
 function drawImage(ctx: Context, i: S.Image, src: HTMLImageElement, store: Env) {
   ctx.save()
   let [x, y, dx, dy] = U.map4Tup([i.x, i.y, i.dx, i.dy], i => store.get(i))
-  ctx.drawImage(src, x-dx/2, y-dy/2, dx, dy)
+  //x-w/2, y-h/2, w, h
+  ctx.drawImage(src, x-dx, y-dy, 2*dx, 2*dy)
   ctx.restore()
 }
 
 function drawRectangle(ctx: Context, r: S.Rectangle, store: Env) {
   let [x, y, dx, dy] = U.map4Tup([r.x, r.y, r.dx, r.dy], i => store.get(i))
-  let [x1, y1] = [x-dx/2, y-dy/2]
-  let [x2, y2] = [x+dx/2, y+dy/2]
+  let [x1, y1] = [x-dx, y-dy]
+  let [x2, y2] = [x+dx, y+dy]
   let topLeft: NT = [x1, y1], topRight: NT = [x2, y1]
   let botRight: NT = [x2, y2], botLeft: NT = [x1, y2]
   _drawLine(ctx, [topLeft, topRight, botRight, botLeft, topLeft], true, r.stroke)

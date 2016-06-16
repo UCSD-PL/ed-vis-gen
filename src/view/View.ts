@@ -13,9 +13,9 @@ export function renderModel(m: M.Model) {
 function renderState(s: M.State, ctx: Context) {
   let vars = s.eval()
   ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height)
-  s.prog.shapes.forEach(s =>
+  s.prog.shapes.forEach(s => {
     VS.drawShape(ctx, s, vars) // images.....
-  )
+  })
 }
 
 export class View {

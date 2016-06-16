@@ -2,7 +2,7 @@
 import c = require('cassowary')
 
 export interface Variable {
-  name: String
+  name: string
 }
 
 

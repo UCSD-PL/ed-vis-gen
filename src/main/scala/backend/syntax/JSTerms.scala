@@ -239,11 +239,12 @@ case class Program(
   vars: Set[Variable], ipoints: Set[IPoint], releaseUpdates: Set[RecConstraint],
   shapes: Set[Shape], equations : Set[Eq], inequalities: Set[Leq],
   recConstraints : Set[RecConstraint], freeRecVars: Set[Variable],
-  charts: Set[Chart], names: Map[String, Value]
+  charts: Set[Chart], names: Map[String, Value],
+  snaps: Set[IPoint]
 )
 
 object Program {
-  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map())
+  def empty = Program(Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Set(), Map(), Set())
   def takePoints(kv: (String, Value)) = kv._2 match {
     case _:IPoint ⇒ true
     case _ ⇒ false

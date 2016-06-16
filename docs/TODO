@@ -1,8 +1,11 @@
 immediate:
-  * for "learn interactions button":
-    ** convert store to json: (Json.scala)
-    ** plug json into cannibalized old frontend + backend
-    ** open result in new window
+    ** hoverover for contact point
+    ** timings
+    ** make iron work -- otherwise...we gucci
+
+optional:
+    ** slow down transition
+    ** increase font of text
 
 
 BUGS:

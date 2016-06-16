@@ -70,6 +70,7 @@ object Json2Ast {
 
 
   // convert a shape json to a Shape, dependent on the json's type tag
+  // TODO: add vectors, images, springs
   def mkShape(json: JValue): (String, Shape) = {
     val args = json \ "args"
     val nme = getSField(json, "name")
@@ -85,6 +86,25 @@ object Json2Ast {
         val dx = Variable(getSField(args, "dx"))
         val dy = Variable(getSField(args, "dy"))
         nme → Rectangle(center, dy, dx)
+      case "image" ⇒
+        log("image", json)
+        val center = mkPoint(args \ "center")
+        val dx = Variable(getSField(args, "dx"))
+        val dy = Variable(getSField(args, "dy"))
+        val name = getSField(args, "name")
+        nme → Image(center, dy, dx, name)
+      case "spring" ⇒
+        log("spring", json)
+        val center = mkPoint(args \ "base")
+        val dx = Variable(getSField(args, "dx"))
+        val dy = Variable(getSField(args, "dy"))
+        nme → Spring(center, dx, dy)
+      case "arrow" ⇒
+        log("arrow", json)
+        val center = mkPoint(args \ "base")
+        val dx = Variable(getSField(args, "dx"))
+        val dy = Variable(getSField(args, "dy"))
+        nme → Arrow(center, dx, dy)
       case "line" ⇒
         log("line", json)
         val start = mkPoint(args \ "begin")
@@ -109,6 +129,7 @@ object Json2Ast {
     //println("finished parsing, returning: ")
     State(newProg, Store(σ))
   }
+
 
   def shpFromString(input: String) : Shape = mkShape(parse(input))._2
 

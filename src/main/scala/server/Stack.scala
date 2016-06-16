@@ -13,11 +13,25 @@ import collection.mutable
 import org.json4s.JsonDSL._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
+import org.scalatra.CorsSupport
 
-trait Stack extends ScalatraServlet with ScalateSupport with JacksonJsonSupport {
+
+trait Stack extends ScalatraServlet with ScalatraBase with ScalateSupport with JacksonJsonSupport with CorsSupport {
+  // options("/*"){
+  //   // response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))
+  //   // response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type")
+  //   // response.setHeader("Access-Control-Allow-Methods", "POST, GET")
+  //   // response.setHeader("Access-Control-Allow-Origin", "*")
+  // }
   before() {
     contentType = formats("json")
+    // println(request.getHeader("Access-Control-Request-Headers"))
+
+    // response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type")
+    // response.setHeader("Access-Control-Allow-Methods", "POST, GET")
+    response.setHeader("Access-Control-Allow-Origin", "*")
   }
+
 
   // options("/*") {
   //   response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"))

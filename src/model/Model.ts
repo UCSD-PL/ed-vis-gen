@@ -246,7 +246,7 @@ export class State {
   // return an equation for var = expr.
   public makeEquation(e: Cass.Expression, v: number): [V.CassVar, Cass.Equation] {
     let varValue = -e.constant
-    console.log(e)
+  //  console.log(e)
     let retVar = this.allocVar(v)
     let eq = new Cass.Equation(retVar.toCExpr(), e)
     return [retVar, eq]
@@ -264,7 +264,7 @@ export class State {
     if (s instanceof S.Line) {
       // foreach point on the line, add a drag point with the underlying variables
       s.points.forEach(([x, y]) => {
-        let r = this.allocVar(5)
+        let r = this.allocVar(3.5)
         let np = new S.DragPoint(x, y, r, "blue")
         let newFrees = (new Set<V.Variable>()).add(x).add(y)
         editPoints.set(np, newFrees)
@@ -273,7 +273,7 @@ export class State {
     } else if (s instanceof S.Arrow || s instanceof S.Spring) {
       // put a drag point on the base, and a drag point at the end. fix
       // the end with equations.
-      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
       let bp = new S.DragPoint(s.x, s.y, r1, "blue")
 
       let endXExpr = (s.x as V.CassVar).toCExpr().plus(
@@ -294,7 +294,7 @@ export class State {
 
     } else if (s instanceof S.Circle) {
       // point in the middle, point on the right edge
-      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
       let bp = new S.DragPoint(s.x, s.y, r1, "blue")
 
       let endXExpr = (s.x as V.CassVar).toCExpr().plus(
@@ -309,18 +309,18 @@ export class State {
       editEqs.add(endXEq)
       editPoints.set(bp, baseFrees).set(ep, endFrees)
     } else if (s instanceof S.Rectangle || s instanceof S.Image) {
-      let [r1, r2] = [this.allocVar(5), this.allocVar(5)]
+      let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
       let bp = new S.DragPoint(s.x, s.y, r1, "blue")
 
       let endXExpr = (s.x as V.CassVar).toCExpr().plus(
-        (s.dx as V.CassVar).toCExpr().divide(2)
+        (s.dx as V.CassVar).toCExpr()
       ) // TODO
       let endYExpr = (s.y as V.CassVar).toCExpr().minus(
-        (s.dy as V.CassVar).toCExpr().divide(2)
+        (s.dy as V.CassVar).toCExpr()
       ) // TODO
 
-      let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx)/2)
-      let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) - vals.get(s.dy)/2)
+      let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx))
+      let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) - vals.get(s.dy))
       let baseFrees = (new Set<V.Variable>()).add(s.x).add(s.y).add(endX).add(endY) // gross
       let endFrees = (new Set<V.Variable>()).add(s.dx).add(s.dy).add(endX).add(endY)
       let ep = new S.DragPoint(endX, endY, r2, "blue")

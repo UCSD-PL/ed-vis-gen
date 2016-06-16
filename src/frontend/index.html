@@ -1,0 +1,75 @@
+<html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="cassie/c.js"></script>
+<script src="cassie/HashTable.js"></script>
+<script src="cassie/HashSet.js"></script>
+<script src="cassie/Error.js"></script>
+<script src="cassie/SymbolicWeight.js"></script>
+<script src="cassie/Strength.js"></script>
+<script src="cassie/Variable.js"></script>
+<script src="cassie/Point.js"></script>
+<script src="cassie/Expression.js"></script>
+<script src="cassie/Constraint.js"></script>
+<script src="cassie/EditInfo.js"></script>
+<script src="cassie/Tableau.js"></script>
+<script src="cassie/SimplexSolver.js"></script>
+<script src="cassie/Timer.js"></script>
+<script src="eddie/helpers.js"> </script>
+<script src="eddie/primitives.js"></script>
+<script src="eddie/library.js"></script>
+<script src="eddie/common.js"></script>
+<script src="eddie/display.js"></script>
+<script src="eddie/events.js"></script>
+<script src="eddie/charts.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jcarousel/0.3.4/jquery.jcarousel.min.js"></script>
+
+<!-- <script src="eddiflow/out/dfparser.js"></script> -->
+<!-- <script src="eddiflow/out/eddiflow.js"></script> -->
+<script src="utils.js"></script>
+<script src="view.js"></script>
+<script src="main.js"></script>
+
+
+<link href="style.css" type="text/css" rel="stylesheet"/>
+<head>
+    <title>EDDIE interactive diagram synthesis</title>
+</head>
+
+<body style="width:1200px; height:1300px;" onload="initView(); init_frames();">
+  <div style="text-align:center">
+    <div>
+      <button onclick="loadMain(passMouseEvents, true);">Load file</button>
+      <input type="text" name="filename" id="filename" value="t1.json">
+    </div>
+    <div>
+      <button onclick="save();">Display source</button>
+      <div id ="currentProgram" style='white-space:pre-wrap'></div>
+    </div>
+    <div>
+      <button onclick="learnInteraction();">Learn interactions</button>
+      <button onclick="acceptPoints();">Accept points </button>
+    </div>
+    <iframe id="mainFrame" class="mainFrame" srcdoc="<html></html>">
+    </iframe>
+  </div>
+
+  <img id="iron" src="resources/weight.jpeg" height="400" width="400" style="display:none">
+  <img id="mouse" src="resources/cursor.jpg" height="32" width="30" style="display:none">
+
+  <div style="height:75px; width:100%;"> </div>
+  <div class='variant-wrapper'>
+    <a href="#" class="variant-prev" data-jcarouselcontrol="true"></a>
+    <a href="#" class="variant-next" data-jcarouselcontrol="true"></a>
+    <div class="variants">
+      <ul>
+      </ul>
+    </div>
+  </div>
+
+</body>
+
+</html>

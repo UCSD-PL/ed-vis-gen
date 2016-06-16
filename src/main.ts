@@ -6,6 +6,7 @@ import SView = require('./view/Shapes')
 import Model = require('./model/Model')
 import View = require('./view/View')
 import Cont = require('./controller/Controller')
+import Ex = require('./model/Export')
 
 function addLine(s: Model.State, numPoints: number): Model.State{
   let delta = 50
@@ -65,8 +66,8 @@ let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
 let mainCtx = mainCanv.getContext('2d')
 
 // TODO
-mainCanv.width  = 1000
-mainCanv.height = 1000
+mainCanv.width  = 600
+mainCanv.height = 400
 // canvas.addEventListener("eddiemousedown", doMouseDown);
 // canvas.addEventListener("eddiemouseup", doMouseUp);
 // canvas.addEventListener("eddiemousemove", doMouseMove);
@@ -137,7 +138,7 @@ document.getElementById('addArrow').onclick = () => {
 }
 
 document.getElementById('addCircle').onclick = () => {
-  let newState = addArrow(initModel.main)
+  let newState = addCircle(initModel.main)
   initModel = new Model.Model(newState)
   dragCont.m = initModel
   View.renderModel(initModel)
@@ -151,6 +152,10 @@ document.getElementById('addLine').onclick = () => {
   View.renderModel(initModel)
 }
 
+let exporter:any = document.getElementById('export')
+exporter.builder = () => {
+  return((new Ex.oldJSON(initModel)).toJSON())
+}
 
 
 //SView.drawLine(mainCtx, [[10,10], [100, 10], [100, 150], [10, 170], [10, 10]])

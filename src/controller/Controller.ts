@@ -14,7 +14,7 @@ function pointFromDrag(d: S.DragPoint, s: M.Store): Point {
 }
 
 function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
-  thresh = thresh || 30
+  thresh = thresh || 100
   let [dx, dy] = [Math.abs(lx - rx), Math.abs(ly - ry)]
   return (dx*dx + dy*dy) <= thresh
 }
@@ -33,6 +33,8 @@ export class DragController {
     mainCanv.addEventListener("mousedown", e => this.handleLeftClick(e))
     mainCanv.addEventListener("mousemove", e => this.handleMove(e))
     mainCanv.addEventListener("mouseup", e => this.handleRightClick(e))
+
+    mainCanv.style.cursor = 'default';
   }
 
   private convertEvent(e: MouseEvent): Point {
