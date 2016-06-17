@@ -73,6 +73,7 @@ function resetState() {
   chartInit(250, 300);
 
   snapRegions = [];
+  globalSolved = 0;
 
 }
 
@@ -175,8 +176,12 @@ function doMouseMove(e) {
 
     // get edits from app
     drag_update();
+    var now = performance.now();
     // after edits are suggested, recalculate values
     solver.solve();
+    var elapsed = performance.now() - now;
+    if (elapsed > globalSolved)
+      globalSolved = elapsed;
     // dfnetwork.resolve();
     // update drawing WRT current constrained values
     update_constraints();

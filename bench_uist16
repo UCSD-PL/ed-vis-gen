@@ -2,21 +2,21 @@ totals: [14, 14, 24, 3, 3, 11/2, 33/6, 44/8, 14, 53]
 
 custom code: see count_phys_lines.sh
 gravity_inst.txt
-3
+3 -- 0.1749999999992724 m to resolve
 hooke_2_inst.txt
-10
+10 -- 2.019999999999982 m to resolve
 pendulum_inst.txt
-20
+20 -- 0.36000000000012733
 planets_3body_inst.txt
-64
+64 -- 12.130000000001019
 hooke_1_inst.txt
-4
+4 -- 0.25
 hooke_par_inst.txt
-4
+4 -- 12.94000000000051
 planets_2body_inst.txt
-18
+18 -- 21.715000000000146
 planets_4body_inst.txt
-103
+103 -- 2.889999999999418
 hookes law: 3 benchmarks, (hooke_1.txt, hooke_2.txt, hooke_par.txt)
 (hooke_1_inst.txt, hooke_2_inst.txt, hooke_par_inst.txt)
 

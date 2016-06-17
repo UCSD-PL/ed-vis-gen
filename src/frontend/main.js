@@ -367,3 +367,8 @@ function passMouseEvents () {
   var innerCanvas = innerFrame.document.getElementById('mainCanvas');
   addEddieWrappers(innerCanvas);
 }
+
+
+function timing() {
+  return document.getElementById('mainFrame').contentWindow.globalSolved;
+}
