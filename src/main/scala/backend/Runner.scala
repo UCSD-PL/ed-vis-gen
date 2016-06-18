@@ -26,6 +26,10 @@ object Run {
     LowLevel(ζ.prog, ζ.σ)
   }
 
+  def addPhysics(physicsStr: String, freeVarStr: String, onReleaseStr: String, orig: State): State = {
+    SRun.addPhysics(physicsStr, freeVarStr, onReleaseStr, orig)
+  }
+
   // compile a source file to code and perform validation
   def compileSource(name: String, highLevel: Boolean = false): String = {
     val ζ = loadSource(name, true)

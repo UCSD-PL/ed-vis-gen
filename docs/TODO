@@ -1,3 +1,13 @@
+immediate:
+    ** hoverover for contact point
+    ** timings
+    ** make iron work -- otherwise...we gucci
+
+optional:
+    ** slow down transition
+    ** increase font of text
+
+
 BUGS:
   * LEQs are failing for some apparatus benchmarks, disabled for now
     ** planets, hooke_2, hooke_par, normal_modes_2d

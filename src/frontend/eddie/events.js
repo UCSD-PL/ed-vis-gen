@@ -88,19 +88,31 @@ function generateMM(point) {
 // add wrappers for eddie-style events
 // receiver should be a canvas of some sort
 // (e.g. doc.getElementById('mainCanvas'))
-function addEddieWrappers(receiver) {
-  var offset = receiver.getBoundingClientRect();
-  offset = {dx: -offset.left, dy: -offset.top};
+function addEddieWrappers(receiver, shouldNotOffset) {
+  // console.log(receiver);
+  // console.log(offset);
+
+
+  // if (shouldNotOffset) {
+  //   offset.dx = 0; offset.dy = 0;
+  // }
 
   receiver.addEventListener("mousedown", function (e) {
+      // console.log('original: ' + e.clientX + " , " + e.clientY);
+      var offset = receiver.getBoundingClientRect();
+      offset = {dx: -offset.left, dy: -offset.top};
       var evnt = wrapEvent(e, offset);
       console.log('clicked at: ' +  evnt.detail.x + ", " + evnt.detail.y);
       dispatchEvent(receiver, evnt);
     }, true);
   receiver.addEventListener("mouseup", function (e) {
+    var offset = receiver.getBoundingClientRect();
+    offset = {dx: -offset.left, dy: -offset.top};
       dispatchEvent(receiver, wrapEvent(e, offset));
     }, true);
   receiver.addEventListener("mousemove", function (e) {
+    var offset = receiver.getBoundingClientRect();
+    offset = {dx: -offset.left, dy: -offset.top};
       dispatchEvent(receiver, wrapEvent(e, offset));
     }, true);
 }

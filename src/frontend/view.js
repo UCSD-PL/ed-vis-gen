@@ -1,10 +1,16 @@
 function initView() {
   $("#currentProgram").dialog({autoOpen : false, modal : true, show : "blind", hide : "blind"});
+  $("#mainPopup").dialog({autoOpen : false,
+    height: 750,
+    width: 800,
+    modal : true, show : "blind", hide : "blind"});
 }
 
 function clearView() {
   var view = $('#currentProgram')[0];
   clearChildren(view);
+  // view = $('#mainFrame')[0];
+  // clearChildren(view);
 }
 
 function calculateView(src) {

@@ -1,6 +1,7 @@
 // Draws a rectangle with top left at (x1,y1) to bottom right at (x2,y2).
 function Rectangle (x1, y1, x2, y2, stroke, fill) {
 	return {
+		type: "rectangle",
 		x1: x1,
 		y1: y1,
 		x2: x2,
@@ -55,6 +56,7 @@ function Triangle (x1, y1, x2, y2, x3, y3, stroke, fill) {
 // TODO: add arrowhead parameters to arrow
 function Arrow(x, y, dx, dy, color) {
 	return {
+		type: "arrow",
 		x: x,
 		y: y,
 		dx: dx,

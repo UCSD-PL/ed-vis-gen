@@ -19,6 +19,7 @@ import EDDIE.backend.optimization._
 import EDDIE.backend.ranking._
 import EDDIE.backend.errors._
 import EDDIE.backend.InterOp._
+import EDDIE.backend.storage.json._
 
 class Servlet extends Stack {
   object Mutables {
@@ -140,17 +141,25 @@ class Servlet extends Stack {
       jade("/empty.jade", "scrpt" → Run.compileState(ζ))
     }
     // ...or with supplied parameters
-    def serveProgram(params: Map[String, String], s: State = ζ) = {
+    def serveProgram(params: Map[String, String], s: State = ζ, finalProg: Boolean = false) = {
       val retP = try {
         Run.compileState(s)
       } catch {
         case e: Throwable ⇒ println("exception in compiling"); println(e.printStackTrace()); throw e
       }
+      val layoutName = if (finalProg) {
+        "/complete.jade"
+      } else {
+        "/empty.jade"
+      }
       val wParams = params.withDefaultValue("false")
-      jade("/empty.jade", "scrpt" → retP,
+      // println(wParams)
+      jade(layoutName, "scrpt" → retP,
         "height" → wParams("h"), "width" → wParams("w"),
         "shouldSimInteractions" → wParams("simInteractions"),
-        "shouldSimPhysics" → wParams("simPhysics")
+        "shouldSimPhysics" → wParams("simPhysics"),
+        "shouldShowSnaps" -> wParams("snaps"),
+        "layout" -> layoutName
       )
     }
 
@@ -177,6 +186,12 @@ class Servlet extends Stack {
         case _ ⇒ throw BadFileFormat
       }
       ζ = EquationOpts.pruneVars(Run.loadSource(src, ext))
+      ℵ = ζ
+    }
+
+    def loadFromState(st: State) {
+      reset
+      ζ = EquationOpts.pruneVars(st)
       ℵ = ζ
     }
 
@@ -209,7 +224,7 @@ class Servlet extends Stack {
   import Mutables._
 
   // get the current program
-  get("/main/:h/:w") {
+  get("/main/:h/:w/:snaps") {
     contentType = "text/html"
     serveProgram(params + ("sim" → "false"), ζ)
   }
@@ -240,12 +255,26 @@ class Servlet extends Stack {
     }
   }
 
+  post("/loadJSON"){
+    // println(parsedBody)
+    val body = Json2Ast.mkProgram(parsedBody)
+    loadFromState(body)
+    ()
+  }
+
   post("/accept-points") {
     val incIndices = parsedBody.extract[Set[Int]]
 
     currPoints = currPoints.filterKeys(incIndices.contains(_))
     Actions.reset
     ()
+  }
+
+  post("/physics") {
+    contentType = "text/html"
+    val bod = parsedBody.extract[Map[String, String]]
+    ζ = Run.addPhysics(bod("eqs"), bod("frees"), bod("onrelease"), ζ)
+    serveProgram(params + ("sim" → "false") + ("h" -> "600") + ("w" -> "600"), ζ, true)
   }
 
   // for a particular index into currPoints, return a list of all variants wrt

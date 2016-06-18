@@ -27,6 +27,7 @@ function common_init(height, width, alwaysRun) {
   canvas.addEventListener("eddiemouseup", doMouseUp);
   canvas.addEventListener("eddiemousemove", doMouseMove);
 
+  shouldShowSnaps = false;
   resetState();
 
   if (alwaysRun) {
@@ -73,7 +74,9 @@ function resetState() {
   chartInit(250, 300);
 
   snapRegions = [];
+  
   globalSolved = 0;
+  snap_points = [];
 
 }
 
@@ -233,6 +236,11 @@ function global_redraw() {
 function draw_all(ctx) {
   for (var i = 0; i < all_objects.length; i++) {
     all_objects[i].draw(ctx);
+  }
+
+  if (drawSnaps) {
+    // console.log(snap_points);
+    snap_points.forEach(o => o.draw(ctx));
   }
 }
 

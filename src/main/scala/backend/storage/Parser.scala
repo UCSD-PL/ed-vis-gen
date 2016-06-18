@@ -198,7 +198,7 @@ object Parser extends JavaTokenParsers with PackratParsers {
     (unary("WITH FREE", fvs) <~ ';') ~ (unary("CHARTS", chrts) <~ ';') ^^ {
       case (vs, σ) ~ ips ~ ups ~ ss ~ es ~ les ~ rcs ~ rfvs ~ cs ⇒
       (Program(vs, ips._1, ups, ss._1, es, les, rcs, rfvs, cs._1,
-        cs._2 ++ ss._2 ++ ips._2 ++ vs.map(v ⇒ v.name → v).toMap), σ)
+        cs._2 ++ ss._2 ++ ips._2 ++ vs.map(v ⇒ v.name → v).toMap, Set()), σ)
     }
 
   def tryParsing[T](start: P[T])(input: String) = parseAll(start, input) match {

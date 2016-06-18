@@ -52,6 +52,7 @@ object State {
         while (names.contains(prefix + suffix.toString)) {
           suffix += 1
         }
+        // println("named " + prefix + suffix.toString +  " -> "+ p.toString())
         names + ((prefix + suffix.toString) → p)
       }
 
@@ -84,15 +85,19 @@ object State {
     // links ++ points.flatMap{ip ⇒ Set(ip.x, ip.y)}
   }
 
-  def merge(ipc: IPConfig, ζ: State, mergeLinks: Boolean = true): State = ipc match {
+  def merge(ipc: IPConfig, ζ: State, mergeLinks: Boolean = true, toIPoints: Boolean = true): State = ipc match {
     case (ip, eqs, σ) ⇒
 
       // foreach point in the new state, if
       val (newPoint, newPoints, newNames) =
-        if (mergeLinks)
-          mergePoints(ipc, ζ.prog)
-        else
-          (ip, ζ.prog.ipoints + ip, nameIP(ζ.prog.names, ip))
+        if (toIPoints) {
+          if (mergeLinks)
+            mergePoints(ipc, ζ.prog)
+          else
+            (ip, ζ.prog.ipoints + ip, nameIP(ζ.prog.names, ip))
+        } else {
+          (ip, ζ.prog.snaps + ip, nameIP(ζ.prog.names, ip))
+        }
 
 
 
@@ -100,15 +105,20 @@ object State {
     //  println("new point:" + newPoint.toString)
     //  println("old names:" + oldProg.names)
   //    println("new names:" + nameIP(oldProg.names, newPoint))
-      ζ.copy( prog = oldProg.copy(
+      val newProg = oldProg.copy(
         vars = oldProg.vars ++ Set(newPoint.x, newPoint.y),
-        ipoints = newPoints,
         equations = oldProg.equations ++ eqs,
         names = newNames
         // notice, free rec vars is not updated (and should be). however, it's unclear
         // at this stage whether both dimensions of the point should be added,
         // so we rely on a later synthesis pass to add in correct FVs.
-        ),
+        )
+
+        ζ.copy(prog = (if (toIPoints) {
+          newProg.copy(ipoints = newPoints)
+        } else {
+          newProg.copy(snaps = newPoints)
+        }),
         σ = ζ.σ ++ σ)
   }
 }

@@ -25,6 +25,7 @@ function ClosedLine (points, stroke, fill) {
 // or not.
 function Line (points, stroke, fill, dash) {
   return {
+    type: "line",
     points : points,
     stroke: stroke,
     dash: dash,
@@ -56,6 +57,7 @@ function Line (points, stroke, fill, dash) {
 
 function Spring (x, y, dx, dy, stroke) {
   return {
+    type: "spring",
     x: x,
     y: y,
     dx: dx,
@@ -125,6 +127,7 @@ function Text(x, y, text, font) { // font is an optional parameter
 // the color of the border.
 function Circle (x, y, r, stroke, fill) {
   return {
+    type: "circle",
     x: x,
     y: y,
     r: r,
@@ -153,6 +156,7 @@ function Circle (x, y, r, stroke, fill) {
 // Image primitive. Needs a corresponding img tag in the html source.
 function Image (x, y, h, w, name) {
   return {
+    type: "image",
     x: x,
     y: y,
     h: h,
@@ -167,7 +171,16 @@ function Image (x, y, h, w, name) {
     draw: function(ctx) {
       with (this) {
         ctx.save();
-        var i = document.getElementById(name);
+
+        // TODO
+        var i;
+        if (typeof name == 'string') {
+          i = document.getElementById(name);
+        } else {
+          i = name;
+        }
+        // console.log(name);
+        // console.log(i);
         ctx.drawImage(i, x-w/2, y-h/2, w, h);
         ctx.restore();
       }
@@ -229,6 +242,7 @@ function InteractionPoint (x,y) {
     y = new c.Variable({value: y});
   }
   return {
+    type: "ipoint",
     x: x,
     y: y,
     cr: 3.5,

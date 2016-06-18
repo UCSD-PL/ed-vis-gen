@@ -12,16 +12,16 @@
 /** Carousel **/
 
 .variant-wrapper {
-  width:1200px;
-  height:100%;
+  width:80%;
+  height:300px;
   position: relative;
   margin:auto;
   display: block;
 }
 
 .variants {
-  height: 400px;
-  width: 350px;
+  /*height: 400px;*/
+  width: 700px;
   position: relative;
   overflow: hidden;
   margin:auto;
@@ -40,9 +40,9 @@
     float: left;
 }
 
-.mainFrame {
-  height: 350px;
-  width: 700px;
+#mainFrame {
+  /*height: 1000px;
+  width: 1000px;*/
   border-style: none;
 }
 
@@ -53,8 +53,9 @@
 }
 
 .variant-wrapper {
-  width:  357px;
-  height: 400px;
+  /*width:  357px;
+  height: 400px;*/
+  display:none;
 }
 
 
@@ -73,7 +74,8 @@
 }
 
 .variant-prev {
-  left:-60px;
+  /*left:-60px;*/
+  left:60px;
   -moz-transform: scaleX(-1);
   -o-transform: scaleX(-1);
   -webkit-transform: scaleX(-1);
@@ -83,7 +85,8 @@
 }
 
 .variant-next {
-  right:-60px;
+  /*right:-60px;*/
+  right:60px;
 }
 
 

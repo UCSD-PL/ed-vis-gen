@@ -1,9 +1,11 @@
-function c_main(height, width, shouldSimInteractions, shouldSimPhysics) {
+function c_main(height, width, shouldSimInteractions, shouldSimPhysics, shouldShowSnaps) {
   common_init(height, width, true);
   init();
+  drawSnaps = shouldShowSnaps
   global_redraw();
   displaySimID = -1;
   cursor = null;
+
 
   if (shouldSimPhysics) {
     start();

@@ -22,6 +22,12 @@ object PointGeneration {
     case Triangle(p1, p2, p3) ⇒ tri(p1, p2, p3, σ)
   })
 
+  var allocSuffix = 0
+  def allocVName = {
+    allocSuffix += 1
+    "V_" + allocSuffix.toString
+  }
+
   // helper function; link up an IP and a point by equality
   def equality(l: IPoint, r: Point, σ: Store) = {
     (Set(Eq(l.x, r.x), Eq(l.y, r.y)), σ + (l.x → σ(r.x)) + (l.y → σ(r.y)))
@@ -30,12 +36,12 @@ object PointGeneration {
     (l, Set(Eq(l, r)), σ + (l → σ(r)))
   }
   def plus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-    val newVar = Variable(l.name + "_P_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
+    val newVar = Variable(allocVName)
     (newVar, Set(Eq(newVar, Expr(l) plus (Expr(r) times coeff))), σ + (newVar → (σ(l) + coeff * σ(r))))
   }
 
   def minus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-    val newVar = Variable(l.name + "_M_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
+    val newVar = Variable(allocVName)
     (newVar, Set(Eq(newVar, Expr(l) minus (Expr(r) times coeff))), σ + (newVar → (σ(l) - coeff*σ(r))))
   }
   // helper function; link up an IP to the midpoint of two points
@@ -47,8 +53,8 @@ object PointGeneration {
   // given two points, build an IP for the midpoint and relevant equations
   def makeMP(l: Point, r: Point, σ: Store) = {
     val ip = IPoint(
-      l.x.name ++ "_" ++ r.x.name ++ "_MPX",
-      l.y.name ++ "_" ++ r.y.name ++ "_MPY")
+      allocVName,
+      allocVName)
     val (eqs, newσ) = midPoint(ip, l, r, σ)
     (ip, eqs, newσ)
   }
@@ -270,7 +276,7 @@ object Positional extends SynthesisPass {
   // given a program and store, return all configurations (i.e., programs
   // and stores) implementing positional interactions in one IPoint
   def apply(orig: Configuration): Set[Configuration] = orig match {
-    case State(p@Program(vars, ips, _, shapes, eqs, _, _, _, _, names), σ) ⇒ shapes.flatMap { s ⇒ {
+    case State(p@Program(vars, ips, _, shapes, eqs, _, _, _, _, names, _), σ) ⇒ shapes.flatMap { s ⇒ {
       val candidates = PointGeneration(s, σ)
 
       val res = candidates.flatMap { case (ip, es, δ) ⇒ {
@@ -324,14 +330,14 @@ object EquationPass extends SynthesisPass {
   // constraint between the lhs and rhs variables
 
   // TODO: use only one intermediate variable, substitute in both LHS and RHS
-  def mergeConfigs(lhs: IPConfig, rhs: IPConfig) : (Set[Variable], Set[Eq], Store) = (lhs, rhs) match {
+  def mergeConfigs(lhs: IPConfig, rhs: IPConfig) : IPConfig = (lhs, rhs) match {
     case ((lip, leqs, σ), (rip, reqs, γ)) ⇒ {
-      val newXVar = Variable(lip.x.name + "$" + rip.x.name)
-      val newYVar = Variable(lip.y.name + "$" + rip.y.name)
+      val newXVar = Variable(PointGeneration.allocVName)
+      val newYVar = Variable(PointGeneration.allocVName)
       val newEqs =  leqs.map(e ⇒ e.substitute(Map(lip.x → newXVar, lip.y → newYVar))) ++
                     reqs.map(e ⇒ e.substitute(Map(rip.x → newXVar, rip.y → newYVar)))
       val newσ = Store(Set(newXVar → σ(lip.x), newYVar → σ(lip.y)))
-      (Set(newXVar, newYVar), newEqs, newσ)
+      (IPoint(newXVar, newYVar), newEqs, newσ)
     }
   }
 
@@ -339,7 +345,7 @@ object EquationPass extends SynthesisPass {
   // zip up all configs, filter out identical points, and keep configs that are
   // equal w.r.t fuzzEq
   def apply(orig: Configuration): Set[Configuration] = orig match {
-    case State(Program(vars, ips, _, shapes, eqs, _, _, _, _, names), σ) ⇒ {
+    case State(Program(vars, ips, _, shapes, eqs, _, _, _, _, names, _), σ) ⇒ {
       val allPoints = shapes.flatMap(s ⇒ PointGeneration(s, σ))
       val candidates = (for {
         l <- allPoints
@@ -359,11 +365,14 @@ object EquationPass extends SynthesisPass {
       //println("candidates: " + candidates.toString())
 
       // take all the candidate equations, variables, and stores
-      val res = Set() + candidates.map{(mergeConfigs _).tupled}.foldLeft(orig) { case (State(prog, α), (vars, newEqs, γ)) ⇒
+      val snapShapes = candidates.flatMap{case ((lp, _, _), (rp, _, _)) => Set(lp, rp)}
+      // val withSnaps = orig.copy(prog = orig.prog.copy(snaps = snapShapes))
+      val res = Set() + candidates.map{(mergeConfigs _).tupled}.foldLeft(orig) { case (State(prog, α), (ip, newEqs, γ)) ⇒
         State(prog.copy(
-          vars = prog.vars ++ vars,
+          vars = prog.vars + ip.x + ip.y,
           equations = prog.equations ++ newEqs,
-          names = prog.names ++ vars.map{v ⇒ (v.name → v)}
+          snaps = prog.snaps + ip,
+          names = State.nameIP(prog.names + (ip.x.name -> ip.x) + (ip.y.name -> ip.y), ip)
         ), α ++ γ)
       }
 
