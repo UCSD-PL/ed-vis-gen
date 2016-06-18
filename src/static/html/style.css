@@ -1,0 +1,110 @@
+#loading {
+     width:100%;
+     height:1300px;
+     position: absolute;
+     left:0; top:0;
+     z-index:100;
+     background-color:#000000;
+     display:none;
+     opacity:0.5;
+}
+
+.popup {
+  display:none;
+}
+
+/** Carousel **/
+
+.variant-wrapper {
+  width:80%;
+  /*height:100%;*/
+  height: 450px;
+  position: relative;
+  margin:auto;
+  display: block;
+}
+
+.variants {
+  /*height: 400px;
+  width: 350px;*/
+  position: relative;
+  overflow: hidden;
+  margin:auto;
+}
+
+.variants ul {
+  width: 20000em;
+  height: 0px;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.variants li {
+    float: left;
+}
+
+#mainFrame {
+  height: 350px;
+  width: 630px;
+  border-style: none;
+}
+
+.smallFrame {
+  height: 350px;
+  width: 600px;
+  border-style: none;
+}
+
+
+
+/** Carousel Controls **/
+
+.variant-prev,
+.variant-next {
+    position: absolute;
+    top: 155px;
+    text-align: center;
+    display:block;
+    height:50px;
+    width:50px;
+    z-index:1000;
+    background-image:url("../resources/arrow.jpg");
+}
+
+.variant-prev {
+  /*left:-60px;*/
+  left:-10px;
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
+  display:none;
+}
+
+.variant-next {
+  /*right:-60px;*/
+  right:-10px;
+  display:none;
+}
+
+
+.variant-prev:hover span,
+.variant-next:hover span {
+    display: block;
+}
+
+.variant-prev.inactive,
+.variant-next.inactive {
+    opacity: .5;
+    cursor: default;
+}
+
+// buttons
+
+/*.btn {
+  outline: none !important;
+}*/
