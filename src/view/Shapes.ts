@@ -51,7 +51,7 @@ function _drawLine(
   close = close || false
   stroke = stroke || "black"
   fill = fill || "rgba(0,0,0,0)"
-  dash = dash || false
+  dash = dash || true
 
   ctx.save()
   let len = points.length
