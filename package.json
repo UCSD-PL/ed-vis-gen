@@ -1,7 +1,7 @@
 {
   "name": "EDDIE",
   "scripts": {
-    "initialize": "npm install && mkdir new/target",
+    "initialize": "npm install && mkdir -p new/target",
     "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/frontend/ new/target/frontend/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",
