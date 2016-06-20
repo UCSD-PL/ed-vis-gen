@@ -1,0 +1,15 @@
+[submodule "gravity-and-orbits"]
+  path = "phet benchmarks/javascript/gravity-and-orbits"
+  url = https://github.com/phetsims/gravity-and-orbits
+
+[submodule "gravity-force-lab"]
+  path = "phet benchmarks/javascript/gravity-force-lab"
+  url = https://github.com/phetsims/gravity-force-lab
+
+[submodule "hookes-law"]
+  path = "phet benchmarks/javascript/hookes-law"
+  url = https://github.com/phetsims/hookes-law
+
+[submodule "pendulum-lab"]
+  path = "phet benchmarks/javascript/pendulum-lab"
+  url = https://github.com/phetsims/pendulum-lab    
