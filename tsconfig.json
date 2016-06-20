@@ -22,6 +22,9 @@
   },
   "files": [
     "src/controller/Controller.ts",
+    "src/frontend/eddiflow/dfexpr.ts",
+    "src/frontend/eddiflow/dfnetwork.ts",
+    "src/frontend/eddiflow/util.ts",
     "src/main.ts",
     "src/model/Export.ts",
     "src/model/Model.ts",
