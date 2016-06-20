@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": false,
+    "noImplicitAny": true,
+    "rootDir": "src/",
+    "target": "ES6",
+    "module": "commonjs"
+  },
+  "filesGlob": [
+    "src/**/*{.ts, .d.ts}",
+    "!src/typings/*.d.ts",
+    "test/**/*.ts",
+    "typings/index.d.ts",
+    "!typings/browser/**",
+    "!src/model/eddiflow/**",
+    "!typings/main",
+    "!typings/main.d.ts",
+    "!node_modules/**"
+  ],
+  "atom": {
+    "rewriteTsconfig": true
+  },
+  "files": [
+    "src/controller/Controller.ts",
+    "src/main.ts",
+    "src/model/Export.ts",
+    "src/model/Model.ts",
+    "src/model/Shapes.ts",
+    "src/model/Synthesis.ts",
+    "src/model/Variable.ts",
+    "src/util/Util.ts",
+    "src/view/Shapes.ts",
+    "src/view/View.ts",
+    "typings/index.d.ts"
+  ]
+}

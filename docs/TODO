@@ -1,0 +1,123 @@
+immediate:
+    ** hoverover for contact point
+    ** timings
+    ** make iron work -- otherwise...we gucci
+
+optional:
+    ** slow down transition
+    ** increase font of text
+
+
+BUGS:
+  * LEQs are failing for some apparatus benchmarks, disabled for now
+    ** planets, hooke_2, hooke_par, normal_modes_2d
+  * generated program for normal_modes_2d is ass: see biggun.html. takes
+    1 minute to load...10k lines of JS??
+  * onrelease is broken.
+  * planets takes forever to load ???
+
+
+TODO:
+
+  * visuals/controls, for physics sim:
+
+    ** variables for sliders, with a title/min/max
+
+    concrete:
+    emit constructor foreach exposed expression.
+
+    slider: variable, min/max.
+
+  * state transition system for drag-and-drop:
+    ** change system of alignment equations on click, release. specify
+       by "here is detection point/area" and "here is target point/area".
+       *** synthesis: add equation, 'point is fixed to this new location'.
+       *** reconcile all IPoints with new equation. same stuff.
+       *** physics state variable update. take update equations as
+           input, they're run prior to state transition.
+    ** add check on release: state is determined by conjunction of
+       (src, target) pairs, check all pairs to determine new state.
+
+
+
+
+  * debug heuristics
+  * edge detection doesn't exist (i.e. "point is fixed to edge of other shape")
+    ** rectangles as fixed bases
+    ** hooke_par
+  * lines dont translate...really annoying. fundamental problem with source/sink
+    algorithm.
+  * merge duplicate ipoints (i.e., two ipoints at same location)
+  * import more benchmarks
+    ** add nonlinear equations to backend, runtime:
+    geogebra:
+    vector decomposition -> http://www.geogebra.org/material/simple/id/87226#material/86995
+    tangent/cotangent -> http://www.geogebra.org/material/simple/id/87226#material/87133
+    unit circle triangle -> http://www.geogebra.org/material/simple/id/87226#material/87129
+    tangent/derivative -> http://www.geogebra.org/material/simple/id/87226#material/86589
+
+    static electricity -> https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_en.html
+  * canonicalize equations? maybe?
+    ** > ARG_0: Set(V_1)
+       > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
+       (violated fuzz testing)
+
+  * inlining isn't optimal: with a point on weight + point in spring,
+     IY = IY_PY is an equation
+
+  * find more benchmarks
+  ** http://www.malinc.se/math/
+  ** JSXGraph
+
+  ranking:
+  * big penalty for physics sim/buffer violation. need a lot for this...
+
+
+  * explore locked edges for locking variables (specifically height/width)
+  * or maybe learn from rejects? multi tier accept/reject phases?
+
+  * finish point generation
+    ** add triangles
+  * finish AST
+    ** add plots
+
+
+long term:
+
+distinguish between recursive updates and nonlinear one-way constraints:
+  * recursive update semantics are: take old values of variable references.
+  * nonlinear semantics are: ignore cycles (i.e. eval each node exactly once),
+                             update a la dataflow graph
+  * extend values:
+    ** CassValues
+    ** DFValues
+    ** interface:
+      *** getValue
+      *** suggestValue
+      *** evaluate
+    ** type system: DFValues can't appear in cass equations and vice versa
+  * runtime semantics:
+    ** interactions: suggestValue for x, y values. reevaluate both networks.
+
+
+
+  NLP: given some text in a textbook describing a sim,
+  spit out a diagram implementing the sim
+
+
+  replace cvars with dfvars:
+    * make a new shim class, Variable, which can be either a cvar or a dfvar
+      ** implement read, write, name
+        *** read: () => number
+        *** write: (number) => void
+            assumes a lot of things....should set some modes or something and assert
+        *** name: string.
+
+      ** also write a sanity checker...
+        *** make sure each variable has the right name + exists in the right maps
+    * makeVariable should take an argument, directing it to make either a
+      cvar or a dvar. log when makeVariable is called with improper arguments.
+
+    * IPoints are defined over Variables, draw calls Variable.read.
+      interactions call Variable.write.
+      physics sim calls variable.read to get the values, variable.write afterwards.

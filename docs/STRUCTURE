@@ -1,0 +1,21 @@
+typescript files:
+
+tsc.config, compile all .ts files in src/frontend/eddiflow > eddiflow/out
+
+to use in node/mocha, import out/_.js as a node module:
+
+  "var ef  = require('.../eddiflow/out/dfnetwork');"
+
+to use in the browser, compile with webmake and import output
+
+eddiflow depends on a parser, built using jison. build from the command line:
+  'jison -o src/frontend/eddiflow/out/dfparser.js src/frontend/eddiflow/dfparser.jison'
+
+javascript unit tests are run using mocha. see src/test/js/DFTests.js for an
+example. usage is 'mocha' and configuration is in test/mocha.opts.
+
+the frontend expects eddiflow to be exported to a single file, 'eddiflow/out/eddiflow.js'.
+build it using browserify:
+  'browserify src/frontend/eddiflow/out/dfnetwork.js  --s DFNetwork > src/frontend/eddiflow/out/eddiflow.js'
+
+  (the --s DFNetwork exports eddiflow.exports to the global DFNetwork variable)

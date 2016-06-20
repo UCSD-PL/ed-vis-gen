@@ -1,0 +1,62 @@
+VARS(
+    Y1 = 108.75,
+    V7 = 10.0,
+    V5 = 108.74999999999999,
+    V4_IX = 160.0,
+    V2 = 12.5,
+    X = 75.0,
+    V0 = 62.25,
+    V5_IY = 108.74999999999999,
+    RL = 75.0,
+    V4 = 160.0,
+    Fspring = 0.0,
+    DX = 75.0,
+    X_P_1$0_T_DX$V4_M_1$0_T_V7 = 150.0,
+    V3 = 32.25,
+    Fapplied = 0.0,
+    K = 2.0,
+    V6 = 10.0,
+    DY = 0.0
+);
+
+POINTS(
+    IP0 = IPoint( V4_IX, V5_IY, [V4, X_P_1$0_T_DX$V4_M_1$0_T_V7, DX, V4_IX] )
+);
+
+ON RELEASE(
+);
+
+SHAPES(
+    S0 = Rectangle((V0 , Y1), V3, V2),
+    S1 = Spring((X , Y1), DX, DY),
+    S2 = Rectangle((V4 , V5), V6, V7)
+);
+
+LINEAR(
+    0.0 + 1.0 * X_P_1$0_T_DX$V4_M_1$0_T_V7 = 0.0 + 1.0 * V4 + -1.0 * V7,
+    0.0 + 1.0 * X = 0.0 + 1.0 * V2 + 1.0 * V0,
+    0.0 + 1.0 * X_P_1$0_T_DX$V4_M_1$0_T_V7 = 0.0 + 1.0 * DX + 1.0 * X,
+    0.0 + 1.0 * V4_IX = 0.0 + 1.0 * V4,
+    0.0 + 1.0 * V5_IY = 0.0 + 1.0 * V5,
+    0.0 + 1.0 * V5 = 0.0 + 1.0 * DY + 1.0 * Y1
+);
+
+LEQS(
+    5.0 <= 0.0 + 1.0 * V3,
+    5.0 <= 0.0 + 1.0 * V2,
+    5.0 <= 0.0 + 1.0 * V6,
+    5.0 <= 0.0 + 1.0 * V7
+);
+
+PHYSICS(
+    Fapplied <- K * (DX - RL), Fspring <- -K * (DX - RL)
+);
+
+WITH FREE(
+);
+
+CHARTS(
+    FA = Chart(Fapplied, -200.0, 200.0),
+    FS = Chart(Fspring, -200.0, 200.0),
+    D = Chart(DX - RL, -100.0, 100.0)
+);

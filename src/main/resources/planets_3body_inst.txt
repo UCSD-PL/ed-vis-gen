@@ -1,0 +1,180 @@
+VARS(
+    FSunPlanet = 0.0,
+    MoonR = 7.75,
+    ThetaSunPlanet = 0.0,
+    SunR = 18.25,
+    SunY_IY = 90.0,
+    ThetaPlanetMoon = 0.0,
+    ThetaSunMoon = 0.0,
+    MoonVelDX = 50.0,
+    MoonVelY_P_1$0_T_MoonVelDY = 224.75,
+    FPlanetMoon = 0.0,
+    PlanetVelDX = 50.0,
+    MoonX = 141.0,
+    VPlanetX = 3.65,
+    PlanetY = 200.75,
+    MoonX_P_1$0_T_MoonVelDX = 191.0,
+    PlanetVelDY = 0.0,
+    VSunY = 0.0,
+    MPlanet = 200.0,
+    VSunX = 0.0,
+    SunVelDX = -0.0,
+    VPlanetY = 0.0,
+    PlanetY_IY = 200.75,
+    SunVelX = 141.75,
+    MoonVelY = 224.75,
+    MoonVelDY = 0.0,
+    SunVelDY = -50.0,
+    MoonX_IX = 141.0,
+    PlanetR = 7.75,
+    PlanetY_P_1$0_T_PlanetVelDY = 200.75,
+    ThetaMoonPlanet = 0.0,
+    SunVelX_P_1$0_T_SunVelDX = 141.75,
+    MSun = 200000.0,
+    MMoon = 2.0,
+    FSunMoon = 0.0,
+    PlanetVelX_P_1$0_T_PlanetVelDX = 191.5,
+    PlanetVelX_IX = 141.5,
+    VMoonY = 0.0,
+    SunY = 90.0,
+    VMoonX = 3.65,
+    G = 0.00667,
+    ThetaPlanetSun = 0.0,
+    SunVelX_IX = 141.75,
+    MoonVelY_IY = 224.75,
+    PlanetVelX = 141.5,
+    SunY_P_1$0_T_SunVelDY = 40.0,
+    ThetaMoonSun = 0.0,
+    VScaling = 2.5
+);
+
+POINTS(
+    IP4 = IPoint( SunVelX_P_1$0_T_SunVelDX, SunY_P_1$0_T_SunVelDY, [SunVelX_P_1$0_T_SunVelDX,
+        SunVelDX, SunY_P_1$0_T_SunVelDY, SunVelDY] ),
+    IP0 = IPoint( MoonX_P_1$0_T_MoonVelDX, MoonVelY_P_1$0_T_MoonVelDY, [MoonX_P_1$0_T_MoonVelDX,
+        MoonVelDX, MoonVelY_P_1$0_T_MoonVelDY, MoonVelDY] ),
+    IP5 = IPoint( SunVelX_IX, SunY_IY, [SunY_IY, SunVelX, SunVelX_P_1$0_T_SunVelDX,
+        SunY, SunVelX_IX, SunY_P_1$0_T_SunVelDY] ),
+    IP2 = IPoint( PlanetVelX_IX, PlanetY_IY, [PlanetY, PlanetY_IY, PlanetY_P_1$0_T_PlanetVelDY,
+        PlanetVelX_P_1$0_T_PlanetVelDX, PlanetVelX_IX, PlanetVelX] ),
+    IP3 = IPoint( MoonX_IX, MoonVelY_IY, [MoonVelY_P_1$0_T_MoonVelDY, MoonX,
+        MoonX_P_1$0_T_MoonVelDX, MoonVelY, MoonX_IX, MoonVelY_IY] ),
+    IP1 = IPoint( PlanetVelX_P_1$0_T_PlanetVelDX, PlanetY_P_1$0_T_PlanetVelDY, [PlanetVelX_P_1$0_T_PlanetVelDX,
+        PlanetVelDX, PlanetY_P_1$0_T_PlanetVelDY, PlanetVelDY] )
+);
+
+ON RELEASE(
+    VPlanetY <- PlanetVelDY / VScaling,
+    VMoonY <- MoonVelDY / VScaling,
+    VSunY <- SunVelDY / VScaling,
+    VMoonX <- MoonVelDX / VScaling,
+    VPlanetX <- PlanetVelDX / VScaling,
+    VSunX <- SunVelDX / VScaling
+);
+
+SHAPES(
+    PlanetV = Arrow((PlanetVelX , PlanetY), PlanetVelDX, PlanetVelDY),
+    Planet = Circle((PlanetVelX , PlanetY), PlanetR),
+    Sun = Circle((SunVelX , SunY), SunR),
+    MoonV = Arrow((MoonX , MoonVelY), MoonVelDX, MoonVelDY),
+    SunV = Arrow((SunVelX , SunY), SunVelDX, SunVelDY),
+    Moon = Circle((MoonX , MoonVelY), MoonR)
+);
+
+LINEAR(
+    0.0 + 1.0 * SunVelX_P_1$0_T_SunVelDX = 0.0 +
+    1.0 * SunVelDX +
+    1.0 * SunVelX,
+    0.0 + 1.0 * PlanetVelX_P_1$0_T_PlanetVelDX = 0.0 +
+    1.0 * PlanetVelDX +
+    1.0 * PlanetVelX,
+    0.0 + 1.0 * SunY_P_1$0_T_SunVelDY = 0.0 + 1.0 * SunVelDY + 1.0 * SunY,
+    0.0 + 1.0 * PlanetY_P_1$0_T_PlanetVelDY = 0.0 +
+    1.0 * PlanetVelDY +
+    1.0 * PlanetY,
+    0.0 + 1.0 * MoonX_IX = 0.0 + 1.0 * MoonX,
+    0.0 + 1.0 * SunY_IY = 0.0 + 1.0 * SunY,
+    0.0 + 1.0 * MoonVelY_P_1$0_T_MoonVelDY = 0.0 +
+    1.0 * MoonVelDY +
+    1.0 * MoonVelY,
+    0.0 + 1.0 * SunVelX_IX = 0.0 + 1.0 * SunVelX,
+    0.0 + 1.0 * PlanetVelX_IX = 0.0 + 1.0 * PlanetVelX,
+    0.0 + 1.0 * MoonVelY_IY = 0.0 + 1.0 * MoonVelY,
+    0.0 + 1.0 * MoonX_P_1$0_T_MoonVelDX = 0.0 +
+    1.0 * MoonVelDX +
+    1.0 * MoonX,
+    0.0 + 1.0 * PlanetY_IY = 0.0 + 1.0 * PlanetY
+);
+
+LEQS(
+    5.0 <= 0.0 + 1.0 * MoonR,
+    5.0 <= 0.0 + 1.0 * SunR,
+    5.0 <= 0.0 + 1.0 * PlanetR
+);
+
+PHYSICS(
+    MoonX <- MoonX + VMoonX,
+    ThetaSunMoon <- atan2(MoonVelY - SunY, MoonX - SunVelX),
+    SunY <- SunY + VSunY,
+    PlanetVelX <- PlanetVelX + VPlanetX,
+    VSunX <-
+    (FSunPlanet * cos(ThetaSunPlanet) + FSunMoon * cos(ThetaSunMoon)) /
+    MSun +
+    VSunX,
+    VSunY <-
+    (FSunPlanet * sin(ThetaSunPlanet) + FSunMoon * sin(ThetaSunMoon)) /
+    MSun +
+    VSunY,
+    ThetaMoonPlanet <- atan2((PlanetY - MoonVelY), (PlanetVelX - MoonX)),
+    PlanetY <- PlanetY + VPlanetY,
+    ThetaPlanetSun <- atan2(-(PlanetY - SunY), -(PlanetVelX - SunVelX)),
+    ThetaPlanetMoon <- atan2(-(PlanetY - MoonVelY), -(PlanetVelX - MoonX)),
+    FSunMoon <-
+    G * MSun * MMoon /
+    (pow(MoonX - SunVelX, 2.0) + pow(MoonVelY - SunY, 2.0)),
+    VMoonY <-
+    (FSunMoon * sin(ThetaMoonSun) + FPlanetMoon * sin(ThetaMoonPlanet)) /
+    MMoon +
+    VMoonY,
+    VMoonX <-
+    (FSunMoon * cos(ThetaMoonSun) + FPlanetMoon * cos(ThetaMoonPlanet)) /
+    MMoon +
+    VMoonX,
+    ThetaSunPlanet <- atan2(PlanetY - SunY, PlanetVelX - SunVelX),
+    ThetaMoonSun <- atan2(-(MoonVelY - SunY), -(MoonX - SunVelX)),
+    SunVelX <- SunVelX + VSunX,
+    VPlanetX <-
+    (FSunPlanet * cos(ThetaPlanetSun) + FPlanetMoon * cos(ThetaPlanetMoon)) /
+    MPlanet +
+    VPlanetX,
+    VPlanetY <-
+    (FSunPlanet * sin(ThetaPlanetSun) + FPlanetMoon * sin(ThetaPlanetMoon)) /
+    MPlanet +
+    VPlanetY,
+    FPlanetMoon <-
+    G * MPlanet * MMoon /
+    (pow(MoonX - PlanetVelX, 2.0) + pow(MoonVelY - PlanetY, 2.0)),
+    MoonVelY <- MoonVelY + VMoonY,
+    FSunPlanet <-
+    G * MSun * MPlanet /
+    (pow(PlanetVelX - SunVelX, 2.0) + pow(PlanetY - SunY, 2.0))
+);
+
+WITH FREE(
+SunVelX_P_1$0_T_SunVelDX, SunY_P_1$0_T_SunVelDY,
+MoonX_P_1$0_T_MoonVelDX, MoonVelY_P_1$0_T_MoonVelDY,
+SunVelX_IX, SunY_IY,
+PlanetVelX_IX, PlanetY_IY,
+MoonX_IX, MoonVelY_IY,
+PlanetVelX_P_1$0_T_PlanetVelDX, PlanetY_P_1$0_T_PlanetVelDY,
+PlanetVelX , PlanetY,
+PlanetVelX , PlanetY,
+SunVelX , SunY,
+MoonX , MoonVelY,
+SunVelX , SunY,
+MoonX , MoonVelY
+);
+
+CHARTS(
+
+);

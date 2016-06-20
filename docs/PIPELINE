@@ -1,0 +1,16 @@
+
+input:
+parse file/take json -> AST with no links/equations/buffers
+(syntax.JSTerms.scala, storage.Parser.scala)
+=>
+sanity phase: insert buffer between interactivity, domain-specific functions
+  -> AST with buffers but no links/equations,
+=>
+synthesis: infer equations -> AST with no links
+=>
+optimization: simplify + canonicalize intermediate expressions -> AST with no links
+(next phase is expensive, cut down in preparation)
+=>
+synthesis: query for links (foreach valid config, give candidates) -> full AST
+=>
+compile: return JScript program

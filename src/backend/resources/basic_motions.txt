@@ -1,0 +1,92 @@
+###################
+## Spring Motion ##
+###################
+
+## Vars
+M = _,   // mass on spring
+K = _,   // spring stiffness
+C = _,   // amount of damping
+G = _,   // strength of gravity
+InitRL = _, // Intital (Uncompressed) relaxed spring length
+RL = _,     // Must be defined, value is not used
+F = _,   // Must be defined, value is not used
+V = _,   // Initial velocity
+T = _    // starting time
+
+## Shape
+Spring((SX,SY), DX, DY)
+
+## Non-linear equations
+T  <- (T + 0.01),
+RL <- InitRL - M*G/K,
+F <- (-K*(DY + RL) - (C*V))/M,
+V <- V + F,
+DY <- DY + V
+
+
+###################
+##    Gravity    ##
+###################
+
+## Vars
+M = _,     // mass of object
+G = _,     // strength of gravity
+V = _,     // initial vertical velocity
+F = _      // Must be defined, value is not used
+
+
+## Shape
+Spring((PX, PY), DX, DY)
+// OR
+Rectangle((PX, PY), HX, HY)
+// OR
+Circle((PX,PY), R)
+
+## One-way constraints
+F <- M*G
+V <- V + F,
+PY <- PY + V
+
+#####################
+## Pendulum Motion ##
+#####################
+
+## Vars
+M = _,     // mass of bob
+G = _,     // strength of gravity
+V = _,     // initial vertical velocity
+T = _,     // starting time
+R = _,     // Length of pendulum (Value discarded)
+F = _,     // restoring force, discarded
+C = _      // air damping
+
+## Shape
+// pendulum bob
+Rectangle((XA, XB), HX, HY),
+// OR
+Circle((XA,XB), CR),
+
+// String
+LineSegment((XS, YS), (XE, YE)),
+
+// Fulcrum
+Circle((XB, YB), RB)
+// OR
+Rectangle((XB, XY), HX, HY)
+
+## Two-way equations
+XA = XS,
+YA = YS,
+XB = XE,
+YB = YE
+
+## One-way constraints
+T  <- (T + 0.01),
+R  <- sqrt((XB-XA)*(XB-XA) + (YA-YB)*(YA-YB))
+Th <- atan((XB-XA)/(YB-YA))
+F  <- M*G*tan(Th) - (C*V))/M //Approximating vertical velocity as zero
+V <- V + F
+XB <- XB + V
+
+## With free
+XE, YE

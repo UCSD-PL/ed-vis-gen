@@ -1,4 +1,25 @@
 <html>
+<script src="src/frontend/cassie/c.js"></script>
+<script src="src/frontend/cassie/HashTable.js"></script>
+<script src="src/frontend/cassie/HashSet.js"></script>
+<script src="src/frontend/cassie/Error.js"></script>
+<script src="src/frontend/cassie/SymbolicWeight.js"></script>
+<script src="src/frontend/cassie/Strength.js"></script>
+<script src="src/frontend/cassie/Variable.js"></script>
+<script src="src/frontend/cassie/Point.js"></script>
+<script src="src/frontend/cassie/Expression.js"></script>
+<script src="src/frontend/cassie/Constraint.js"></script>
+<script src="src/frontend/cassie/EditInfo.js"></script>
+<script src="src/frontend/cassie/Tableau.js"></script>
+<script src="src/frontend/cassie/SimplexSolver.js"></script>
+<script src="src/frontend/cassie/Timer.js"></script>
+
+
+<script src="src/frontend/eddie/helpers.js"> </script>
+<script src="src/frontend/eddie/primitives.js"></script>
+<script src="src/frontend/eddie/library.js"></script>
+<script src="src/frontend/eddie/common.js"></script>
+<script src="src/frontend/eddie/springs.js"></script>
 <script>
   function main() {
     common_init();
@@ -12,11 +33,6 @@
     plt.setYView(field);
   }
 </script>
-<script src="src/helpers.js"> </script>
-<script src="src/primitives.js"></script>
-<script src="src/library.js"></script>
-<script src="src/common.js"></script>
-<script src="src/springs.js"></script>
 <head>
     <title>Spring simulation</title>
 
@@ -29,7 +45,7 @@
     </div>
     <div style="margin:auto;">
       <h2 > Graph controls </h2>
-        <button onclick="plt.reset(); T = 0;"> Clear plot </button>
+        <button onclick="plt.reset();"> Clear plot </button>
       <p> X Axis:
         <button onclick="xView('t');">Time</button>
         <button onclick="xView('y');">Displacement from rest</button>

@@ -1,0 +1,78 @@
+overall: using nothing but a GUI, build an interactive educational diagram
+
+subproblems:
+  * runtime:
+    ** prerequisites:
+      *** needs graphics
+      *** needs interaction
+      *** needs domain-specific calculations
+    ** solution:
+      *** graphics/object library
+      *** simple point primitive for interaction
+        **** new problem: how to sensibly propagate user input?
+      *** domain-specific computation libraries:
+        **** dataflow expressions
+        **** iterative update expressions
+        **** new problem: how to sensibly propagate domain-specific input?
+
+      *** linear constraints handle user/DS input
+
+  * frontend:
+    ** graphical editor for shapes
+      *** expand...why is it good?
+    ** synthesis of complicated components:
+      *** interactions: given an IP,
+    ** ELA algorithm: formulation with two FVs in each equation is not
+    always correct: e.g. consider a spring with points on end, middle.
+
+    TOP = BOT + DY
+    MID = BOT + DY/2
+
+
+    a correct assignment is {DY, TOP, MID}...an incorrect one (that ELA likes)
+    is {BOT, DY}
+
+    so instead of a FV set, we want sources and sinks:
+
+    starting from a seed set of source variables:
+    * a configuration is **consistent** if every equation has either one source + sink
+    OR no sources or sinks
+    * associate configurations with colorings (a map from equation to empty/Source/Source + Sink).
+    a candidate Sink:
+    ** lives in a equation with a Source
+    ** is not a Source/Sink in another equation
+    ** is not present in another equation with a Source
+    foreach candidate:
+    ** add the candidate to the configuration
+    ** color the candidate as a Source in the other equations
+
+
+    claim: given a consistent starting mapping of variables, the sources+sinks FV
+    algorithm will result in a system that has a consistent mapping.
+
+
+
+
+    or equation rewriting! pivot about free-variable (DY) gives:
+    DY= TOP - BOT
+    MID = BOT + (TOP - BOT)/2
+
+    not clear why this works...
+
+    ** ensure interactions/physical simulation results are logically correct:
+      *** emit extra "height/width >= 0" constraints to backend
+      *** valid configuration physics sim sometimes violates these constraints,
+          and in general, might violate positional constraints. these violations
+          indicate either a bad physics program or a transition between two valid
+          physics programs, which have different positional constraints. consider
+          the problem of implementing boxes with mass, gravity, and stacking...
+          the program where boxes freefall is different from the one with boxes
+          resting on a platform, which is different from the one with stacked boxes
+          on a platform.
+
+          For now, we simulate the physics engine for some fixed depth and prioritize
+          programs that don't violate constraints.
+
+          Future work is to learn the programs separately, detect the configuration
+          (from the simulation), and automatically switch between programs (i.e.
+          glue the programs together).

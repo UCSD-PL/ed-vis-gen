@@ -1,0 +1,38 @@
+{
+  "name": "EDDIE",
+  "scripts": {
+    "initialize": "npm install && mkdir new/target",
+    "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/frontend/ new/target/frontend/",
+    "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
+    "test": "echo \"no tests yet\"",
+    "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts"
+  },
+  "description": "Educational Visualization DSL and Synthesis =============",
+  "version": "1.0.0",
+  "main": "main.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test",
+    "src": "src"
+  },
+  "dependencies": {
+    "better-assert": "^1.0.2",
+    "cassowary": "^0.1.0",
+    "requirejs": "^2.1.22",
+    "typescript-require": "^0.2.9"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UCSD-PL/ed-vis-gen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UCSD-PL/ed-vis-gen/issues"
+  },
+  "homepage": "https://github.com/UCSD-PL/ed-vis-gen#readme"
+}

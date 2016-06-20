@@ -1,0 +1,255 @@
+VARS(
+    OutR = 7.75,
+    ThetaInnSun = 0.0,
+    SunR = 18.25,
+    OutVelDX = 50.0,
+    OutVelDY = 0.0,
+    SunY_IY = 90.0,
+    ThetaOutSun = 0.0,
+    ThetaOutMid = 0.0,
+    OutVelY = 224.75,
+    MidR = 7.75,
+    ThetaMidOut = 0.0,
+    MidVelX = 141.5,
+    InnVelDY = 0.0,
+    MidVelDY = 0.0,
+    FMidInn = 0.0,
+    MidVelDX = 50.0,
+    VOutX = 3.65,
+    OutVelX_IX = 141.5,
+    VSunY = 0.0,
+    InnVelY_P_1$0_T_InnVelDY = 130.25,
+    VInnY = 0.0,
+    InnVelX = 141.25,
+    FSunOut = 0.0,
+    MMid = 200.0,
+    ThetaSunInn = 0.0,
+    VMidY = 0.0,
+    VSunX = 0.0,
+    SunVelDX = -0.0,
+    SunVelX = 141.75,
+    InnVelY = 130.25,
+    ThetaInnOut = 0.0,
+    InnVelX_IX = 141.25,
+    SunVelDY = -50.0,
+    MidVelX_P_1$0_T_MidVelDX = 191.5,
+    ThetaSunOut = 0.0,
+    InnVelX_P_1$0_T_InnVelDX = 191.25,
+    SunVelX_P_1$0_T_SunVelDX = 141.75,
+    MSun = 200000.0,
+    OutVelY_IY = 224.75,
+    ThetaMidSun = 0.0,
+    FMidOut = 0.0,
+    MidVelY_IY = 165.75,
+    ThetaOutInn = 0.0,
+    ThetaMidInn = 0.0,
+    InnVelDX = 50.0,
+    MInn = 200.0,
+    FInnOut = 0.0,
+    SunY = 90.0,
+    MidVelY = 165.75,
+    G = 0.00667,
+    SunVelX_IX = 141.75,
+    VOutY = 0.0,
+    FSunInn = 0.0,
+    VInnX = 3.65,
+    OutVelX = 141.5,
+    ThetaInnMid = 0.0,
+    ThetaSunMid = 0.0,
+    FSunMid = 0.0,
+    MidVelY_P_1$0_T_MidVelDY = 165.75,
+    OutVelY_P_1$0_T_OutVelDY = 224.75,
+    InnVelY_IY = 130.25,
+    InnR = 7.75,
+    MidVelX_IX = 141.5,
+    SunY_P_1$0_T_SunVelDY = 40.0,
+    OutVelX_P_1$0_T_OutVelDX = 191.5,
+    VMidX = 3.65,
+    VScaling = 2.5,
+    MOut = 200.0
+);
+
+POINTS(
+    IP3 = IPoint( InnVelX_IX, InnVelY_IY, [InnVelY_P_1$0_T_InnVelDY, InnVelX,
+        InnVelY, InnVelX_IX, InnVelX_P_1$0_T_InnVelDX, InnVelY_IY] ),
+    IP1 = IPoint( SunVelX_P_1$0_T_SunVelDX, SunY_P_1$0_T_SunVelDY, [SunVelX_P_1$0_T_SunVelDX,
+        SunVelDX, SunY_P_1$0_T_SunVelDY, SunVelDY] ),
+    IP0 = IPoint( SunVelX_IX, SunY_IY, [SunY_IY, SunVelX, SunVelX_P_1$0_T_SunVelDX,
+        SunY, SunVelX_IX, SunY_P_1$0_T_SunVelDY] ),
+    IP6 = IPoint( MidVelX_IX, MidVelY_IY, [MidVelX, MidVelX_P_1$0_T_MidVelDX,
+        MidVelY_IY, MidVelY, MidVelY_P_1$0_T_MidVelDY, MidVelX_IX] ),
+    IP5 = IPoint( OutVelX_P_1$0_T_OutVelDX, OutVelY_P_1$0_T_OutVelDY, [OutVelX_P_1$0_T_OutVelDX,
+        OutVelDX, OutVelY_P_1$0_T_OutVelDY, OutVelDY] ),
+    IP4 = IPoint( OutVelX_IX, OutVelY_IY, [OutVelY, OutVelX_IX, OutVelY_IY,
+        OutVelX, OutVelY_P_1$0_T_OutVelDY, OutVelX_P_1$0_T_OutVelDX] ),
+    IP2 = IPoint( InnVelX_P_1$0_T_InnVelDX, InnVelY_P_1$0_T_InnVelDY, [InnVelX_P_1$0_T_InnVelDX,
+        InnVelDX, InnVelY_P_1$0_T_InnVelDY, InnVelDY] ),
+    IP7 = IPoint( MidVelX_P_1$0_T_MidVelDX, MidVelY_P_1$0_T_MidVelDY, [MidVelX_P_1$0_T_MidVelDX,
+        MidVelDX, MidVelY_P_1$0_T_MidVelDY, MidVelDY] )
+);
+
+ON RELEASE(
+    VMidY <- MidVelDY / VScaling,
+    VOutX <- OutVelDX / VScaling,
+    VOutY <- OutVelDY / VScaling,
+    VInnX <- InnVelDX / VScaling,
+    VMidX <- MidVelDX / VScaling,
+    VInnY <- InnVelDY / VScaling,
+    VSunX <- SunVelDX / VScaling,
+    VSunY <- SunVelDY / VScaling
+);
+
+SHAPES(
+    Out = Circle((OutVelX , OutVelY), OutR),
+    OutV = Arrow((OutVelX , OutVelY), OutVelDX, OutVelDY),
+    Sun = Circle((SunVelX , SunY), SunR),
+    Mid = Circle((MidVelX , MidVelY), MidR),
+    MidV = Arrow((MidVelX , MidVelY), MidVelDX, MidVelDY),
+    SunV = Arrow((SunVelX , SunY), SunVelDX, SunVelDY),
+    InnV = Arrow((InnVelX , InnVelY), InnVelDX, InnVelDY),
+    Inn = Circle((InnVelX , InnVelY), InnR)
+);
+
+LINEAR(
+    0.0 + 1.0 * InnVelX_IX = 0.0 + 1.0 * InnVelX,
+    0.0 + 1.0 * MidVelX_P_1$0_T_MidVelDX = 0.0 +
+    1.0 * MidVelDX +
+    1.0 * MidVelX,
+    0.0 + 1.0 * SunVelX_P_1$0_T_SunVelDX = 0.0 +
+    1.0 * SunVelDX +
+    1.0 * SunVelX,
+    0.0 + 1.0 * SunY_P_1$0_T_SunVelDY = 0.0 + 1.0 * SunVelDY + 1.0 * SunY,
+    0.0 + 1.0 * OutVelY_IY = 0.0 + 1.0 * OutVelY,
+    0.0 + 1.0 * InnVelX_P_1$0_T_InnVelDX = 0.0 +
+    1.0 * InnVelDX +
+    1.0 * InnVelX,
+    0.0 + 1.0 * OutVelX_IX = 0.0 + 1.0 * OutVelX,
+    0.0 + 1.0 * SunY_IY = 0.0 + 1.0 * SunY,
+    0.0 + 1.0 * MidVelY_IY = 0.0 + 1.0 * MidVelY,
+    0.0 + 1.0 * SunVelX_IX = 0.0 + 1.0 * SunVelX,
+    0.0 + 1.0 * MidVelX_IX = 0.0 + 1.0 * MidVelX,
+    0.0 + 1.0 * OutVelX_P_1$0_T_OutVelDX = 0.0 +
+    1.0 * OutVelDX +
+    1.0 * OutVelX,
+    0.0 + 1.0 * OutVelY_P_1$0_T_OutVelDY = 0.0 +
+    1.0 * OutVelDY +
+    1.0 * OutVelY,
+    0.0 + 1.0 * InnVelY_P_1$0_T_InnVelDY = 0.0 +
+    1.0 * InnVelDY +
+    1.0 * InnVelY,
+    0.0 + 1.0 * MidVelY_P_1$0_T_MidVelDY = 0.0 +
+    1.0 * MidVelDY +
+    1.0 * MidVelY,
+    0.0 + 1.0 * InnVelY_IY = 0.0 + 1.0 * InnVelY
+);
+
+LEQS(
+    5.0 <= 0.0 + 1.0 * MidR,
+    5.0 <= 0.0 + 1.0 * SunR,
+    5.0 <= 0.0 + 1.0 * OutR,
+    5.0 <= 0.0 + 1.0 * InnR
+);
+
+PHYSICS(
+    VOutX <-
+    (FSunOut * cos(ThetaOutSun) + FMidOut * cos(ThetaOutMid) +
+    FInnOut * cos(ThetaOutInn)) /
+    MOut +
+    VOutX,
+    MidVelX <- MidVelX + VMidX,
+    InnVelY <- InnVelY + VInnY,
+    VMidY <-
+    (FSunMid * sin(ThetaMidSun) + FMidInn * sin(ThetaMidInn) +
+    FMidOut * sin(ThetaMidOut)) /
+    MMid +
+    VMidY,
+    SunVelX <- SunVelX + VSunX,
+    InnVelX <- InnVelX + VInnX,
+    ThetaMidInn <- atan2(-(MidVelY - InnVelY), -(MidVelX - InnVelX)),
+    OutVelX <- OutVelX + VOutX,
+    ThetaMidOut <- atan2(-(MidVelY - OutVelY), -(MidVelX - OutVelX)),
+    ThetaOutMid <- atan2((MidVelY - OutVelY), (MidVelX - OutVelX)),
+    VMidX <-
+    (FSunMid * cos(ThetaMidSun) + FMidInn * cos(ThetaMidInn) +
+    FMidOut * cos(ThetaMidOut)) /
+    MMid +
+    VMidX,
+    ThetaOutInn <- atan2((InnVelY - OutVelY), (InnVelX - OutVelX)),
+    ThetaSunMid <- atan2(MidVelY - SunY, MidVelX - SunVelX),
+    ThetaSunOut <- atan2(OutVelY - SunY, OutVelX - SunVelX),
+    VSunY <-
+    (FSunMid * sin(ThetaSunMid) + FSunInn * sin(ThetaSunInn) +
+    FSunOut * sin(ThetaSunOut)) /
+    MSun +
+    VSunY,
+    VSunX <-
+    (FSunMid * cos(ThetaSunMid) + FSunInn * cos(ThetaSunInn) +
+    FSunOut * cos(ThetaSunOut)) /
+    MSun +
+    VSunX,
+    ThetaInnOut <- atan2(-(InnVelY - OutVelY), -(InnVelX - OutVelX)),
+    FInnOut <-
+    G * MOut * MInn /
+    (pow(InnVelX - OutVelX, 2.0) + pow(InnVelY - OutVelY, 2.0)),
+    ThetaInnMid <- atan2((MidVelY - InnVelY), (MidVelX - InnVelX)),
+    FSunOut <-
+    G * MSun * MOut /
+    (pow(OutVelX - SunVelX, 2.0) + pow(OutVelY - SunY, 2.0)),
+    VInnX <-
+    (FSunInn * cos(ThetaInnSun) + FMidInn * cos(ThetaInnMid) +
+    FInnOut * cos(ThetaInnOut)) /
+    MInn +
+    VInnX,
+    FSunInn <-
+    G * MSun * MInn /
+    (pow(InnVelX - SunVelX, 2.0) + pow(InnVelY - SunY, 2.0)),
+    OutVelY <- OutVelY + VOutY,
+    MidVelY <- MidVelY + VMidY,
+    ThetaInnSun <- atan2(-(InnVelY - SunY), -(InnVelX - SunVelX)),
+    VOutY <-
+    (FSunOut * sin(ThetaOutSun) + FMidOut * sin(ThetaOutMid) +
+    FInnOut * sin(ThetaOutInn)) /
+    MOut +
+    VOutY,
+    ThetaOutSun <- atan2(-(OutVelY - SunY), -(OutVelX - SunVelX)),
+    ThetaMidSun <- atan2(-(MidVelY - SunY), -(MidVelX - SunVelX)),
+    FMidInn <-
+    G * MMid * MInn /
+    (pow(InnVelX - MidVelX, 2.0) + pow(InnVelY - MidVelY, 2.0)),
+    FMidOut <-
+    G * MMid * MOut /
+    (pow(OutVelX - MidVelX, 2.0) + pow(OutVelY - MidVelY, 2.0)),
+    FSunMid <-
+    G * MSun * MMid /
+    (pow(MidVelX - SunVelX, 2.0) + pow(MidVelY - SunY, 2.0)),
+    SunY <- SunY + VSunY,
+    VInnY <-
+    (FSunInn * sin(ThetaInnSun) + FMidInn * sin(ThetaInnMid) +
+    FInnOut * sin(ThetaInnOut)) /
+    MInn +
+    VInnY,
+    ThetaSunInn <- atan2(InnVelY - SunY, InnVelX - SunVelX)
+);
+
+WITH FREE(
+InnVelX_IX, InnVelY_IY,
+SunVelX_IX, SunY_IY,
+MidVelX_IX, MidVelY_IY,
+OutVelX_IX, OutVelY_IY,
+SunVelX_P_1$0_T_SunVelDX, SunY_P_1$0_T_SunVelDY,
+OutVelX_P_1$0_T_OutVelDX, OutVelY_P_1$0_T_OutVelDY,
+InnVelX_P_1$0_T_InnVelDX, InnVelY_P_1$0_T_InnVelDY,
+MidVelX_P_1$0_T_MidVelDX, MidVelY_P_1$0_T_MidVelDY,
+OutVelX , OutVelY,
+OutVelX , OutVelY,
+SunVelX , SunY,
+MidVelX , MidVelY,
+MidVelX , MidVelY,
+SunVelX , SunY,
+InnVelX , InnVelY,
+InnVelX , InnVelY
+);
+
+CHARTS(
+
+);

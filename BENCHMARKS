@@ -1,0 +1,100 @@
+key: benchmarks/diagrams
+(working_diagrams)(broken_diagrams)
+
+easy: 24/9
+pendulum: 1 benchmark, 1 diagram (pendulum.txt)()
+tickers, graphs
+
+normal modes: 2 benchmarks, diagrams (normal_modes_1d.txt, normal_modes_2d.json)()
+need tickers, new physics
+
+resonance: 1 benchmark, diagram (resonance.txt)()
+needs new physics, tickers, proper collision detection
+
+the moving man: 2 benchmarks, 1 diagram (moving_man.txt)()
+new physics, tickers, graphs.
+
+
+hookes law: 2 benchmarks, 2 diagrams (hooke_1.txt, hooke_2.txt)()
+needs tickers, graphs, minor physics tweak
+
+
+gravity and orbits/my solar system/gravity force lab: 16 benchmarks, 2 diagram (gravity_lab.txt, planets.txt)()
+needs new physics, tickers, traces. drag and drop would improve it.
+
+
+easy+: hookes law, parallel: (hooke_par.txt)
+need edge detection
+
+5 springs/simple mechanics/pendulum
+
+medium: 29/11
+projectile motion: 1 benchmark, diagram
+new physics, tickers, graphs, tracer, rotations
+
+forces and motion/force in 1d/the ramp: 7 distinct benchmarks, 2 interactive diagrams,
+needs drag and drop, tickers, minor physics tweak
+
+fluid and flow:
+pressure + water tower + buoyancy: 6 benchmarks, 2 diagrams
+needs drag and drop, tickers, new physics engine
+
+balancing act: 2 benchmarks, 1 diagram
+needs drag and drop, new physics, tickers
+
+masses & springs: 1 benchmark, 1 diagram
+drag and drop, minor physics tweak, tickers, graphs
+
+collision lab: 2 benchmarks, 2 diagrams
+drag and drop, new physics, tickers, graphs
+
+the maze game/ladybug 2d/motion in 2d: 11 benchmarks, 2 diagrams
+minor physics tweaks, ticker, nonpositional interaction
+
+medium: 8 springs/simple forces
+
+hard/very hard: 15/5
+
+flow: 1 benchmark, diagram
+needs bezier curve primitive, tickers, new physics, particle emitter + absorber
+
+skate park: 7 benchmarks, 1 diagram
+needs bezier curve, tickers, minor physics tweak, drag and drop, graphs
+
+ladybug rotation/torque: 5 benchmarks, 1 diagram
+drag and drop, new physics, tickers, graphs, drag updates internal variable (and not position)
+
+friction: 1 benchmark, diagram
+stateful physics, distant correlation
+
+calculus grapher: 1 benchmark, diagram
+drag and drop, graphs as interactive objects, tickers, new math
+
+hard: 7
+
+N/A: 2
+lunar lander: no interactions (1 benchmark)
+hookes in serial: elements stretch and translate simultaneously
+
+1
+
+total easy: 5
+medium: 8
+hard: 7
+np: 1
+
+
+
+total: 70/25
+easy coverage: 35% w/ 9 programs (29/70)
+easy + medium: 77% w/ 20 programs (54/70)
+easy + medium + hard: 98% w/ 25 programs (69/70)
+
+
+
+
+springs:
+hooke's law (3/4)
+1 spring, 2 springs, parallel springs,
+serial spring
+force and motion basics

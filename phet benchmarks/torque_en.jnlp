@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- JNLP File for Torque -->
+
+<jnlp spec="1.0+" codebase="http://phet.colorado.edu/sims/rotation" href="torque_en.jnlp">
+
+    <information>
+
+        <title>Torque</title>
+
+        <vendor>University of Colorado, Department of Physics</vendor>
+
+        <description>The Torque Simulation</description>
+
+        <offline-allowed/>
+
+    </information>
+
+    <resources>
+
+        <j2se version="1.4+"/>
+
+        <property name="javaws.phet.locale" value="en" />
+<property name="javaws.user.language" value="en" />
+
+        <jar href="rotation_all.jar"/>
+
+    </resources>
+
+    
+
+    
+
+    <application-desc main-class="edu.colorado.phet.rotation.TorqueApplication">
+
+        
+
+    </application-desc>
+
+</jnlp>
+
