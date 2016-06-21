@@ -86,5 +86,12 @@ export function exists<U>(vals: Iterable<U>, f: (u: U) => boolean): boolean {
   return false
 }
 
+// zip up two arrays into an array of tuples
+// not sure what happens when arrays have different length... don't do it
+export function zip<L, R>(ls: L[], rs: R[]): [L, R][] {
+  let mapper = (x: L, i:number) => [x, rs[i]] as [L, R]
+  return ls.map(mapper)
+}
+
 export var DEBUG = false
 export type Point = {x: number, y: number}
