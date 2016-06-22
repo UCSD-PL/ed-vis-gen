@@ -51,7 +51,7 @@ function _drawLine(
   close = close || false
   stroke = stroke || "black"
   fill = fill || "rgba(0,0,0,0)"
-  dash = dash || false
+  dash = dash || true
 
   ctx.save()
   let len = points.length
@@ -110,7 +110,7 @@ function drawLine(ctx: Context, line: S.Line, store: Env) {
 
 function drawCircle (ctx: Context, circ: S.Circle, store: Env) {
   let [x, y, r] = U.map3Tup([circ.x, circ.y, circ.r], i => store.get(i))
-  _drawCircle(ctx, x, y, r, circ.stroke, "white")
+  _drawCircle(ctx, x, y, r, circ.stroke, "green")
 }
 
 function drawImage(ctx: Context, i: S.Image, src: HTMLImageElement, store: Env) {
