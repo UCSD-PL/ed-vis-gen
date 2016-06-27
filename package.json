@@ -16,7 +16,7 @@
     "src": "src"
   },
   "dependencies": {
-    "better-assert": "^1.0.2",
+    "assert": "^1.4.1",
     "browserify": "^13.0.1",
     "cassowary": "^0.1.0",
     "requirejs": "^2.1.22",

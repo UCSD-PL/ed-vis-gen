@@ -1,136 +1,162 @@
-import V = require('./Variable')
+import {Variable, CassVar} from './Variable'
+import {Program} from './Model'
+import * as S from './Shapes'
+import {copy, Point, Tup, exists, flatMap, assert} from '../util/Util'
+import {Expression} from 'cassowary'
 
-// object PointGeneration {
-//   def VC2IPC(x: VarConfig, y: VarConfig) =
-//     (IPoint(x._1, y._1), x._2 ++ y._2, x._3 ++ y._3)
-//   def apply(s: Shape, σ: Store): Set[IPConfig] = (s match {
-//     case LineSegment(s, e) ⇒ line(s,e, σ)
-//     case BoxLike(c, h, w) ⇒ box(c, h, w, σ)
-//     case VecLike(c, dx, dy) ⇒ vec(c, dx, dy, σ)
-//     case Circle(center, radius) ⇒ circ(center, radius, σ)
-//     case Triangle(p1, p2, p3) ⇒ tri(p1, p2, p3, σ)
-//   })
-//
-//   // helper function; link up an IP and a point by equality
-//   def equality(l: IPoint, r: Point, σ: Store) = {
-//     (Set(Eq(l.x, r.x), Eq(l.y, r.y)), σ + (l.x → σ(r.x)) + (l.y → σ(r.y)))
-//   }
-//   def ident(l: Variable, r: Variable, σ: Store): VarConfig = {
-//     (l, Set(Eq(l, r)), σ + (l → σ(r)))
-//   }
-//   def plus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-//     val newVar = Variable(l.name + "_P_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
-//     (newVar, Set(Eq(newVar, Expr(l) plus (Expr(r) times coeff))), σ + (newVar → (σ(l) + coeff * σ(r))))
-//   }
-//
-//   def minus(l: Variable, r: Variable, σ: Store, coeff: Double = 1) : VarConfig = {
-//     val newVar = Variable(l.name + "_M_" + coeff.toString.replace('.', '$') + "_T_" + r.name)
-//     (newVar, Set(Eq(newVar, Expr(l) minus (Expr(r) times coeff))), σ + (newVar → (σ(l) - coeff*σ(r))))
-//   }
-//   // helper function; link up an IP to the midpoint of two points
-//   def midPoint(ip: IPoint, l: Point, r: Point, σ: Store) = {
-//     (Set[Eq]() + Eq(ip.x, (l.x plus r.x) div 2.0) + Eq(ip.y, (l.y plus r.y) div 2.0),
-//      σ + (ip.x → ((σ(l.x) + σ(r.x))/2)) + (ip.y → ((σ(l.y) + σ(r.y))/2)))
-//    }
-//
-//   // given two points, build an IP for the midpoint and relevant equations
-//   def makeMP(l: Point, r: Point, σ: Store) = {
-//     val ip = IPoint(
-//       l.x.name ++ "_" ++ r.x.name ++ "_MPX",
-//       l.y.name ++ "_" ++ r.y.name ++ "_MPY")
-//     val (eqs, newσ) = midPoint(ip, l, r, σ)
-//     (ip, eqs, newσ)
-//   }
-//
-//   // the beginning, the end, and the midpoint
-//   // assumes start and end are points defined in the program
-//   def line(start: Point, end: Point, σ: Store)  = {
-//     val sip = start.toIP()
-//     val eip = end.toIP()
-//     val (startEqs, sσ) = equality(sip, start, σ)
-//     val (endEqs, eσ) = equality(eip, end, σ)
-//
-//     val (mip, midEqs, mσ) = makeMP(start, end, σ)
-//
-//     // wrap everything up in tuples and return
-//     Set((sip, startEqs, sσ), (eip, endEqs, eσ), (mip, midEqs, mσ))
-//   }
-//
-//   // endpoints, midpoints of each line, and overall midpoint
-//   def tri(p1: Point, p2: Point, p3: Point, σ: Store):Set[IPConfig] = {
-//     val midPoint = Set() // TODO
-//     line(p1, p2, σ) ++ line(p2, p3, σ) ++ line(p1, p3, σ) ++ midPoint
-//   }
-//
-//   // 3 lines, including midpoints: tL -> tR, mL -> mR, bL -> bR
-//   // visually:
-//   // * - * - *
-//   // |       |
-//   // *   *   *
-//   // |       |
-//   // * - * - *
-//   def box(center: Point, hheight: Variable, hwidth: Variable, σ: Store):Set[IPConfig] = {
-//     for {
-//       x <- Set(ident(center.toIP().x, center.x, σ),
-//                plus(center.x, hwidth, σ),
-//                minus(center.x, hwidth, σ))
-//       y <- Set(ident(center.toIP().y, center.y, σ),
-//                plus(center.y, hheight, σ),
-//                minus(center.y, hheight, σ))
-//     } yield (VC2IPC(x,y))
-//   }
-//
-//   // center and both ends
-//   // * - * - *>
-//   def vec(base: Point, dx: Variable, dy: Variable, σ: Store):Set[IPConfig] = {
-//     Set(
-//       (ident(base.toIP().x, base.x, σ), ident(base.toIP().y, base.y, σ)),
-//       (plus(base.x, dx, σ), plus(base.y, dy, σ)),
-//       (plus(base.x, dx, σ, 0.5), plus(base.y, dy, σ, 0.5))
-//     ).map{case (x,y) ⇒ VC2IPC(x,y)}
-//   }
-//
-//   // center, 4 points on radius. circle version of the rectangle projection.
-//   // visually (ascii is hard...):
-//           //     =  *  =
-//           //   =         =
-//           //  =           =
-//           //  *     *     *
-//           //  =           =
-//           //   =         =
-//           //     =  *  =
-//           //
-//   def circ(c: Point, r: Variable, σ: Store): Set[IPConfig] = {
-//     val midPoint = c.toIP()
-//     val (midPointEqs, midPointσ) = equality(midPoint, c, σ)
-//
-//     // @TODO: refactor...
-//     val leftPoint = c.toIP("L")
-//     val leftPointEqs = Set(Eq(leftPoint.x, c.x minus r), Eq(leftPoint.y, c.y))
-//     val leftPointσ = σ + (leftPoint.x → (σ(c.x) - σ(r))) + (leftPoint.y → σ(c.y))
-//
-//     val rightPoint = c.toIP("R")
-//     val rightPointEqs = Set(Eq(rightPoint.x, c.x plus r), Eq(rightPoint.y, c.y))
-//     val rightPointσ = σ + (rightPoint.x → (σ(c.x) + σ(r))) + (rightPoint.y → σ(c.y))
-//
-//     val topPoint = c.toIP("T")
-//     val topPointEqs = Set(Eq(topPoint.y, c.y minus r), Eq(topPoint.x, c.x))
-//     val topPointσ = σ + (topPoint.x → σ(c.x)) + (topPoint.y → (σ(c.y) - σ(r)))
-//
-//     val botPoint = c.toIP("B")
-//     val botPointEqs = Set(Eq(botPoint.y, c.y plus r), Eq(botPoint.x, c.x))
-//     val botPointσ = σ + (botPoint.x → σ(c.x)) + (botPoint.y → (σ(c.y) + σ(r)))
-//
-//     Set((midPoint, midPointEqs, midPointσ), (leftPoint, leftPointEqs, leftPointσ),
-//         (rightPoint, rightPointEqs, rightPointσ), (topPoint, topPointEqs, topPointσ),
-//         (botPoint, botPointEqs, botPointσ))
-//   }
-// }
-// 
-// export namespace PointGeneration {
-//   var allocSuffix = 0
-//   function allocFreshCVar(store: Set<V.Variable>, prefix?): V.CassVar {
-//     ++allocSuffix
-//
-//   }
-// }
+
+// go from Program -> a set of points and their cass expressions. so, we need to:
+// build a bunch of points, a bunch of corresponding cass expressions, and a map
+// including the new variables.
+type PExpr = Tup<CassVar, Expression>
+
+export class PointGeneration {
+  private _vars: Map<CassVar, number>
+  constructor(vars: Map<Variable, number>) {
+    this._vars = new Map<CassVar, number>()
+    for (let [k, v] of vars)
+      if (k instanceof CassVar)
+        this._vars.set(k, v)
+  }
+
+  // lift a variable to an expression
+  private static liftVar(v: CassVar): Expression {
+    return Expression.fromVariable(v._value)
+  }
+  private alloc(v: number): CassVar {
+    let prefix = "CV"
+    let suffix = 0
+    while (exists(this._vars, ([k, v]) => k.name== (prefix + suffix.toString())))
+      ++suffix
+
+    let newVar = new CassVar(prefix + suffix.toString(), v)
+    this._vars.set(newVar, v)
+    return newVar
+  }
+  // given two vars and exprs, build a middle var/expr
+  private between(l: PExpr, r: PExpr): PExpr {
+    // alloc a new variable,
+    let [lcv, le] = l
+    let [rcv, re] = r
+    let [lv, rv] = [this._vars.get(lcv), this._vars.get(rcv)]
+    let newVar = this.alloc((lv + rv)/2)
+    let newExp = le.plus(re).divide(2)
+    return [newVar, newExp]
+  }
+
+  // given a base and a delta, return the end
+  private from(base: PExpr, delta: PExpr): PExpr {
+    let [bCV, bE] = base
+    let [deltaCV, deltaE] = delta
+    let [bV, deltaV] = [this._vars.get(bCV), this._vars.get(deltaCV)]
+    let newVar = this.alloc(bV + deltaV)
+    let newExp = bE.plus(deltaE)
+    return [newVar, newExp]
+  }
+
+  // monadic plus...huehuehue
+  private mPlus(
+    l: Tup<PExpr, PExpr>,
+    r: Tup<PExpr, PExpr>,
+    builder: {(fst: PExpr, snd: PExpr): PExpr}): Tup<PExpr, PExpr> {
+    let [x1, y1] = l
+    let [x2, y2] = r
+    return [builder.bind(this)(x1, x2), builder.bind(this)(y1, y2)]
+  }
+
+  // given two points, return a midpoint
+  private midPoint( l: Tup<PExpr, PExpr>, r: Tup<PExpr, PExpr> ): Tup<PExpr, PExpr> {
+    return this.mPlus(l, r, this.between)
+  }
+  // given a point and two deltas, return the next point
+  private plusPoint( base: Tup<PExpr, PExpr>, delta: Tup<PExpr, PExpr>): Tup<PExpr, PExpr> {
+    return this.mPlus(base, delta, this.from)
+  }
+
+  private negate(v: PExpr): PExpr {
+    let nv = this.alloc(this._vars.get(v[0]) * -1)
+    let ne = v[1].times(-1)
+    return [nv, ne]
+  }
+  // given a shape, return the points
+  private shapePoints(s: S.Shape): Set<Tup<PExpr, PExpr>> {
+    let ret: Set<Tup<PExpr, PExpr>>
+    if (s instanceof S.Line) {
+      ret = this.linePoints(s)
+    } else if (s instanceof S.Arrow || s instanceof S.Spring) {
+      ret = this.vectPoints(s)
+    } else if (s instanceof S.Circle || s instanceof S.DragPoint) {
+      ret = this.circPoints(s)
+    } else if (s instanceof S.Rectangle || s instanceof S.Image) {
+      ret = this.rectPoints(s)
+    }  else {
+      console.log('unhandled shape for drawing: ' + s.toString())
+      assert(false)
+    }
+
+    return ret
+  }
+
+  // TODO: this creates shared variable references. clone if necessary
+  private static toPoint(x: Variable, y: Variable): Tup<PExpr, PExpr> {
+    assert(x instanceof CassVar)
+    assert(y instanceof CassVar)
+    let hd: PExpr = [x as CassVar, PointGeneration.liftVar(x as CassVar)]
+    let tl: PExpr = [y as CassVar, PointGeneration.liftVar(y as CassVar)]
+    return [hd, tl]
+  }
+
+  private _line(start: Tup<Variable, Variable>, finish: Tup<Variable, Variable>): Set<Tup<PExpr, PExpr>> {
+    let [x1, y1] = start
+    let [x2, y2] = finish
+    let begin = PointGeneration.toPoint(x1, y1)
+    let end = PointGeneration.toPoint(x2, y2)
+    let mid = this.midPoint(begin, end)
+    let ret = new Set<Tup<PExpr, PExpr>>()
+    return ret.add(begin).add(end).add(mid)
+  }
+
+  private static TODO = new Set<Tup<PExpr, PExpr>>()
+  private linePoints(s: S.Line): Set<Tup<PExpr, PExpr>> {
+    // beginning, middle, and end
+    let begin = s.points[0]
+    let end = s.points[1]
+    return this._line(begin, end)
+  }
+  private vectPoints(s: S.VecLike): Set<Tup<PExpr, PExpr>> {
+    let begin = PointGeneration.toPoint(s.x, s.y)
+    let delta = PointGeneration.toPoint(s.dx, s.dy)
+    let next = this.plusPoint(begin, delta)
+    let mid = this.midPoint(begin, next)
+    return (new Set<Tup<PExpr, PExpr>>()).add(begin).add(next).add(mid)
+  }
+  private circPoints(s: S.Circle | S.DragPoint): Set<Tup<PExpr, PExpr>> {
+    let [x, y] = PointGeneration.toPoint(s.x, s.y)
+    assert(s.r instanceof CassVar)
+    let r:PExpr = [s.r as CassVar, PointGeneration.liftVar(s.r as CassVar)]
+    let mr = this.negate(r)
+    let ret = new Set<Tup<PExpr, PExpr>>()
+    ret.add([x, y])
+       .add([x, this.from(y, r)]).add([x, this.from(y, mr)])
+       .add([this.from(x, r), y]).add([this.from(x, mr), y])
+
+    return ret
+  }
+  private rectPoints(s: S.RecLike): Set<Tup<PExpr, PExpr>> {
+    let [x, y] = PointGeneration.toPoint(s.x, s.y)
+    let [dx, dy] = PointGeneration.toPoint(s.dx, s.dy)
+    let [mdx, mdy] = [this.negate(dx), this.negate(dy)]
+    let ret = new Set<Tup<PExpr, PExpr>>()
+    ret.add([x, y]) // center
+       .add([x, this.from(y, dy)]).add([x, this.from(y, mdy)]) // middle lines
+       .add([this.from(x, dx), y]).add([this.from(x, mdx), y])
+       .add([this.from(x, dx), this.from(y, dy)]).add([this.from(x, mdx), this.from(y, dy)]) // endpoints
+       .add([this.from(x, dx), this.from(y, mdy)]).add([this.from(x, mdx), this.from(y, mdy)])
+
+    return ret
+  }
+  public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
+    // console.log(p)
+    return flatMap(p.shapes, e => this.shapePoints(e))
+  }
+}

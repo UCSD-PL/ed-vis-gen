@@ -1,12 +1,13 @@
 
 import Cass = require('cassowary')
-import SModel = require('./model/Shapes')
-import VModel = require('./model/Variable')
+import {Circle} from './model/Shapes'
+import {VType} from './model/Variable'
 import SView = require('./view/Shapes')
 import Model = require('./model/Model')
 import View = require('./view/View')
 import Cont = require('./controller/Controller')
 import Ex = require('./model/Export')
+import {PointGeneration} from './model/Synthesis'
 
 
 let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
@@ -53,10 +54,24 @@ export function refresh() {
   View.renderModel(initModel)
 }
 
+export function addPoints() {
+  let pointBuilder = new PointGeneration(initModel.main.eval())
+  let newPoints = pointBuilder.makePoints(initModel.main.prog)
+  // foreach point, make a green circle. let the exprs be, for now.
+  let r = initModel.main.addVar(VType.Prim, 'r', 3)
+  for (let [[x, _1], [y, _2]] of newPoints) {
+    initModel.main.store.addCVar(x)
+    initModel.main.store.addCVar(y)
+    let circ = new Circle(x, y, r, 'black', 'green')
+    let finProg = initModel.main.prog.addShape(circ)
+    initModel = new Model.Model(new Model.State(finProg, initModel.main.store, false, null))
+    refresh()
+  }
+}
+
 // console.log(finalModel.eval())
 // console.log(circ instanceof SModel.Line)
 
-// TODO: refactor
 
 
 let exporter:any = document.getElementById('export')
@@ -64,5 +79,5 @@ exporter.builder = () => {
   return((new Ex.oldJSON(initModel)).toJSON())
 }
 
-
+// initModel = new M.Model(buttonCont.addLine())
 //SView.drawLine(mainCtx, [[10,10], [100, 10], [100, 150], [10, 170], [10, 10]])

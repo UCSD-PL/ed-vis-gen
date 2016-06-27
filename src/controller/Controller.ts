@@ -30,6 +30,7 @@ export class ButtonController {
       document.getElementById(id).onclick = () => {
         let newState = f(Main.initModel.main)
         Main.initModel = new M.Model(newState)
+        // Main.addPoints()
         Main.refresh()
       }
     })

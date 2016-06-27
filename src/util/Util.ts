@@ -13,6 +13,8 @@ export function add<T>(s: Set<T>, t: T): Set<T> {
 // union two sets together and returns the result
 export function union<T, U>(l: Set<T>, r: Set<U>): Set<T | U> {
   let ret = new Set<T | U>()
+  // console.log(l)
+  // console.log(r)
   l.forEach(e => ret.add(e))
   r.forEach(e => ret.add(e))
   return ret
@@ -70,6 +72,21 @@ export function filter<U>(vals: Set<U>, f: (u: U) => boolean): Set<U> {
   return ret
 }
 
+export function map<A, R>(vals: Set<A>, f: (a: A) => R): Set<R> {
+  let ret = new Set<R>()
+  for (let v of vals)
+    ret.add(f(v))
+  return ret
+}
+
+export function flatMap<A, R>(vals: Set<A>, f: (a: A) => Set<R>) {
+  let ret = new Set<R>()
+  // console.log(vals)
+  for (let v of vals)
+    ret = union(ret, f(v))
+  return ret
+}
+
 // copy the key-portion of a map. values are not copied.
 export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
   return partMap(vals, _ => true)[0]
@@ -95,3 +112,13 @@ export function zip<L, R>(ls: L[], rs: R[]): [L, R][] {
 
 export var DEBUG = false
 export type Point = {x: number, y: number}
+export type Tup<L, R> = [L, R]
+
+export function assert(e: any, message?: string) {
+  if (!e) {
+    message = message || ""
+    console.log('ASSERTION FAILED: ' + message)
+    console.log(e)
+    throw new Error()
+  }
+}
