@@ -33,7 +33,7 @@ interact('.resize-drag')
     target.setAttribute('data-x', x);
     target.setAttribute('data-y', y);
     // target.textContent = Math.round(event.rect.width) + '×' + Math.round(event.rect.height);
-  })
+  });
 
   function dragMoveListener (event) {
    var target = event.target,
@@ -53,3 +53,13 @@ interact('.resize-drag')
 
  // this is used later in the resizing and gesture demos
  window.dragMoveListener = dragMoveListener;
+
+ interact('.droppable')
+  .dropzone({
+    overlap: 0.01,
+    accept: '#drag-1'
+  })
+  .on(['dropactivate', 'dragenter'], function (event) {
+      event.target.id = "dropped-t";
+      event.target.classList.add("resize-drag");
+    });
