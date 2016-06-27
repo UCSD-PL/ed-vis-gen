@@ -3,10 +3,10 @@ interact('.resize-drag')
     snap: {
       targets: [
         interact.createSnapGrid({ x: 15, y: 15 })
-      ]
+      ],
       range: Infinity
     },
-    onmove: dragMoveListener
+    onmove: window.dragMoveListener
   })
 
   .resizable({
