@@ -3,9 +3,10 @@ canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 snap = 14; //Pixels to snap
-canvas.isDrawingMode = true;
 
-canvas.on('object:added',function(){
+canvas.isDrawingMode=false;
+
+canvas.on(['object:added', 'object:modified'], function(){
   if(!isRedoing){
     h = [];
   }
@@ -20,10 +21,11 @@ function undo(){
    canvas.renderAll();
   }
 }
+
 function redo(){
 
-  if(h.length>0){
-    isRedoing = true;
+if(h.length>0){
+   isRedoing = true;
    canvas.add(h.pop());
   }
 }
@@ -287,11 +289,9 @@ canvas.on('object:moving', function (options) {
 
 canvas.on('object:modified', function (options) {
   options.target.set({
-    strokeWidth: 0
+    stroke: option.target.fill
   });
 })
-
-
 
 //Now we test deletion
 function deleteObjects(){
