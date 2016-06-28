@@ -14,15 +14,22 @@
   }
 </style>
 <body>
-  <h1 style="text-align:center" >
+  <h1>
     EDDIE PLAYGROUND
   </h1>
-  <div style="text-align:center" id="container">
+  <div class="canvas-container">
     <canvas id="canvas" width="600" height="600" style="border:1px solid #000000"></canvas>
   </div>
     <div id="buttons">
-      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'blue', top: 100, left: 100 }))">
+      <button onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 }))">
+        Add Triangle</button>
+      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 }))">
         Add Circle</button> 
+      <button onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100}))">
+        Add Rectangle</button>
+      <button onclick="selectmode()" id="select"> Select mode</button>
+      <button onclick="Drawingmode()" id="drawing"> Drawing mode</button>
+
         <!--delete button-->
       <button onclick="deleteObjects()" id="delete"> Delete selected object</button>
 
@@ -43,6 +50,14 @@
             });
             canvas.discardActiveGroup();
             canvas.renderAll();
+        }
+        //We test select mode
+        function selectmode(){
+          canvas.isDrawingMode=false;
+        }
+        //We test drawing mode
+        function Drawingmode(){
+          canvas.isDrawingMode=true;
         }
     </script>
 </html>
