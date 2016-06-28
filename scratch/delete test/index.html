@@ -1,0 +1,63 @@
+<html>
+<title>
+  Demo Playground
+</title>
+<head>
+    <script src="fabric.js"></script>
+</head> 
+<link href="style.css" type="text/css" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<style>
+  h1{
+    font-family: monospace;
+    
+  }
+</style>
+<body>
+  <h1>
+    EDDIE PLAYGROUND
+  </h1>
+  <div class="canvas-container">
+    <canvas id="canvas" width="600" height="600" style="border:1px solid #000000"></canvas>
+  </div>
+    <div id="buttons">
+      <button onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 }))">
+        Add Triangle</button>
+      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 }))">
+        Add Circle</button> 
+      <button onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100}))">
+        Add Rectangle</button>
+      <button onclick="selectmode()" id="select"> Select mode</button>
+      <button onclick="Drawingmode()" id="drawing"> Drawing mode</button>
+
+        <!--delete button-->
+      <button onclick="deleteObjects()" id="delete"> Delete selected object</button>
+
+    </div>
+
+    <script>
+        //Group test
+        var canvas = new fabric.Canvas('canvas');
+        //button
+        
+ 
+        //Now we test deletion
+        function deleteObjects(){
+            canvas.getActiveObject().remove();
+            var objectsGroup = canvas.getActiveGroup();
+            objectsGroup._objects.forEach(function (object, key) {
+            objects.removeWithUpdate(object);
+            });
+            canvas.discardActiveGroup();
+            canvas.renderAll();
+        }
+        //We test select mode
+        function selectmode(){
+          canvas.isDrawingMode=false;
+        }
+        //We test drawing mode
+        function Drawingmode(){
+          canvas.isDrawingMode=true;
+        }
+    </script>
+</html>
