@@ -32,6 +32,7 @@
 
         <!--delete button-->
       <button onclick="deleteObjects()" id="delete"> Delete selected object</button>
+      <button onclick="canvas.clear()" id="clear"> Clear the canvas</button>
 
     </div>
 
@@ -43,14 +44,14 @@
  
         //Now we test deletion
         function deleteObjects(){
-            canvas.getActiveObject().remove();
-            var objectsGroup = canvas.getActiveGroup();
-            objectsGroup._objects.forEach(function (object, key) {
-            objects.removeWithUpdate(object);
-            });
+          var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
+          if (activeObject) {canvas.remove(activeObject);}
+          else if (activeGroup) {
+            var objectsInGroup = activeGroup.getObjects();
             canvas.discardActiveGroup();
-            canvas.renderAll();
-        }
+            objectsInGroup.forEach(function(object) {
+            canvas.remove(object);
+            });}}
         //We test select mode
         function selectmode(){
           canvas.isDrawingMode=false;
