@@ -2,9 +2,31 @@ var canvas = new fabric.Canvas('canvas'),
 canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
-rectLeft = 0,
 snap = 14; //Pixels to snap
-//var groupify = new fabric.Rect;
+canvas.isDrawingMode = true;
+
+canvas.on('object:added',function(){
+  if(!isRedoing){
+    h = [];
+  }
+  isRedoing = false;
+});
+
+var isRedoing = false;
+var h = [];
+function undo(){
+  if(canvas._objects.length>0){
+   h.push(canvas._objects.pop());
+   canvas.renderAll();
+  }
+}
+function redo(){
+
+  if(h.length>0){
+    isRedoing = true;
+   canvas.add(h.pop());
+  }
+}
 
 canvas.selection = true;
 
@@ -92,7 +114,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -102,7 +124,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -117,7 +139,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -127,7 +149,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -142,7 +164,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -152,7 +174,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -165,7 +187,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -175,7 +197,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 3,
+          strokeWidth: 1,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -269,9 +291,6 @@ canvas.on('object:modified', function (options) {
   });
 })
 
-//Group test
-//var canvas = new fabric.Canvas('canvas');
-//button
 
 
 //Now we test deletion
