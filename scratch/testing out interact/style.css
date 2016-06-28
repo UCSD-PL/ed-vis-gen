@@ -1,0 +1,38 @@
+#drag-1 {
+  width: 200px;
+  height: 100px;
+  min-height: 30px;
+  margin: 10%;
+
+  background-color: #1477c5;
+  color: white;
+
+  border-radius: 8px;
+  padding: 30px;
+  margin: 30px 20px;
+
+  box-sizing: border-box;
+}
+
+#dropped-t {
+  width: 200px;
+  height: 100px;
+  min-height: 30px;
+  margin: 10%;
+
+  background-color: #1477c5;
+  color: white;
+
+  border-radius: 8px;
+  padding: 30px;
+  margin: 30px 20px;
+
+  box-sizing: border-box;
+  background-color: #555555;
+}
+
+
+#drag-me::before {
+  content: "#" attr(id);
+  font-weight: bold;
+}
