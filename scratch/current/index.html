@@ -4,13 +4,13 @@
 </title>
 <head>
     <script src="fabric.js"></script>
-    <script src="fabrication.js"> </script>
 </head>
 <link href="style.css" type="text/css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
 <style>
   h1{
     font-family: monospace;
+
   }
 </style>
 <body>
@@ -32,32 +32,9 @@
 
         <!--delete button-->
       <button onclick="deleteObjects()" id="delete"> Delete selected object</button>
+      <button onclick="canvas.clear()" id="clear"> Clear the canvas</button>
 
+      <script src="fabrication.js"></script>
     </div>
 
-    <script>
-        //Group test
-        var canvas = new fabric.Canvas('canvas');
-        //button
-
-
-        //Now we test deletion
-        function deleteObjects(){
-            canvas.getActiveObject().remove();
-            var objectsGroup = canvas.getActiveGroup();
-            objectsGroup._objects.forEach(function (object, key) {
-            objects.removeWithUpdate(object);
-            });
-            canvas.discardActiveGroup();
-            canvas.renderAll();
-        }
-        //We test select mode
-        function selectmode(){
-          canvas.isDrawingMode=false;
-        }
-        //We test drawing mode
-        function Drawingmode(){
-          canvas.isDrawingMode=true;
-        }
-    </script>
 </html>

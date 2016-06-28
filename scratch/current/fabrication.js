@@ -3,10 +3,10 @@ canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 rectLeft = 0,
-snap = 28; //Pixels to snap
+snap = 14; //Pixels to snap
 //var groupify = new fabric.Rect;
 
-canvas.selection = false;
+canvas.selection = true;
 
 function findNewPos(distX, distY, target, obj) {
 	// See whether to focus on X or Y axis
@@ -24,7 +24,7 @@ function findNewPos(distX, distY, target, obj) {
 		}
 	}
 }
-
+/*
 function createGroup(target, relatedTarget, right, bottom) {
   // create a group with copies of existing (2) objects
 	if (target != null && relatedTarget != null) {
@@ -43,7 +43,7 @@ function createGroup(target, relatedTarget, right, bottom) {
 			canvas.add(group);
 		}
 	}}
-
+*/
 canvas.on('object:moving', function (options) {
 	// Sets corner position coordinates based on current angle, width and height
 	options.target.setCoords();
@@ -84,8 +84,8 @@ canvas.on('object:moving', function (options) {
 		// If bottom points are on same Y axis
 		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
-      var obj_1 = options.target;
-      var obj_2 = obj;
+      //var obj_1 = options.target;
+      //var obj_2 = obj;
 
 			// Snap target BL to object BR
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
@@ -106,7 +106,7 @@ canvas.on('object:moving', function (options) {
           stroke: 'rgb(0, 192, 255)'
         });
 			}
-			createGroup(obj_1, obj_2, options.target.getHeight(), obj.getTop());
+			//createGroup(obj_1, obj_2, options.target.getHeight(), obj.getTop());
 
 		}
 
@@ -268,3 +268,27 @@ canvas.on('object:modified', function (options) {
     strokeWidth: 0
   });
 })
+
+//Group test
+//var canvas = new fabric.Canvas('canvas');
+//button
+
+
+//Now we test deletion
+function deleteObjects(){
+	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
+	if (activeObject) {canvas.remove(activeObject);}
+	else if (activeGroup) {
+		var objectsInGroup = activeGroup.getObjects();
+		canvas.discardActiveGroup();
+		objectsInGroup.forEach(function(object) {
+		canvas.remove(object);
+		});}}
+//We test select mode
+function selectmode(){
+	canvas.isDrawingMode=false;
+}
+//We test drawing mode
+function Drawingmode(){
+	canvas.isDrawingMode=true;
+}
