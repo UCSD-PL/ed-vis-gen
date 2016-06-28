@@ -3,7 +3,7 @@ canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 rectLeft = 0,
-snap = 20; //Pixels to snap
+snap = 28; //Pixels to snap
 //var groupify = new fabric.Rect;
 
 canvas.selection = false;
@@ -56,21 +56,24 @@ function findNewPos(distX, distY, target, obj) {
 	}
 }
 
-function createGroup(target, relatedTarget) {
+function createGroup(target, relatedTarget, right, bottom) {
   // create a group with copies of existing (2) objects
 	if (target != null && relatedTarget != null) {
 		if (target.contains() != true || relatedTarget.contains() != true) {
 			var group = new fabric.Group([
 	    canvas.target.clone(),
 	    canvas.relatedTarget.clone()
-	  ]);
-		// remove all objects and re-render
-		canvas.target.remove();
-	  canvas.targetRelated.remove();
-	}
-  // add group onto canvas
-  //canvas.add(group);
-}}
+	  ], {
+			left: right,
+			top: bottom
+		});
+			// remove all objects and re-render
+			canvas.target.remove();
+			canvas.targetRelated.remove();
+			// add group onto canvas
+			canvas.add(group);
+		}
+	}}
 
 canvas.on('object:moving', function (options) {
 	// Sets corner position coordinates based on current angle, width and height
@@ -112,8 +115,8 @@ canvas.on('object:moving', function (options) {
 		// If bottom points are on same Y axis
 		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
-      var obj_1 = null;
-      var obj_2 = null;
+      var obj_1 = options.target;
+      var obj_2 = obj;
 
 			// Snap target BL to object BR
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
@@ -123,7 +126,6 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 3,
           stroke: 'rgb(0, 192, 255)'
         });
-        obj_1 = options.target;
 			}
 
 			// Snap target BR to object BL
@@ -134,11 +136,10 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 3,
           stroke: 'rgb(0, 192, 255)'
         });
-        obj_2 = options.target;
 			}
-		}
+			createGroup(obj_1, obj_2, options.target.getHeight(), obj.getTop());
 
-		createGroup(obj_1, obj_2);
+		}
 
 		// If top points are on same Y axis
 		if(Math.abs(options.target.getTop() - obj.getTop()) < snap) {
