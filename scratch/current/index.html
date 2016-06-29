@@ -5,7 +5,7 @@
 <head>
     <script src="fabric.js"></script>
 </head>
-<link href="file:///Users/cssummer16/Desktop/ed-vis-gen/scratch/current/bower_components/typicons.font/src/font/typicons.min.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
 <link href="style.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -13,10 +13,6 @@
   h1{
     text-align:center;
     font-family: monospace;
-  }
-  .outer{
-    margin: 0 auto;
-    width: 100%;
 
   }
 
@@ -26,27 +22,32 @@
     EDDIE PLAYGROUND
   </h1>
   <div class="canvas-container">
-    <canvas id="canvas" width="600" height="600" style="border:3px solid #000000"></canvas>
+    <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
     <div class="outer">
       <button class="btn btn-default" onclick="canvas.add(new fabric.Line([50,50,100,200], {stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100})); updateLog()">
-        Add Line</button></span>
+        <i class="fa fa-minus"></i></button>
       <button class="btn btn-default" onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 })); updateLog()">
-        Add Triangle</button>
+        <i class="fa fa-play"></i></button>
       <button class="btn btn-default" onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 })); updateLog()">
-        Add Circle</button>
+        <i class="fa fa-circle"></i></button>
       <button class="btn btn-default" onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100})); updateLog()">
-        Add Rectangle</button>
-      <button class="btn btn-default" onclick="selectmode()" id="select"> Select mode</button>
-      <button class="btn btn-default" onclick="Drawingmode()" id="drawing"> Drawing mode</button>
+        <i class="fa fa-square"></i></button>
+      <button class="btn btn-default" onclick="selectmode()" id="select">
+      <i class="fa fa-hand-o-up"></i></button>
+      <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
+      <i class="fa fa-paint-brush"></i></button>
 
         <!--delete button-->
-      <button class="btn btn-default" onclick="deleteObjects()" id="delete"> Delete selected object</button>
-      <button class="btn btn-default" onclick="canvas.clear()" id="clear"> Clear the canvas</button>
+      <button class="btn btn-default" onclick="deleteObjects()" id="delete">
+      <i class="fa fa-trash"></i></button>
+
 
       <!--undo & redo-->
-      <button class="btn btn-default" value="undo" onclick="undo()" id="undo"> Undo </button>
-      <button class="btn btn-default" value="redo" onclick="redo()" id="redo"> Redo </button>
+      <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
+      <i class="fa fa-mail-reply"></i></button>
+      <button class="btn btn-default" value="redo" onclick="redo()" id="redo">
+      <i class="fa fa-mail-forward"></i></button>
       <script src="fabrication.js"></script>
     </div>
 
