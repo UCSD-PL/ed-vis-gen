@@ -1,25 +1,16 @@
-var canvas = new fabric.Canvas('canvas');
-//resize the canvas
-window.addEventListener('resize',resizeCanvas,false);
-function resizeCanvas () {
-  canvas.setHeight(window.innerHeight*0.8);
-  canvas.setWidth(window.innerWidth);
-  canvas.renderAll
-}
-resizeCanvas();
-
-counter = 0;
+var canvas = new fabric.Canvas('canvas'),
+canvasWidth = document.getElementById('canvas').width,
+canvasHeight = document.getElementById('canvas').height,
+counter = 0,
 snap = 14; //Pixels to snap
-var intersectPoint = false; // whether an intersect point exists
 canvas.isDrawingMode = false;
+canvas.selection = true;
 
-/*
-undo redo commandhistory with canvas
-credits to http://jsfiddle.net/gcollect/b3aMF/
-*/
 var newleft = 0;
 var state = [];
 var mods = 0;
+
+var attachPoint = new fabric.Circle();
 canvas.counter = 0;
 
 function updateLog() {
@@ -55,7 +46,7 @@ undo = function undo() {
     }
      else {
        canvas.clear().renderAll();
-       canvas.loadFromJSON(state[mods-state.length]);
+       canvas.loadFromJSON(state[mods-state.length - 2]);
        canvas.renderAll();
        //console.log("geladen " + (state.length-1-mods-1));
        //console.log("state " + state.length);
@@ -75,7 +66,6 @@ redo = function redo() {
     }
 }
 
-canvas.selection = true;
 
 function findNewPos(distX, distY, target, obj) {
 	// See whether to focus on X or Y axis
@@ -92,39 +82,6 @@ function findNewPos(distX, distY, target, obj) {
 			target.setTop(obj.getTop() + obj.getHeight());
 		}
 	}
-}
-/*
-function createGroup(target, relatedTarget, right, bottom) {
-  // create a group with copies of existing (2) objects
-	if (target != null && relatedTarget != null) {
-		if (target.contains() != true || relatedTarget.contains() != true) {
-			var group = new fabric.Group([
-	    canvas.target.clone(),
-	    canvas.relatedTarget.clone()
-	  ], {
-			left: right,
-			top: bottom
-		});
-			// remove all objects and re-render
-			canvas.target.remove();
-			canvas.targetRelated.remove();
-			// add group onto canvas
-			canvas.add(group);
-		}
-	}}
-*/
-
-// creates a point at an intersection
-function addPoint(x, y) {
-  var attachPoint = new fabric.Circle({
-      fill: 'black',
-      top: y,
-      left: x,
-      radius: 2,
-      selectable: false
-    });
-  canvas.add(attachPoint);
-  intersectPoint = true;
 }
 
 canvas.on('object:moving', function (options) {
@@ -154,19 +111,9 @@ canvas.on('object:moving', function (options) {
 
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
-      var avgPointX = (obj.getLeft() + obj.getWidth() + options.target.getLeft() + options.target.getWidth()) / 2;
-      var avgPointY = (obj.getTop() + obj.getHeight() + options.target.getTop() + options.target.getHeight()) / 2;
+
 			var distX = ((obj.getLeft() + obj.getWidth()) / 2) - ((options.target.getLeft() + options.target.getWidth()) / 2);
 			var distY = ((obj.getTop() + obj.getHeight()) / 2) - ((options.target.getTop() + options.target.getHeight()) / 2);
-
-      addPoint(avgPointX, avgPointY);
-
-     canvas.on('object:moving', function () {
-         var last = canvas._objects[canvas._objects.length -1]
-         canvas.remove(last);
-         intersectPoint = false;
-        }
-      });
 
 			// Set new position
 			findNewPos(distX, distY, options.target, obj);
@@ -177,21 +124,27 @@ canvas.on('object:moving', function (options) {
 		// If bottom points are on same Y axis
 		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
-      //var obj_1 = options.target;
-      //var obj_2 = obj;
-
-			// Snap target BL to object BR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
+		// Snap target BL to object BR
+		if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        canvas.on('mouse:over', function (options) { //uh define 'mouse:over'
+            attachPoint.set({
+              stroke: 'black',
+              top: obj.getTop() + obj.getHeight(),
+              left: options.target.getLeft(),
+              radius: 2
+            });
+          });
+        }
 			}
 
 			// Snap target BR to object BL
-			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
+		if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
@@ -199,14 +152,11 @@ canvas.on('object:moving', function (options) {
           stroke: 'rgb(0, 192, 255)'
         });
 			}
-			//createGroup(obj_1, obj_2, options.target.getHeight(), obj.getTop());
-
-		}
 
 		// If top points are on same Y axis
-		if(Math.abs(options.target.getTop() - obj.getTop()) < snap) {
+		if (Math.abs(options.target.getTop() - obj.getTop()) < snap) {
 			// Snap target TL to object TR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
+			if (Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
@@ -306,9 +256,8 @@ canvas.on('object:moving', function (options) {
 			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
-			}
 
-      else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
+			} else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
 				intersectLeft = objectLeft;
 				intersectWidth = options.target.getWidth() - (intersectLeft - targetLeft);
 			}
