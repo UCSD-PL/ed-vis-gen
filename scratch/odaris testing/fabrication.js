@@ -10,10 +10,7 @@ resizeCanvas();
 
 counter = 0;
 snap = 14; //Pixels to snap
-<<<<<<< HEAD:scratch/current/fabrication.js
-=======
 var intersectPoint = false; // whether an intersect point exists
->>>>>>> b9f887de557a4a04be5f626338a81f956cee7044:scratch/odaris testing/fabrication.js
 canvas.isDrawingMode = false;
 
 /*
