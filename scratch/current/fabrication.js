@@ -6,28 +6,58 @@ snap = 14; //Pixels to snap
 
 canvas.isDrawingMode=false;
 
-canvas.on(['object:added', 'object:modified'], function(){
-  if(!isRedoing){
-    h = [];
-  }
-  isRedoing = false;
-});
+/*
+undo redo commandhistory with canvas
+credits to http://jsfiddle.net/gcollect/b3aMF/
+*/
+var newleft = 0;
+var state = [];
+var mods = 0;
+canvas.counter = 0;
 
-var isRedoing = false;
-var h = [];
-function undo(){
-  if(canvas._objects.length>0){
-   h.push(canvas._objects.pop());
-   canvas.renderAll();
-  }
+function updateLog() {
+    updateModifications(true);
+    canvas.counter++;
+    newleft += 100;
 }
 
-function redo(){
+canvas.on(
+    'object:modified', function () {
+    updateModifications(true);
+},
+    'object:added', function () {
+    updateModifications(true);
+});
 
-if(h.length>0){
-   isRedoing = true;
-   canvas.add(h.pop());
-  }
+function updateModifications(savehistory) {
+    if (savehistory === true) {
+        myjson = JSON.stringify(canvas);
+        state.push(myjson);
+    }
+}
+
+undo = function undo() {
+    if (mods < state.length) {
+        canvas.clear().renderAll();
+        canvas.loadFromJSON(state[state.length - 1 - mods - 1]);
+        canvas.renderAll();
+        //console.log("geladen " + (state.length-1-mods-1));
+        //console.log("state " + state.length);
+        mods += 1;
+        //console.log("mods " + mods);
+    }
+}
+
+redo = function redo() {
+    if (mods > 0) {
+        canvas.clear().renderAll();
+        canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
+        canvas.renderAll();
+        //console.log("geladen " + (state.length-1-mods+1));
+        mods -= 1;
+        //console.log("state " + state.length);
+        //console.log("mods " + mods);
+    }
 }
 
 canvas.selection = true;
@@ -289,7 +319,7 @@ canvas.on('object:moving', function (options) {
 
 canvas.on('object:modified', function (options) {
   options.target.set({
-    stroke: option.target.fill
+    stroke: options.target.fill
   });
 })
 

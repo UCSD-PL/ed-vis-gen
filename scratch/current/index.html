@@ -21,11 +21,11 @@
     <canvas id="canvas" width="600" height="600" style="border:1px solid #000000"></canvas>
   </div>
     <div id="buttons">
-      <button onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 }))">
+      <button onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 })); updateLog()">
         Add Triangle</button>
-      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 }))">
+      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 })); updateLog()">
         Add Circle</button>
-      <button onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100}))">
+      <button onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100})); updateLog()">
         Add Rectangle</button>
       <button onclick="selectmode()" id="select"> Select mode</button>
       <button onclick="Drawingmode()" id="drawing"> Drawing mode</button>
@@ -35,8 +35,8 @@
       <button onclick="canvas.clear()" id="clear"> Clear the canvas</button>
 
       <!--undo & redo-->
-      <button onclick="undo()" id="undo"> Undo </button>
-      <button onclick="redo()" id="redo"> Redo </button>
+      <button value="undo" onclick="undo()" id="undo"> Undo </button>
+      <button value="redo" onclick="redo()" id="redo"> Redo </button>
       <script src="fabrication.js"></script>
     </div>
 
