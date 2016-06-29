@@ -39,13 +39,21 @@ function updateModifications(savehistory) {
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - 1 - mods - 1]);
+        canvas.loadFromJSON(state[state.length - mods - 2]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
+     else {
+       canvas.clear().renderAll();
+       canvas.loadFromJSON(state[mods-state.length]);
+       canvas.renderAll();
+       //console.log("geladen " + (state.length-1-mods-1));
+       //console.log("state " + state.length);
+       mods += 1;
+     }
 }
 
 redo = function redo() {
