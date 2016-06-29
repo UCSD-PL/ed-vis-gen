@@ -3,8 +3,8 @@ canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 snap = 14; //Pixels to snap
-
-canvas.isDrawingMode=false;
+var intersectPoint = false; // whether an intersect point exists
+canvas.isDrawingMode = false;
 
 /*
 undo redo commandhistory with canvas
@@ -106,6 +106,20 @@ function createGroup(target, relatedTarget, right, bottom) {
 		}
 	}}
 */
+
+// creates a point at an intersection
+function addPoint(x, y) {
+  var attachPoint = new fabric.Circle({
+      fill: 'black',
+      top: y,
+      left: x,
+      radius: 2,
+      selectable: false
+    });
+  canvas.add(attachPoint);
+  intersectPoint = true;
+}
+
 canvas.on('object:moving', function (options) {
 	// Sets corner position coordinates based on current angle, width and height
 	options.target.setCoords();
@@ -133,9 +147,19 @@ canvas.on('object:moving', function (options) {
 
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
-
+      var avgPointX = (obj.getLeft() + obj.getWidth() + options.target.getLeft() + options.target.getWidth()) / 2;
+      var avgPointY = (obj.getTop() + obj.getHeight() + options.target.getTop() + options.target.getHeight()) / 2;
 			var distX = ((obj.getLeft() + obj.getWidth()) / 2) - ((options.target.getLeft() + options.target.getWidth()) / 2);
 			var distY = ((obj.getTop() + obj.getHeight()) / 2) - ((options.target.getTop() + options.target.getHeight()) / 2);
+
+      addPoint(avgPointX, avgPointY);
+
+     canvas.on('object:moving', function () {
+         var last = canvas._objects[canvas._objects.length -1]
+         canvas.remove(last);
+         intersectPoint = false;
+        }
+      });
 
 			// Set new position
 			findNewPos(distX, distY, options.target, obj);
@@ -154,7 +178,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -164,7 +188,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -179,7 +203,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -189,7 +213,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -204,7 +228,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -214,7 +238,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -227,7 +251,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -237,7 +261,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -275,8 +299,9 @@ canvas.on('object:moving', function (options) {
 			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
+			}
 
-			} else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
+      else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
 				intersectLeft = objectLeft;
 				intersectWidth = options.target.getWidth() - (intersectLeft - targetLeft);
 			}
