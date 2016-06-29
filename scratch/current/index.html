@@ -5,14 +5,21 @@
 <head>
     <script src="fabric.js"></script>
 </head>
-<link href="style.css" type="text/css" rel="stylesheet">
+<link href="file:///Users/cssummer16/Desktop/ed-vis-gen/scratch/current/bower_components/typicons.font/src/font/typicons.min.css" type="text/css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<link href="style.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 <style>
   h1{
     text-align:center;
     font-family: monospace;
   }
+  .outer{
+    margin: 0 auto;
+    width: 100%;
+
+  }
+
 </style>
 <body>
   <h1>
@@ -21,25 +28,25 @@
   <div class="canvas-container">
     <canvas id="canvas" width="600" height="600" style="border:3px solid #000000"></canvas>
   </div>
-    <div id="buttons">
+    <div class="outer">
       <button class="btn btn-default" onclick="canvas.add(new fabric.Line([50,50,100,200], {stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100})); updateLog()">
-        Add Line</button>
-      <button onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 })); updateLog()">
+        Add Line</button></span>
+      <button class="btn btn-default" onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 })); updateLog()">
         Add Triangle</button>
-      <button onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 })); updateLog()">
+      <button class="btn btn-default" onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 })); updateLog()">
         Add Circle</button>
-      <button onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100})); updateLog()">
+      <button class="btn btn-default" onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100})); updateLog()">
         Add Rectangle</button>
-      <button onclick="selectmode()" id="select"> Select mode</button>
-      <button onclick="Drawingmode()" id="drawing"> Drawing mode</button>
+      <button class="btn btn-default" onclick="selectmode()" id="select"> Select mode</button>
+      <button class="btn btn-default" onclick="Drawingmode()" id="drawing"> Drawing mode</button>
 
         <!--delete button-->
-      <button onclick="deleteObjects()" id="delete"> Delete selected object</button>
-      <button onclick="canvas.clear()" id="clear"> Clear the canvas</button>
+      <button class="btn btn-default" onclick="deleteObjects()" id="delete"> Delete selected object</button>
+      <button class="btn btn-default" onclick="canvas.clear()" id="clear"> Clear the canvas</button>
 
       <!--undo & redo-->
-      <button value="undo" onclick="undo()" id="undo"> Undo </button>
-      <button value="redo" onclick="redo()" id="redo"> Redo </button>
+      <button class="btn btn-default" value="undo" onclick="undo()" id="undo"> Undo </button>
+      <button class="btn btn-default" value="redo" onclick="redo()" id="redo"> Redo </button>
       <script src="fabrication.js"></script>
     </div>
 
