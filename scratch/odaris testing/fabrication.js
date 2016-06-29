@@ -10,29 +10,72 @@ resizeCanvas();
 
 counter = 0;
 snap = 14; //Pixels to snap
+<<<<<<< HEAD:scratch/current/fabrication.js
+=======
+var intersectPoint = false; // whether an intersect point exists
+>>>>>>> b9f887de557a4a04be5f626338a81f956cee7044:scratch/odaris testing/fabrication.js
 canvas.isDrawingMode = false;
 
-canvas.on('object:added',function(){
-  if(!isRedoing){
-    h = [];
-  }
-  isRedoing = false;
+/*
+undo redo commandhistory with canvas
+credits to http://jsfiddle.net/gcollect/b3aMF/
+*/
+var newleft = 0;
+var state = [];
+var mods = 0;
+canvas.counter = 0;
+
+function updateLog() {
+    updateModifications(true);
+    canvas.counter++;
+    newleft += 100;
+}
+
+canvas.on(
+    'object:modified', function () {
+    updateModifications(true);
+},
+    'object:added', function () {
+    updateModifications(true);
 });
 
-var isRedoing = false;
-var h = [];
-function undo(){
-  if(canvas._objects.length>0){
-   h.push(canvas._objects.pop());
-   canvas.renderAll();
-  }
+function updateModifications(savehistory) {
+    if (savehistory === true) {
+        myjson = JSON.stringify(canvas);
+        state.push(myjson);
+    }
 }
-function redo(){
 
-  if(h.length>0){
-    isRedoing = true;
-   canvas.add(h.pop());
-  }
+undo = function undo() {
+    if (mods < state.length) {
+        canvas.clear().renderAll();
+        canvas.loadFromJSON(state[state.length - mods - 2]);
+        canvas.renderAll();
+        //console.log("geladen " + (state.length-1-mods-1));
+        //console.log("state " + state.length);
+        mods += 1;
+        //console.log("mods " + mods);
+    }
+     else {
+       canvas.clear().renderAll();
+       canvas.loadFromJSON(state[mods-state.length]);
+       canvas.renderAll();
+       //console.log("geladen " + (state.length-1-mods-1));
+       //console.log("state " + state.length);
+       mods += 1;
+     }
+}
+
+redo = function redo() {
+    if (mods > 0) {
+        canvas.clear().renderAll();
+        canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
+        canvas.renderAll();
+        //console.log("geladen " + (state.length-1-mods+1));
+        mods -= 1;
+        //console.log("state " + state.length);
+        //console.log("mods " + mods);
+    }
 }
 
 canvas.selection = true;
@@ -73,6 +116,20 @@ function createGroup(target, relatedTarget, right, bottom) {
 		}
 	}}
 */
+
+// creates a point at an intersection
+function addPoint(x, y) {
+  var attachPoint = new fabric.Circle({
+      fill: 'black',
+      top: y,
+      left: x,
+      radius: 2,
+      selectable: false
+    });
+  canvas.add(attachPoint);
+  intersectPoint = true;
+}
+
 canvas.on('object:moving', function (options) {
 	// Sets corner position coordinates based on current angle, width and height
 	options.target.setCoords();
@@ -100,9 +157,19 @@ canvas.on('object:moving', function (options) {
 
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
-
+      var avgPointX = (obj.getLeft() + obj.getWidth() + options.target.getLeft() + options.target.getWidth()) / 2;
+      var avgPointY = (obj.getTop() + obj.getHeight() + options.target.getTop() + options.target.getHeight()) / 2;
 			var distX = ((obj.getLeft() + obj.getWidth()) / 2) - ((options.target.getLeft() + options.target.getWidth()) / 2);
 			var distY = ((obj.getTop() + obj.getHeight()) / 2) - ((options.target.getTop() + options.target.getHeight()) / 2);
+
+      addPoint(avgPointX, avgPointY);
+
+     canvas.on('object:moving', function () {
+         var last = canvas._objects[canvas._objects.length -1]
+         canvas.remove(last);
+         intersectPoint = false;
+        }
+      });
 
 			// Set new position
 			findNewPos(distX, distY, options.target, obj);
@@ -121,7 +188,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -131,7 +198,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -146,7 +213,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -156,7 +223,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -171,7 +238,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -181,7 +248,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -194,7 +261,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -204,7 +271,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
-          strokeWidth: 1,
+          strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
 			}
@@ -242,8 +309,9 @@ canvas.on('object:moving', function (options) {
 			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
+			}
 
-			} else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
+      else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
 				intersectLeft = objectLeft;
 				intersectWidth = options.target.getWidth() - (intersectLeft - targetLeft);
 			}
@@ -294,11 +362,13 @@ canvas.on('object:moving', function (options) {
 
 canvas.on('object:modified', function (options) {
   options.target.set({
+<<<<<<< HEAD:scratch/current/fabrication.js
     strokeWidth: 2
+=======
+    stroke: options.target.fill
+>>>>>>> b9f887de557a4a04be5f626338a81f956cee7044:scratch/odaris testing/fabrication.js
   });
 })
-
-
 
 //Now we test deletion
 function deleteObjects(){
