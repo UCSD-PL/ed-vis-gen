@@ -1,16 +1,21 @@
 var canvas = new fabric.Canvas('canvas');
+counter = 0,
+snap = 14; //Pixels to snap
 //resize the canvas
 window.addEventListener('resize',resizeCanvas,false);
+
+var canvasHeight = window.innerHeight*0.8;
+var canvasWidth = window.innerWidth;
 function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth);
+ canvas.setHeight(canvasHeight);
+ canvas.setWidth(canvasWidth);
  canvas.renderAll
 }
 resizeCanvas();
-counter = 0,
-snap = 14; //Pixels to snap
+
 canvas.isDrawingMode = false;
 canvas.selection = true;
+var snapColor = 'red';
 
 var newleft = 0;
 var state = [];
@@ -134,7 +139,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 
@@ -144,7 +149,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 		}
@@ -157,7 +162,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 
@@ -167,7 +172,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 		}
@@ -182,7 +187,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 
@@ -192,7 +197,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 		}
@@ -205,7 +210,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 
@@ -215,7 +220,7 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: 'rgb(0, 192, 255)'
+          stroke: snapColor
         });
 			}
 		}

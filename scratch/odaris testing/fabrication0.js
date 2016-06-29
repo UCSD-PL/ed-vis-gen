@@ -11,6 +11,7 @@ var state = [];
 var mods = 0;
 
 var attachPoint = new fabric.Circle();
+canvas.add(attachPoint);
 canvas.counter = 0;
 
 function updateLog() {
@@ -64,6 +65,22 @@ redo = function redo() {
         //console.log("state " + state.length);
         //console.log("mods " + mods);
     }
+}
+
+function giveCue(dtop, dleft) {
+  attachPoint.set({
+        fill: 'orange',
+        top: dtop,
+        left: dleft,
+        radius: 5
+  });
+  canvas.setOverlayImage(attachPoint);
+}
+
+function removeCue() {
+  attachPoint.set({
+        radius: 0
+  });
 }
 
 
@@ -132,15 +149,8 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        canvas.on('mouse:over', function (options) { //uh define 'mouse:over'
-            attachPoint.set({
-              stroke: 'black',
-              top: obj.getTop() + obj.getHeight(),
-              left: options.target.getLeft(),
-              radius: 2
-            });
-          });
-        }
+        giveCue(obj.getTop(), options.target.getTop());
+      }
 			}
 
 			// Snap target BR to object BL
@@ -151,6 +161,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 		// If top points are on same Y axis
@@ -163,6 +174,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target TR to object TL
@@ -173,6 +185,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 
@@ -188,6 +201,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target BR to object TR
@@ -198,6 +212,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 
@@ -211,6 +226,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target BL to object TL
@@ -221,6 +237,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 	});
@@ -310,6 +327,7 @@ canvas.on('object:modified', function (options) {
   options.target.set({
     stroke: options.target.fill
   });
+  removeCue();
 })
 
 //Now we test deletion
