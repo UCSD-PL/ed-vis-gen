@@ -1,25 +1,17 @@
-var canvas = new fabric.Canvas('canvas');
+var canvas = new fabric.Canvas('canvas'),
+canvasWidth = document.getElementById('canvas').width,
+canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 snap = 14; //Pixels to snap
-//resize the canvas
-window.addEventListener('resize',resizeCanvas,false);
-
-var canvasHeight = window.innerHeight*0.8;
-var canvasWidth = window.innerWidth;
-function resizeCanvas () {
- canvas.setHeight(canvasHeight);
- canvas.setWidth(canvasWidth);
- canvas.renderAll
-}
-resizeCanvas();
-
 canvas.isDrawingMode = false;
 canvas.selection = true;
-var snapColor = 'red';
 
 var newleft = 0;
 var state = [];
 var mods = 0;
+
+var attachPoint = new fabric.Circle();
+canvas.add(attachPoint);
 canvas.counter = 0;
 
 function updateLog() {
@@ -74,6 +66,23 @@ redo = function redo() {
         //console.log("mods " + mods);
     }
 }
+
+function giveCue(dtop, dleft) {
+  attachPoint.set({
+        fill: 'orange',
+        top: dtop,
+        left: dleft,
+        radius: 5
+  });
+  canvas.setOverlayImage(attachPoint);
+}
+
+function removeCue() {
+  attachPoint.set({
+        radius: 0
+  });
+}
+
 
 function findNewPos(distX, distY, target, obj) {
 	// See whether to focus on X or Y axis
@@ -132,38 +141,40 @@ canvas.on('object:moving', function (options) {
 		// If bottom points are on same Y axis
 		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
-
-			// Snap target BL to object BR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
+		// Snap target BL to object BR
+		if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
+      }
 			}
 
 			// Snap target BR to object BL
-			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
+		if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
-		}
 
 		// If top points are on same Y axis
-		if(Math.abs(options.target.getTop() - obj.getTop()) < snap) {
+		if (Math.abs(options.target.getTop() - obj.getTop()) < snap) {
 			// Snap target TL to object TR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
+			if (Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target TR to object TL
@@ -172,8 +183,9 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 
@@ -187,8 +199,9 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target BR to object TR
@@ -197,8 +210,9 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 
@@ -210,8 +224,9 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() + obj.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 
 			// Snap target BL to object TL
@@ -220,8 +235,9 @@ canvas.on('object:moving', function (options) {
 				options.target.setTop(obj.getTop() - options.target.getHeight());
         options.target.set({
           strokeWidth: 2,
-          stroke: snapColor
+          stroke: 'rgb(0, 192, 255)'
         });
+        giveCue(obj.getTop(), options.target.getTop());
 			}
 		}
 	});
@@ -311,6 +327,7 @@ canvas.on('object:modified', function (options) {
   options.target.set({
     stroke: options.target.fill
   });
+  removeCue();
 })
 
 //Now we test deletion
