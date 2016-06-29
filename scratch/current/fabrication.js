@@ -7,8 +7,8 @@ window.addEventListener('resize',resizeCanvas,false);
 var canvasHeight = window.innerHeight*0.8;
 var canvasWidth = window.innerWidth;
 function resizeCanvas () {
- canvas.setHeight(canvasHeight);
- canvas.setWidth(canvasWidth);
+ canvas.setHeight(window.innerHeight*0.8);
+ canvas.setWidth(window.innerWidth);
  canvas.renderAll
 }
 resizeCanvas();
