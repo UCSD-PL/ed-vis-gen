@@ -1,6 +1,12 @@
-var canvas = new fabric.Canvas('canvas'),
-canvasWidth = document.getElementById('canvas').width,
-canvasHeight = document.getElementById('canvas').height,
+var canvas = new fabric.Canvas('canvas');
+//resize the canvas
+window.addEventListener('resize',resizeCanvas,false);
+function resizeCanvas () {
+ canvas.setHeight(window.innerHeight*0.8);
+ canvas.setWidth(window.innerWidth);
+ canvas.renderAll
+}
+resizeCanvas();
 counter = 0,
 snap = 14; //Pixels to snap
 canvas.isDrawingMode = false;
