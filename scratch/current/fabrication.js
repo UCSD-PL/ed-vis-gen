@@ -1,9 +1,16 @@
-var canvas = new fabric.Canvas('canvas'),
-canvasWidth = document.getElementById('canvas').width,
-canvasHeight = document.getElementById('canvas').height,
-counter = 0,
+var canvas = new fabric.Canvas('canvas');
+//resize the canvas
+window.addEventListener('resize',resizeCanvas,false);
+function resizeCanvas () {
+  canvas.setHeight(window.innerHeight*0.8);
+  canvas.setWidth(window.innerWidth);
+  canvas.renderAll
+}
+resizeCanvas();
+
+counter = 0;
 snap = 14; //Pixels to snap
-canvas.isDrawingMode = true;
+canvas.isDrawingMode = false;
 
 canvas.on('object:added',function(){
   if(!isRedoing){
@@ -287,7 +294,7 @@ canvas.on('object:moving', function (options) {
 
 canvas.on('object:modified', function (options) {
   options.target.set({
-    strokeWidth: 0
+    strokeWidth: 2
   });
 })
 
