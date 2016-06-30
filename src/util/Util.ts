@@ -20,6 +20,17 @@ export function union<T, U>(l: Set<T>, r: Set<U>): Set<T | U> {
   return ret
 }
 
+// intersect two sets together and returns the result
+export function intersect<T>(l: Set<T>, r: Set<T>): Set<T> {
+  let ret = new Set<T>()
+  // console.log(l)
+  // console.log(r)
+  l.forEach(e => {
+    if (r.has(e)) ret.add(e)
+  })
+  return ret
+}
+
 // convert a set of tuples to a map
 export function toMap<K, V>(tups: Set<[K,V]>): Map<K, V> {
   let ret = new Map<K, V>()
@@ -96,11 +107,20 @@ export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
 // it's implementable using filter, but this version uses less memory and is usually
 // quicker.
 export function exists<U>(vals: Iterable<U>, f: (u: U) => boolean): boolean {
+  let ret = find(vals, f)
+  if (ret)
+    return true
+  else
+    return false
+}
+
+// TODO: maybe<U>
+export function find<U>(vals: Iterable<U>, f: (u: U) => boolean): U {
   for (let v of vals) {
     if (f (v))
-      return true
+      return v
   }
-  return false
+  return null
 }
 
 // zip up two arrays into an array of tuples
@@ -112,6 +132,12 @@ export function zip<L, R>(ls: L[], rs: R[]): [L, R][] {
 
 export var DEBUG = false
 export type Point = {x: number, y: number}
+export function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
+  thresh = thresh || 100
+  let [dx, dy] = [Math.abs(lx - rx), Math.abs(ly - ry)]
+  return (dx*dx + dy*dy) <= thresh
+}
+
 export type Tup<L, R> = [L, R]
 
 export function assert(e: any, message?: string) {
