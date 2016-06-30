@@ -4,6 +4,7 @@
 </title>
 <head>
     <script src="fabric.js"></script>
+
 </head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
@@ -27,14 +28,16 @@
   <div>
     <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
+    <script src="fabrication.js"></script>
+    <script src="objects.js"></script>
     <div class="buttons">
-      <button class="btn btn-default" onclick="canvas.add(new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100})); updateLog()">
+      <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
-      <button class="btn btn-default" onclick="canvas.add(new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100 })); updateLog()">
+      <button class="btn btn-default" onclick="addTriangle()">
         <i class="fa fa-play"></i></button>
-      <button class="btn btn-default" onclick="canvas.add(new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100 })); updateLog()">
+      <button class="btn btn-default" onclick="addCircle()">
         <i class="fa fa-circle"></i></button>
-      <button class="btn btn-default" onclick="canvas.add(new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100})); updateLog()">
+      <button class="btn btn-default" onclick="addRectangle()">
         <i class="fa fa-square"></i></button>
       <button class="btn btn-default" onclick="selectmode()" id="select">
       <i class="fa fa-hand-o-up"></i></button>
@@ -55,7 +58,7 @@
       <!-- upload -->
       <button class="btn btn-default" onclick="EnterURL()" id="loadfromURL">
       <i class="fa fa-upload"></i></button>
-      <script src="fabrication.js"></script>
+
     </div>
 
 </html>

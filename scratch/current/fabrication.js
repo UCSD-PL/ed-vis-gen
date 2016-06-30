@@ -13,6 +13,9 @@ function resizeCanvas () {
 }
 resizeCanvas();
 
+
+//add line
+
 canvas.isDrawingMode = false;
 canvas.selection = true;
 var snapColor = 'red';
