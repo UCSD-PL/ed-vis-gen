@@ -313,7 +313,7 @@ canvas.on('object:modified', function (options) {
   });
 })
 
-//Now we test deletion
+//Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
 	if (activeObject) {canvas.remove(activeObject);}
@@ -323,11 +323,19 @@ function deleteObjects(){
 		objectsInGroup.forEach(function(object) {
 		canvas.remove(object);
 		});}}
-//We test select mode
+//Select mode
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
-//We test drawing mode
+//Drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
 }
+
+//Upload image
+function EnterURL(){
+  var URL = prompt("Please enter the URL of image");
+  if (URL != null){
+    fabric.Image.fromURL(URL, function(img){
+      canvas.add(img);
+  });}}
