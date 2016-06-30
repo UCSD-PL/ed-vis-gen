@@ -10,7 +10,9 @@ var newleft = 0;
 var state = [];
 var mods = 0;
 
-var attachPoint = new fabric.Circle();
+var attachPoint = new fabric.Circle({
+  selectable: false
+});
 canvas.add(attachPoint);
 canvas.counter = 0;
 
@@ -67,14 +69,34 @@ redo = function redo() {
     }
 }
 
-function giveCue(dtop, dleft) {
+function fix(object, anchor) {
+
+  if (anchor.getTop > object.getTop) {
+    anchor.set({
+      top: object.getTop(),
+      left: object.getLeft()
+    });
+  }
+  else {
+    anchor.set({
+      top: object.getHeight() + object.getTop(),
+      left: object.getLeft()
+    });
+}}
+
+function giveCue(dtop, dleft, obj1, obj2) {
   attachPoint.set({
         fill: 'orange',
         top: dtop,
         left: dleft,
-        radius: 5
+        radius: 10
   });
   canvas.setOverlayImage(attachPoint);
+
+  // when cue is selected
+  canvas.on('object:moving', function (options) {
+    fix(obj1, obj2);
+});
 }
 
 function removeCue() {
@@ -82,6 +104,7 @@ function removeCue() {
         radius: 0
   });
 }
+
 
 
 function findNewPos(distX, distY, target, obj) {
@@ -149,7 +172,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
       }
 			}
 
@@ -161,7 +184,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 
 		// If top points are on same Y axis
@@ -174,7 +197,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 
 			// Snap target TR to object TL
@@ -185,7 +208,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 		}
 
@@ -201,7 +224,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 
 			// Snap target BR to object TR
@@ -212,7 +235,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 		}
 
@@ -226,7 +249,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 
 			// Snap target BL to object TL
@@ -237,7 +260,7 @@ canvas.on('object:moving', function (options) {
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
-        giveCue(obj.getTop(), options.target.getTop());
+        giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
 		}
 	});
@@ -327,8 +350,11 @@ canvas.on('object:modified', function (options) {
   options.target.set({
     stroke: options.target.fill
   });
-  removeCue();
 })
+
+canvas.on('after:render', function() {
+  removeCue();
+});
 
 //Now we test deletion
 function deleteObjects(){
@@ -340,6 +366,7 @@ function deleteObjects(){
 		objectsInGroup.forEach(function(object) {
 		canvas.remove(object);
 		});}}
+
 //We test select mode
 function selectmode(){
 	canvas.isDrawingMode=false;
