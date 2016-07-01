@@ -64,6 +64,12 @@ function updateModifications(savehistory) {
     }
 }
 
+function transfer() {
+  liveAction.clear().renderAll();
+  liveAction.loadFromJSON(state[state.length - mods - 1]);
+  liveAction.renderAll();
+}
+
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();

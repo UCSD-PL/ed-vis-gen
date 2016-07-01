@@ -20,11 +20,11 @@ credits to http://jsfiddle.net/gcollect/b3aMF/
 var newleft = 0;
 var state = [];
 var mods = 0;
-canvas.counter = 0;
+liveAction.counter = 0;
 
 function updateLog() {
     updateModifications(true);
-    canvas.counter++;
+    liveAction.counter++;
     newleft += 100;
 }
 
@@ -45,18 +45,18 @@ function updateModifications(savehistory) {
 
 undo = function undo() {
     if (mods < state.length) {
-        canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - mods - 2]);
-        canvas.renderAll();
+        liveAction.clear().renderAll();
+        liveAction.loadFromJSON(state[state.length - mods - 2]);
+        liveAction.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
      else {
-       canvas.clear().renderAll();
-       canvas.loadFromJSON(state[mods-state.length]);
-       canvas.renderAll();
+       liveAction.clear().renderAll();
+       liveAction.loadFromJSON(state[mods-state.length]);
+       liveAction.renderAll();
        //console.log("geladen " + (state.length-1-mods-1));
        //console.log("state " + state.length);
        mods += 1;
