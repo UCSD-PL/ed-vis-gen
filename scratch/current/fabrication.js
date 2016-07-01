@@ -24,6 +24,9 @@ function resizeLiveActionPanel () {
  liveAction.renderAll();
 }
 
+resizeCanvas();
+resizeLiveActionPanel();
+
 //add line
 
 canvas.isDrawingMode = false;
