@@ -3,8 +3,24 @@ canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 snap = 14; //Pixels to snap
+
+//resize the canvas
+window.addEventListener('resize',resizeCanvas,false);
+
+var canvasHeight = window.innerHeight*0.8;
+var canvasWidth = window.innerWidth;
+function resizeCanvas () {
+ canvas.setHeight(window.innerHeight*0.8);
+ canvas.setWidth(window.innerWidth);
+ canvas.renderAll();
+}
+resizeCanvas();
+
 canvas.isDrawingMode = false;
 canvas.selection = true;
+
+var allowAnchoring = true;
+var isSnapping = false;
 
 var newleft = 0;
 var state = [];
@@ -24,7 +40,7 @@ function updateLog() {
 
 canvas.on(
     'object:modified', function () {
-    updateModifications(true);
+     updateModifications(true);
 },
     'object:added', function () {
     updateModifications(true);
@@ -69,20 +85,42 @@ redo = function redo() {
     }
 }
 
-function fix(object, anchor) {
-
-  if (anchor.getTop > object.getTop) {
-    anchor.set({
-      top: object.getTop(),
-      left: object.getLeft()
-    });
+function isAnchored (object) {
+  if (object.toObject.anchored != null) {
+    if (object.toObject.anchored == true) {
+      return true;
+    }
   }
   else {
-    anchor.set({
-      top: object.getHeight() + object.getTop(),
-      left: object.getLeft()
-    });
-}}
+    return false;
+  }
+}
+
+function fix(object, anchor) {
+  if (isAnchored(object) && allowAnchoring) {
+    if (anchor.getTop > object.getTop) {
+      anchor.set({
+        top: object.getTop(),
+        left: object.getLeft()
+      });
+      object.toObject = function() {
+        return {
+          anchored: true
+        };
+      };
+    }}
+
+  else {
+      anchor.set({
+        top: object.getHeight() + object.getTop(),
+        left: object.getLeft()
+      });
+      object.toObject = function() {
+        return {
+          anchored: true
+        };
+      };
+  }}
 
 function giveCue(dtop, dleft, obj1, obj2) {
   attachPoint.set({
@@ -92,7 +130,6 @@ function giveCue(dtop, dleft, obj1, obj2) {
         radius: 10
   });
   canvas.setOverlayImage(attachPoint);
-
   // when cue is selected
   canvas.on('object:moving', function (options) {
     fix(obj1, obj2);
@@ -104,8 +141,6 @@ function removeCue() {
         radius: 0
   });
 }
-
-
 
 function findNewPos(distX, distY, target, obj) {
 	// See whether to focus on X or Y axis
@@ -145,9 +180,25 @@ canvas.on('object:moving', function (options) {
 		options.target.setTop(canvasHeight - options.target.getHeight());
 	}
 
+  /* canvas.forEachObject(function (obj) {
+    if (options.target.anchored) {
+      canvas.on('object:moving', function(options) {}
+      });
+    }
+  };
+*/
 	// Loop through objects
 	canvas.forEachObject(function (obj) {
-		if (obj === options.target) return;
+		if (obj === options.target) {
+      isSnapping = false;
+      return;
+    };
+
+    if (obj != null) {
+     if (obj.get('lockScalingX') || obj.get('lockScalingY') || options.target.get('lockScalingX') || options.target.get('lockScalingY')) {
+      isSnapping = false;
+      return;
+    }}
 
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
@@ -168,6 +219,7 @@ canvas.on('object:moving', function (options) {
 		if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -180,6 +232,7 @@ canvas.on('object:moving', function (options) {
 		if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -193,6 +246,7 @@ canvas.on('object:moving', function (options) {
 			if (Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -204,12 +258,14 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
         });
         giveCue(obj.getTop(), options.target.getLeft(), obj, options.target);
 			}
+      isSnapping = false;
 		}
 
 		// Snap objects to each other vertically
@@ -220,6 +276,7 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -231,6 +288,7 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -245,6 +303,7 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -256,6 +315,7 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
+        isSnapping = true;
         options.target.set({
           strokeWidth: 2,
           stroke: 'rgb(0, 192, 255)'
@@ -275,6 +335,11 @@ canvas.on('object:moving', function (options) {
 
 	canvas.forEachObject(function (obj) {
 		if (obj === options.target) return;
+
+    if (obj.get('lockScalingX') || obj.get('lockScalingY') || options.target.get('lockScalingX') || options.target.get('lockScalingY')) {
+      isSnapping = false;
+      return;
+    }
 
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
 
@@ -347,18 +412,17 @@ canvas.on('object:moving', function (options) {
 });
 
 canvas.on('object:modified', function (options) {
-  options.target.set({
-    stroke: options.target.fill
-  });
-})
-
-canvas.on('after:render', function() {
-  removeCue();
+  if (!isSnapping) {
+    options.target.set({
+      stroke: options.target.fill
+    });
+    removeCue();
+  }
 });
 
 //Now we test deletion
 function deleteObjects(){
-	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
+	var activeObject = canvas.getActiveObject(), activeGroup = canvas.getActiveGroup();
 	if (activeObject) {canvas.remove(activeObject);}
 	else if (activeGroup) {
 		var objectsInGroup = activeGroup.getObjects();
@@ -371,6 +435,7 @@ function deleteObjects(){
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
+
 //We test drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
