@@ -32,9 +32,11 @@ export function intersect<T>(l: Set<T>, r: Set<T>): Set<T> {
 }
 
 // convert a set of tuples to a map
-export function toMap<K, V>(tups: Set<[K,V]>): Map<K, V> {
+export function toMap<K, V>(tups: Iterable<[K,V]>): Map<K, V> {
   let ret = new Map<K, V>()
-  tups.forEach(([k, v]) => ret.set(k, v))
+  for (let [k, v] of tups) {
+    ret.set(k, v)
+  }
   return ret
 }
 
@@ -147,4 +149,12 @@ export function assert(e: any, message?: string) {
     console.log(e)
     throw new Error()
   }
+}
+
+export function forall<U>(col: Iterable<U>, f: (u: U) => boolean) {
+  for (let u of col) {
+    if (!f(u))
+      return false
+  }
+  return true
 }

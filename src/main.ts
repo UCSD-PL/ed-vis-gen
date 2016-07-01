@@ -1,13 +1,13 @@
 
 import Cass = require('cassowary')
 import {Circle} from './model/Shapes'
-import {VType} from './model/Variable'
+import {VType, CassVar} from './model/Variable'
 import SView = require('./view/Shapes')
 import Model = require('./model/Model')
 import View = require('./view/View')
 import Cont = require('./controller/Controller')
 import Ex = require('./model/Export')
-import {PointGeneration} from './model/Synthesis'
+import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
 
 
 let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
@@ -72,7 +72,19 @@ export function addPoints() {
 // console.log(finalModel.eval())
 // console.log(circ instanceof SModel.Line)
 
+function testISynth() {
+  let vars = [new CassVar("X", 5), new CassVar("Y", 5), new CassVar("Z", 5), new CassVar('U', 5)]
+  let e1 = (new Set<CassVar>()).add(vars[0]).add(vars[1]).add(vars[3])
+  let e2 = (new Set<CassVar>()).add(vars[1]).add(vars[2]).add(vars[3])
+  let eqs = (new Set<Set<CassVar>>()).add(e1).add(e2)
+  let seedVars = (new Set<CassVar>()).add(vars[0])
+  // X = Y + U
+  // Y = Z + U
+  console.log('testing synthesis')
+  let synthd = InteractionSynthesis.validFreeVariables(seedVars, eqs)
+  console.log(synthd)
 
+}
 
 let exporter:any = document.getElementById('export')
 exporter.builder = () => {
