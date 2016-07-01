@@ -1,20 +1,31 @@
 var canvas = new fabric.Canvas('canvas'),
+liveAction = new fabric.Canvas('live-action'),
 canvasWidth = document.getElementById('canvas').width,
 canvasHeight = document.getElementById('canvas').height,
 counter = 0,
 snap = 14; //Pixels to snap
 
 //resize the canvas
-window.addEventListener('resize',resizeCanvas,false);
+window.addEventListener('resize',resizeCanvas, false);
+window.addEventListener('resize',resizeLiveActionPanel, false);
 
 var canvasHeight = window.innerHeight*0.8;
-var canvasWidth = window.innerWidth;
+var canvasWidth = window.innerWidth*1.6/3;
+
 function resizeCanvas () {
  canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth);
+ canvas.setWidth(window.innerWidth*1.6/3);
  canvas.renderAll();
 }
+
+function resizeLiveActionPanel () {
+ liveAction.setHeight(window.innerHeight*0.8);
+ liveAction.setWidth(window.innerWidth*1.35/3);
+ liveAction.renderAll();
+}
+
 resizeCanvas();
+resizeLiveActionPanel();
 
 canvas.isDrawingMode = false;
 canvas.selection = true;
