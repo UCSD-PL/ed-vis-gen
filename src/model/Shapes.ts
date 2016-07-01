@@ -70,7 +70,7 @@ export class Circle implements Drawable {
   ){}
 }
 
-interface RecLike extends Drawable {
+export interface RecLike extends Drawable {
   x: Var
   y: Var
   dx: Var

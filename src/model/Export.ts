@@ -25,18 +25,18 @@ type LineJSON = {start: PointJSON, end: PointJSON}
 //   names: []
 // }
 type oldJSONObj = {
-  vars: any[], //TODO
+  vars: any[], // [{name: number}]
   shapes: {
-    type: string,
-    name: string,
+    type: string, // "line" | "arrow" | "spring" | "circle" | "rectangle" | "image"
+    name: string, // shape's name
     args: (CircJSON | RectJSON | ImgJSON | SpringJSON | VectJSON | LineJSON)
   }[],
-  ipoints: any[],
-  equations: any[],
-  inequalities: any[],
-  recConstraints: any[],
-  freeRecVars: any[],
-  names: any[]
+  ipoints: PointJSON[], // [PointJSON]
+  equations: any[], // []
+  inequalities: any[], // []
+  recConstraints: any[], // []
+  freeRecVars: any[], // []
+  names: any[] // []
 }
 
 export class oldJSON {
