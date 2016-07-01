@@ -342,3 +342,10 @@ function EnterURL(){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
   });}}
+
+
+//export to JSON
+function exportjson(){
+var json=JSON.stringify(canvas.toJSON());
+//$http.post('http://serverurl/',stringJson);
+}
