@@ -30,11 +30,11 @@
     <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
   <div style = "float:left;">
-    <canvas id="live-action" width="600" height="600" style="border:5px solid #000000"></canvas>
+    <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
     <script src="fabrication1.js"></script>
     <script src="objects.js"></script>
-    <div class="buttons">
+    <div class="buttons" style = "float:left;">
       <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
       <button class="btn btn-default" onclick="addTriangle()">
@@ -61,9 +61,8 @@
       <i class="fa fa-mail-forward"></i></button>
 
       <!-- upload -->
-      <button class="btn btn-default" onclick="transfer()">
+      <button class="btn btn-default" value="transfer" onclick="transfer()">
         <i class="fa fa-upload"></i></button>
-
     </div>
 
 </html>

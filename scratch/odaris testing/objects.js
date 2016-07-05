@@ -1,21 +1,4 @@
-fabric.DragPoint = fabric.util.createClass(fabric.Object, {
-  type: 'dragpoint',
-
-  snappable: false,
-
-  attribute: [],
-
-  intialize: function(options) {
-    options = options || {};
-
-    this.callSuper('initialize', options);
-  },
-
-  _render: function (ctx) {
-  }
-});
-
-fabric.DragPoint = fabric.util.createClass(fabric.Rect, {
+fabric.DragPoint = fabric.util.createClass(fabric.Circle, {
   type: 'dragpoint',
 
   snappable: false,
@@ -34,7 +17,7 @@ fabric.DragPoint = fabric.util.createClass(fabric.Rect, {
 
 //Add drag points
 function addWithDragPoint (obj) {
-  var dragP = new fabric.DragPoint({
+  var dragP = new fabric.Circle({
     top: 100 + obj.getHeight()/2,
     left: 100 + obj.getWidth()/2,
     originX: 'center',
@@ -51,7 +34,7 @@ function addWithDragPoint (obj) {
 
 //Add line
 function addLine(){
- var line0 = new fabric.Line([50,100,50,300], { stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100, lockRotation: true });
+ var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100, lockRotation: true});
  addWithDragPoint(line0);
  updateLog();
 }
@@ -77,6 +60,47 @@ function addRectangle(){
   updateLog();
 }
 
+//Deletion
+function deleteObjects(){
+	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
+	if (activeObject) {
+    canvas.remove(activeObject);
+    updateLog();
+  }
+	else if (activeGroup) {
+		var objectsInGroup = activeGroup.getObjects();
+		canvas.discardActiveGroup();
+		objectsInGroup.forEach(function(object) {
+		canvas.remove(object);
+    updateLog();
+		});}
+  }
+
+//Select mode
+function selectmode(){
+	canvas.isDrawingMode=false;
+}
+//Drawing mode
+function Drawingmode(){
+	canvas.isDrawingMode=true;
+}
+
+//Upload image
+function EnterURL(){
+  var URL = prompt("Please enter the URL of image");
+  if (URL != null){
+    fabric.Image.fromURL(URL, function(img){
+      canvas.add(img);
+  });}}
+
+
+//export to JSON
+function exportjson(){
+var json=JSON.stringify(canvas.toJSON());
+//$http.post('http://serverurl/',stringJson);
+}
+
+/*
 canvas.on({
 'object:scaling': onChange
 })
@@ -91,3 +115,4 @@ function onChange(obj) {
     point.setScaleY(scaleY);
   }
 }
+*/
