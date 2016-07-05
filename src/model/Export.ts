@@ -24,6 +24,20 @@ type LineJSON = {start: PointJSON, end: PointJSON}
 //   freeRecVars: [],
 //   names: []
 // }
+
+enum BOP {Plus, Minus, Times, Div, Mod}
+enum UOP {Neg, Paren}
+
+type ConstExpr = {val: number}
+type VarExpr = {name: string}
+type BinOpExpr = {lhs: ExprJSON, rhs: ExprJSON, op: BOP}
+type UnOpExpr = {inner: ExprJSON, op: UOP}
+type FunAppExpr = {func: String, args: ExprJSON[]}
+
+
+type ExprJSON = ConstExpr | VarExpr | BinOpExpr | UnOpExpr | FunAppExpr
+type DeclJSON = {name: string, body: ExprJSON}  // name <- body
+
 type oldJSONObj = {
   vars: any[], // [{name: number}]
   shapes: {
@@ -34,10 +48,11 @@ type oldJSONObj = {
   ipoints: PointJSON[], // [PointJSON]
   equations: any[], // []
   inequalities: any[], // []
-  recConstraints: any[], // []
-  freeRecVars: any[], // []
+  recConstraints: DeclJSON[], // list of physics decls
+  freeRecVars: string[], // free variables for the physics sim, list of strings
   names: any[] // []
 }
+
 
 export class oldJSON {
   constructor(public base: M.Model) {}
