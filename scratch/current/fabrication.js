@@ -1,31 +1,37 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
-canvasWidth = window.innerWidth*0.8,
-canvasHeight = window.innerHeight*1.6/3,
-canvas.counter = 0,
-canvas.selection = true,
-physics.counter = 0,
-physics.selection = false,
-physics.isDrawingMode = false,
+counter = 0,
 snap = 14, // pixels to snap
 state = [],
 mods = 0,
+snapColor = "red",
 current = 0;
 
+var canvasWidth = document.getElementById('canvas').width;
+var canvasHeight = document.getElementById('canvas').height;
+
+canvas.selectable = true;
+physics.selectable = false;
+physics.isDrawingMode = false;
+canvas.counter = 0;
+physics.counter = 0;
+
 //resize the canvas
-window.addEventListener('resize',resizeCanvas, false);
-window.addEventListener('resize',resizeLiveActionPanel, false);
+window.addEventListener('resize', resizeCanvas(), false);
+window.addEventListener('resize', resizePhysicsPanel(), false);
 
 function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth*1.6/3);
+ canvas.setHeight(window.innerHeight*0.7);
+ canvas.setWidth(window.innerWidth*1.55/3);
  canvas.renderAll();
+ canvasWidth = document.getElementById('canvas').width;
+ canvasHeight = document.getElementById('canvas').height;
 }
 
 function resizePhysicsPanel () {
- liveAction.setHeight(window.innerHeight*0.8);
- liveAction.setWidth(window.innerWidth*1.35/3);
- liveAction.renderAll();
+ physics.setHeight(window.innerHeight*0.7);
+ physics.setWidth(window.innerWidth*1.35/3);
+ physics.renderAll();
 }
 
 resizeCanvas();
@@ -51,14 +57,6 @@ function updateModifications(savehistory) {
         state.push(myjson);
         current += 1;
     }
-}
-
-function translate() {
-    physics.clear().renderAll();
-    physics.counter = canvas.counter;
-    current = state.length - mods - 1;
-    physics.loadFromJSON(state[current]);
-    physics.renderAll();
 }
 
 undo = function undo() {
@@ -324,37 +322,3 @@ canvas.on('object:modified', function (options) {
     stroke: options.target.fill
   });
 })
-
-//Deletion
-function deleteObjects(){
-	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
-	if (activeObject) {canvas.remove(activeObject);}
-	else if (activeGroup) {
-		var objectsInGroup = activeGroup.getObjects();
-		canvas.discardActiveGroup();
-		objectsInGroup.forEach(function(object) {
-		canvas.remove(object);
-		});}}
-//Select mode
-function selectmode(){
-	canvas.isDrawingMode=false;
-}
-//Drawing mode
-function Drawingmode(){
-	canvas.isDrawingMode=true;
-}
-
-//Upload image
-function EnterURL(){
-  var URL = prompt("Please enter the URL of image");
-  if (URL != null){
-    fabric.Image.fromURL(URL, function(img){
-      canvas.add(img);
-  });}}
-
-
-//export to JSON
-function exportjson(){
-var json=JSON.stringify(canvas.toJSON());
-//$http.post('http://serverurl/',stringJson);
-}
