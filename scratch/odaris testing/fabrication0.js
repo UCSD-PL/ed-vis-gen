@@ -33,25 +33,19 @@ canvas.selection = true;
 var allowAnchoring = true;
 var isSnapping = false;
 
-var newleft = 0;
 var state = [];
 var mods = 0;
-
-var attachPoint = new fabric.Circle({
-  selectable: false
-});
-canvas.add(attachPoint);
-canvas.counter = 0;
+var current = 0;
+liveAction.counter = 0;
 
 function updateLog() {
     updateModifications(true);
-    canvas.counter++;
-    newleft += 100;
+    liveAction.counter++;
 }
 
 canvas.on(
     'object:modified', function () {
-     updateModifications(true);
+    updateModifications(true);
 },
     'object:added', function () {
     updateModifications(true);
@@ -61,39 +55,35 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        current += 1;
     }
 }
 
-function transfer() {
-  liveAction.clear().renderAll();
-  liveAction.loadFromJSON(state[state.length - mods - 1]);
-  liveAction.renderAll();
+function translate() {
+    liveAction.clear().renderAll();
+    current = state.length - mods - 1;
+    liveAction.loadFromJSON(state[current]);
+    liveAction.renderAll();
 }
 
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - mods - 2]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current - 1]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
-     else {
-       canvas.clear().renderAll();
-       canvas.loadFromJSON(state[mods-state.length - 2]);
-       canvas.renderAll();
-       //console.log("geladen " + (state.length-1-mods-1));
-       //console.log("state " + state.length);
-       mods += 1;
-     }
 }
 
 redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
         mods -= 1;

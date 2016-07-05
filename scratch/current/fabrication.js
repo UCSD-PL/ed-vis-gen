@@ -33,7 +33,6 @@ canvas.isDrawingMode = false;
 canvas.selection = true;
 var snapColor = 'red';
 
-var newleft = 0;
 var state = [];
 var mods = 0;
 canvas.counter = 0;
@@ -41,7 +40,6 @@ canvas.counter = 0;
 function updateLog() {
     updateModifications(true);
     canvas.counter++;
-    newleft += 100;
 }
 
 canvas.on(

@@ -1,12 +1,46 @@
+fabric.DragPoint = fabric.util.createClass(fabric.Object, {
+  type: 'dragpoint',
+
+  snappable: false,
+
+  attribute: [],
+
+  intialize: function(options) {
+    options = options || {};
+
+    this.callSuper('initialize', options);
+  },
+
+  _render: function (ctx) {
+  }
+});
+
+fabric.DragPoint = fabric.util.createClass(fabric.Rect, {
+  type: 'dragpoint',
+
+  snappable: false,
+
+  attribute: [],
+
+  intialize: function(options) {
+    options = options || {};
+
+    this.callSuper('initialize', options);
+  },
+
+  _render: function (ctx) {
+  }
+});
+
 //Add drag points
 function addWithDragPoint (obj) {
-  var dragP = new fabric.Circle({
+  var dragP = new fabric.DragPoint({
     top: 100 + obj.getHeight()/2,
     left: 100 + obj.getWidth()/2,
     originX: 'center',
     originY: 'center',
     fill: 'black',
-    radius: 3,
+    radius: 3
     //lockRotation: true,
     //lockScalingX: true,
     //lockScalingY: true

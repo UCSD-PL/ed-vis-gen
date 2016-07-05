@@ -17,15 +17,14 @@ canvas.isDrawingMode = false;
 undo redo commandhistory with canvas
 credits to http://jsfiddle.net/gcollect/b3aMF/
 */
-var newleft = 0;
 var state = [];
 var mods = 0;
+var current = 0;
 liveAction.counter = 0;
 
 function updateLog() {
     updateModifications(true);
     liveAction.counter++;
-    newleft += 100;
 }
 
 canvas.on(
@@ -40,32 +39,37 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        current += 1;
     }
+}
+
+function translate() {
+    liveAction.clear().renderAll();
+    liveAction.loadFromJSON(state[current]);
+    liveAction.renderAll();
+    //console.log("geladen " + (state.length-1-mods-1));
+    //console.log("state " + state.length);
+    mods += 1;
+    //console.log("mods " + mods);
 }
 
 undo = function undo() {
     if (mods < state.length) {
-        liveAction.clear().renderAll();
-        liveAction.loadFromJSON(state[state.length - mods - 2]);
-        liveAction.renderAll();
+        canvas.clear().renderAll();
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current - 1]);
+        canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
-     else {
-       liveAction.clear().renderAll();
-       liveAction.loadFromJSON(state[mods-state.length]);
-       liveAction.renderAll();
-       //console.log("geladen " + (state.length-1-mods-1));
-       //console.log("state " + state.length);
-       mods += 1;
-     }
 }
 
 redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
+        current = state.length - mods;
         canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
