@@ -1,45 +1,40 @@
-var canvas = new fabric.Canvas('canvas'),
-liveAction = new fabric.Canvas('live-action'),
-canvasWidth = document.getElementById('canvas').width,
-canvasHeight = document.getElementById('canvas').height,
-counter = 0,
-snap = 14; //Pixels to snap
+var canvas = new fabric.Canvas('canvas'), // left-side panel
+physics = new fabric.Canvas('physics'), // right-side panel
+canvasWidth = window.innerWidth*0.8,
+canvasHeight = window.innerHeight*1.6/3,
+canvas.counter = 0,
+canvas.selection = true,
+physics.counter = 0,
+physics.selection = false,
+physics.isDrawingMode = false,
+snap = 14, // pixels to snap
+state = [],
+mods = 0,
+current = 0;
 
 //resize the canvas
 window.addEventListener('resize',resizeCanvas, false);
 window.addEventListener('resize',resizeLiveActionPanel, false);
 
-var canvasHeight = window.innerHeight*0.8;
-var canvasWidth = window.innerWidth*1.5/3;
-
 function resizeCanvas () {
  canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth*1.5/3);
+ canvas.setWidth(window.innerWidth*1.6/3);
  canvas.renderAll();
 }
 
-function resizeLiveActionPanel () {
+function resizePhysicsPanel () {
  liveAction.setHeight(window.innerHeight*0.8);
- liveAction.setWidth(window.innerWidth*1.2/3);
+ liveAction.setWidth(window.innerWidth*1.35/3);
  liveAction.renderAll();
 }
 
 resizeCanvas();
-resizeLiveActionPanel();
+resizePhysicsPanel();
 
-//add line
-
-canvas.isDrawingMode = false;
-canvas.selection = true;
-var snapColor = 'red';
-
-var state = [];
-var mods = 0;
-canvas.counter = 0;
 
 function updateLog() {
-    updateModifications(true);
-    canvas.counter++;
+  updateModifications(true);
+  canvas.counter++;
 }
 
 canvas.on(
@@ -54,33 +49,36 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        current += 1;
     }
+}
+
+function translate() {
+    physics.clear().renderAll();
+    physics.counter = canvas.counter;
+    current = state.length - mods - 1;
+    physics.loadFromJSON(state[current]);
+    physics.renderAll();
 }
 
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - mods - 2]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current - 1]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
-     else {
-       canvas.clear().renderAll();
-       canvas.loadFromJSON(state[mods-state.length - 2]);
-       canvas.renderAll();
-       //console.log("geladen " + (state.length-1-mods-1));
-       //console.log("state " + state.length);
-       mods += 1;
-     }
 }
 
 redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
         mods -= 1;
