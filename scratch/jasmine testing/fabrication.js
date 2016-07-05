@@ -1,34 +1,46 @@
-var canvas = new fabric.Canvas('canvas');
+var canvas = new fabric.Canvas('canvas'), // left-side panel
+physics = new fabric.Canvas('physics'), // right-side panel
 counter = 0,
-snap = 14; //Pixels to snap
-//resize the canvas
-window.addEventListener('resize',resizeCanvas,false);
+snap = 14, // pixels to snap
+state = [],
+mods = 0,
+snapColor = "red",
+current = 0;
 
-var canvasHeight = window.innerHeight*0.8;
-var canvasWidth = window.innerWidth;
-function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth);
- canvas.renderAll
-}
-resizeCanvas();
+var canvasWidth = document.getElementById('canvas').width;
+var canvasHeight = document.getElementById('canvas').height;
 
-
-//add line
-
-canvas.isDrawingMode = false;
-canvas.selection = true;
-var snapColor = 'red';
-
-var newleft = 0;
-var state = [];
-var mods = 0;
+canvas.selectable = true;
+physics.selectable = false;
+physics.isDrawingMode = false;
 canvas.counter = 0;
+physics.counter = 0;
+
+//resize the canvas
+window.addEventListener('resize', resizeCanvas(), false);
+window.addEventListener('resize', resizePhysicsPanel(), false);
+
+function resizeCanvas () {
+ canvas.setHeight(window.innerHeight*0.7);
+ canvas.setWidth(window.innerWidth*1.55/3);
+ canvas.renderAll();
+ canvasWidth = document.getElementById('canvas').width;
+ canvasHeight = document.getElementById('canvas').height;
+}
+
+function resizePhysicsPanel () {
+ physics.setHeight(window.innerHeight*0.7);
+ physics.setWidth(window.innerWidth*1.35/3);
+ physics.renderAll();
+}
+
+resizeCanvas();
+resizePhysicsPanel();
+
 
 function updateLog() {
-    updateModifications(true);
-    canvas.counter++;
-    newleft += 100;
+  updateModifications(true);
+  canvas.counter++;
 }
 
 canvas.on(
@@ -43,33 +55,28 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        current += 1;
     }
 }
 
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - mods - 2]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current - 1]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
     }
-     else {
-       canvas.clear().renderAll();
-       canvas.loadFromJSON(state[mods-state.length - 2]);
-       canvas.renderAll();
-       //console.log("geladen " + (state.length-1-mods-1));
-       //console.log("state " + state.length);
-       mods += 1;
-     }
 }
 
 redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
-        canvas.loadFromJSON(state[state.length - 1 - mods + 1]);
+        current = state.length - mods - 1;
+        canvas.loadFromJSON(state[current]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
         mods -= 1;
@@ -316,29 +323,33 @@ canvas.on('object:modified', function (options) {
   });
 })
 
-//Deletion
-function deleteObjects(){
-	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
-	if (activeObject) {canvas.remove(activeObject);}
-	else if (activeGroup) {
-		var objectsInGroup = activeGroup.getObjects();
-		canvas.discardActiveGroup();
-		objectsInGroup.forEach(function(object) {
-		canvas.remove(object);
-		});}}
-//Select mode
-function selectmode(){
-	canvas.isDrawingMode=false;
-}
-//Drawing mode
-function Drawingmode(){
-	canvas.isDrawingMode=true;
-}
+//add a circle
+var circle = new fabric.Circle({
+  left: 500,
+  top: 400,
+  name:'ds',
+  radius: 75,
+  fill: 'green',
+  stroke: 'rgba(255,0,0,0.6)',
+  strokeWidth: 15
+});
 
-//Upload image
-function EnterURL(){
-  var URL = prompt("Please enter the URL of image");
-  if (URL != null){
-    fabric.Image.fromURL(URL, function(img){
-      canvas.add(img);
-  });}}
+canvas.add(circle);
+
+//jquery for btn-edit
+$('btn_edit').click(function(){
+  var physics = new fabric.Canvas('physics');
+  console.log('Click Edit');
+  //JSON data
+  var json_data=JSON.stringify(canvas.toDATAlessJSON());
+  console.log(json_data);
+
+  physics.loadFromJSON(JSON.parse(json_data),function(obj){
+    physics.renderAll();
+    console.console.log('This is a callback. Invoked when canvas is loaded');
+    physics.forEachObject(function(obj){
+      console.log(obj.name);
+      physics.add(obj);
+    });
+  });
+});

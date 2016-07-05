@@ -25,3 +25,46 @@ function addRectangle(){
   canvas.add(rectangle0);
   updateLog();
 }
+
+translate = function translate() {
+    physics.clear().renderAll();
+    current = state.length - mods - 1;
+    physics.loadFromJSON(state[current]);
+    physics.renderAll();
+};
+
+
+//Deletion
+function deleteObjects(){
+	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
+	if (activeObject) {canvas.remove(activeObject);}
+	else if (activeGroup) {
+		var objectsInGroup = activeGroup.getObjects();
+		canvas.discardActiveGroup();
+		objectsInGroup.forEach(function(object) {
+		canvas.remove(object);
+		});}}
+
+//Select mode
+function selectmode(){
+	canvas.isDrawingMode=false;
+}
+//Drawing mode
+function Drawingmode(){
+	canvas.isDrawingMode=true;
+}
+
+//Upload image
+function EnterURL(){
+  var URL = prompt("Please enter the URL of image");
+  if (URL != null){
+    fabric.Image.fromURL(URL, function(img){
+      canvas.add(img);
+  });}}
+
+
+//export to JSON
+function exportjson(){
+var json=JSON.stringify(canvas.toJSON());
+//$http.post('http://serverurl/',stringJson);
+}

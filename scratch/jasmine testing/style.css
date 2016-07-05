@@ -1,3 +1,16 @@
-.buttons{
-  margin: auto;
+body{
+  background-color: #cccccc;
+}
+
+
+.lw { font-size: 60px; }
+canvas{
+  border-style: dashed;
+}
+button{
+  margin:30px;
+}
+div{
+  border-style: solid;
+  border-color: #98bf21;
 }
