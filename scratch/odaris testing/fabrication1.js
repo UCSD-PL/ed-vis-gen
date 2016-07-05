@@ -1,31 +1,37 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
-canvasWidth = window.innerWidth*0.8,
-canvasHeight = window.innerHeight*1.6/3,
-canvas.counter = 0,
-canvas.selection = true,
-physics.counter = 0,
-physics.selection = false,
-physics.isDrawingMode = false,
+counter = 0,
 snap = 14, // pixels to snap
 state = [],
 mods = 0,
+snapColor = "red",
 current = 0;
 
-//resize the canvas
-window.addEventListener('resize',resizeCanvas, false);
-window.addEventListener('resize',resizeLiveActionPanel, false);
+var canvasWidth = document.getElementById('canvas').width;
+var canvasHeight = document.getElementById('canvas').height;
 
-function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.8);
- canvas.setWidth(window.innerWidth*1.6/3);
+canvas.selectable = true;
+physics.selectable = false;
+physics.isDrawingMode = false;
+canvas.counter = 0;
+physics.counter = 0;
+
+//resize the canvas
+window.addEventListener('resize', resizeCanvas(), false);
+window.addEventListener('resize', resizePhysicsPanel(), false);
+
+function resizeCanvas() {
+ canvas.setHeight(window.innerHeight*0.83);
+ canvas.setWidth(window.innerWidth*1.5/3);
  canvas.renderAll();
+ canvasWidth = document.getElementById('canvas').width;
+ canvasHeight = document.getElementById('canvas').height;
 }
 
-function resizePhysicsPanel () {
- liveAction.setHeight(window.innerHeight*0.8);
- liveAction.setWidth(window.innerWidth*1.35/3);
- liveAction.renderAll();
+function resizePhysicsPanel() {
+ physics.setHeight(window.innerHeight*0.83);
+ physics.setWidth(window.innerWidth*1.5/3);
+ physics.renderAll();
 }
 
 resizeCanvas();
@@ -35,6 +41,7 @@ resizePhysicsPanel();
 function updateLog() {
   updateModifications(true);
   canvas.counter++;
+  physics.counter++;
 }
 
 canvas.on(
@@ -49,16 +56,17 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
-        current += 1;
     }
 }
 
-function translate() {
+transfer = function transfer() {
     physics.clear().renderAll();
-    physics.counter = canvas.counter;
     current = state.length - mods - 1;
     physics.loadFromJSON(state[current]);
     physics.renderAll();
+    physics.forEachObject(function(object){
+       object.selectable = false;
+});
 }
 
 undo = function undo() {
@@ -87,23 +95,22 @@ redo = function redo() {
     }
 }
 
-// adds a line at the intersection of two touching shapes
-/*
-function border_cue (posx, posy) {
-  canvas.add(new fabric.Line([]) {
-    left: posx,
-    top: posy,
-    stroke: 'red'
-  });
+function findNewPos(distX, distY, target, obj) {
+	// See whether to focus on X or Y axis
+	if(Math.abs(distX) > Math.abs(distY)) {
+		if (distX > 0) {
+			target.setLeft(obj.getLeft() - target.getWidth());
+		} else {
+			target.setLeft(obj.getLeft() + obj.getWidth());
+		}
+	} else {
+		if (distY > 0) {
+			target.setTop(obj.getTop() - target.getHeight());
+		} else {
+			target.setTop(obj.getTop() + obj.getHeight());
+		}
+	}
 }
-*/
-function edgeCue (check, obj) {
-  if (check === true) {
-  obj.set({
-    strokeWidth: 2,
-    stroke: 'rgb(0, 192, 255)'
-  });
-}}
 
 canvas.on('object:moving', function (options) {
 	// Sets corner position coordinates based on current angle, width and height
@@ -130,6 +137,11 @@ canvas.on('object:moving', function (options) {
 	canvas.forEachObject(function (obj) {
 		if (obj === options.target) return;
 
+    if (obj.snappable === null && object.target.snappable === false) {
+      console.log('it works!');
+      return;
+    }
+
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
 
@@ -144,16 +156,26 @@ canvas.on('object:moving', function (options) {
 
 		// If bottom points are on same Y axis
 		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
+
+
 			// Snap target BL to object BR
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 
 			// Snap target BR to object BL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 		}
 
@@ -163,12 +185,20 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 
 			// Snap target TR to object TL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 		}
 
@@ -180,14 +210,21 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 
 			// Snap target BR to object TR
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
-      edgeCue(true, options.target);
 		}
 
 		// If left points are on same X axis
@@ -196,17 +233,23 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
 
 			// Snap target BL to object TL
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
+        options.target.set({
+          strokeWidth: 2,
+          stroke: snapColor
+        });
 			}
-      edgeCue(true, options.target);
 		}
 	});
-
 	options.target.setCoords();
 
 	// If objects still overlap
@@ -288,3 +331,9 @@ canvas.on('object:moving', function (options) {
 		}
 	});
 });
+
+canvas.on('object:modified', function (options) {
+  options.target.set({
+    stroke: options.target.fill
+  });
+})
