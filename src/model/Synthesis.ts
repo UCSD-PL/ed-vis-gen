@@ -1,7 +1,7 @@
 import {Variable, CassVar} from './Variable'
 import {Program} from './Model'
 import * as S from './Shapes'
-import {copy, Point, Tup, exists, flatMap, assert} from '../util/Util'
+import {copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap} from '../util/Util'
 import {Expression} from 'cassowary'
 
 
@@ -158,5 +158,173 @@ export class PointGeneration {
   public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
     // console.log(p)
     return flatMap(p.shapes, e => this.shapePoints(e))
+  }
+}
+
+// starting from a seed set of source variables:
+//   * a configuration is **consistent** if every equation has either one source + sink
+//     OR no sources or sinks
+//   * associate configurations with colorings (a map from equation to empty/Source/Source + Sink).
+//     a candidate:
+//       ** lives in a equation with a Source
+//       ** is not a Source/Sink in another equation
+//     foreach candidate:
+//       ** add the candidate to the configuration
+//       ** color the candidate as a Sink in the other equations
+
+export namespace InteractionSynthesis {
+  interface Color {}
+  var Empty: Color = {}
+  class Half implements Color {
+    constructor(public src: CassVar) {}
+  }
+  class Full implements Color {
+    constructor(public src: CassVar, public snk: CassVar) {}
+  }
+
+  type Coloring = Map<Set<CassVar>, Color>
+
+
+  // generate valid free-variable sets for a constraint solver.
+  // inputs: sources, variables whose value is pre-determined
+  // eqVars: sets of constraint variables. each set corresponds to the variables
+  //         in a constraint equation: X + Y = 2 * Z => {X, Y, Z}
+  // returns: all sets of valid free variables.
+  export function validFreeVariables(inputs: Set<CassVar>, eqVars: Set<Set<CassVar>>): Set<Set<CassVar>> {
+
+
+    // degenerate case? TODO
+    let degenerate = exists(eqVars, e => intersect(inputs, e).size >= 2)
+
+    if (degenerate) {
+      console.log('degenerate input to free vars:')
+      console.log(inputs)
+      console.log(eqVars)
+      assert(false)
+    }
+
+    let initColor: Coloring = toMap([... eqVars].map(e => {
+      let v = find(inputs, v => e.has(v))
+      if (v) {
+        return [e, new Half(v)] as [Set<CassVar>, Color]
+      } else {
+        return [e, Empty] as [Set<CassVar>, Color]
+      }
+    }))
+
+    let candColorings = new Set<Coloring>()
+    let finishedColorings = new Set<Coloring>()
+    // console.log('initial coloring:')
+    // console.log(initColor)
+    candColorings.add(initColor)
+
+    while (candColorings.size != 0) {
+      let nextSeed: Coloring = candColorings.entries().next().value[0]
+      // console.log('candidates:')
+      // console.log(candColorings)
+      // console.log('next seed:')
+      // console.log(nextSeed)
+      candColorings.delete(nextSeed)
+      // console.log('next:')
+      // console.log(nextSeed)
+      //   * a configuration is **consistent** if every equation has either one source + sink
+      //   //     OR no sources or sinks
+      let done = forall(nextSeed, ([vals, color]) => color === Empty || color instanceof Full)
+
+      if (done) {
+        // console.log('finished')
+        finishedColorings.add(nextSeed)
+      } else {
+        //     a candidate:
+        //     //       ** lives in a equation with a Source
+        let nextColorings: Set<Tup<Set<CassVar>, Full>> = new Set<Tup<Set<CassVar>, Full>>()
+        for (let [vals, color] of nextSeed) {
+          if (color instanceof Half) {
+            let newColors = [... filter(vals, v => v != color.src)].map(v => [vals, new Full(color.src, v)] as Tup<Set<CassVar>, Full>)
+            for (let v of newColors)
+              nextColorings.add(v)
+          }
+        }
+
+        // console.log('candidates in equation with source:')
+        // console.log(nextColorings)
+
+
+        //       ** is not a Source/Sink in another equation, and doesn't break the
+        //          Source/Sink abstraction (i.e. isn't a Sink twice, each equation
+        //          has one Source + Sink
+
+        let newCands = filter(nextColorings, ([eq, color]) => {
+          let otherEqs = partMap(nextSeed, ([e, _]) => e != eq)[0]
+          // console.log('other eqs:')
+          // console.log(otherEqs)
+          return forall(otherEqs, ([otherEq, otherColor]) => {
+            if (otherColor === Empty) {
+              return true
+            } else if (otherColor instanceof Half) {
+              return !otherEq.has(color.snk)
+            } else if (otherColor instanceof Full) {
+              return (!otherEq.has(color.snk)) && (otherColor.src != color.snk) && (otherColor.snk != color.snk)
+            }
+          })
+        })
+
+        // console.log('final candidates:')
+        // console.log(newCands)
+
+
+            //     foreach candidate:
+            //       ** add the candidate to the configuration
+            //       ** color the candidate as a Sink in the other equations
+
+        for (let [newEq, candColor] of newCands) {
+          let newColoring = partMap(nextSeed, kv => true)[0] // copy the coloring
+          newColoring.set(newEq, candColor)
+          newColoring.forEach((newColor, eqs) => {
+            if (eqs != newEq) {
+              if (newColor === Empty && eqs.has(candColor.snk)){
+                newColoring.set(eqs, new Half(candColor.snk))
+              } else {
+                // do nothing
+              }
+            }
+          })
+          // console.log('adding coloring to worklist:')
+          // console.log(newColoring)
+          candColorings.add(newColoring)
+        }
+
+      }
+
+    }
+
+    let ret = new Set<Set<CassVar>>()
+    // console.log('resulting colorings:')
+    // console.log(finishedColorings)
+    // foreach finished coloring, convert to a set of free variables. the free
+    // variables are specified by the full colorings.
+    for (let coloring of finishedColorings) {
+      let newFrees = new Set<CassVar>()
+      for (let [_, color] of coloring) {
+        if (color instanceof Full) {
+          newFrees.add(color.src).add(color.snk)
+        } else if (color === Empty) {
+          // we gucci
+        } else {
+          // oboy
+          console.log(finishedColorings)
+          assert(false, 'half coloring in finished colorings')
+        }
+      }
+
+      ret.add(newFrees)
+    }
+
+    // console.log('free var sets:')
+    // console.log(ret)
+
+
+
+    return ret
   }
 }
