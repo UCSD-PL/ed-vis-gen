@@ -26,7 +26,7 @@ function addRectangle(){
   updateLog();
 }
 
-translate = function translate() {
+transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
     physics.loadFromJSON(state[current]);
@@ -67,4 +67,22 @@ function EnterURL(){
 function exportjson(){
 var json=JSON.stringify(canvas.toJSON());
 //$http.post('http://serverurl/',stringJson);
+}
+
+
+//animation
+
+function animation0(){
+  var activeObject = physics.getActiveObject()
+  var heights0 = activeObject.getTop();
+  var drop0=document.getElementById('physics').height
+  var dis0= drop0- heights0 - activeObject.getHeight();
+  var dis="+=" + dis0.toString();
+  activeObject.animate('top', dis, {
+  duration: 1000,
+  onChange: physics.renderAll.bind(physics),
+});
+
+
+
 }

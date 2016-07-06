@@ -7,6 +7,11 @@ mods = 0,
 snapColor = "red",
 current = 0;
 
+//create the JSON
+var myJSON = {"vars":{}, "ipoints":{}, "shapes":{}, "equations":{}, "inequalities":{},
+"recConstraints":{}, "freeRecVars":{}, "names":{}};
+
+
 var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 

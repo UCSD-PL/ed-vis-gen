@@ -322,34 +322,3 @@ canvas.on('object:modified', function (options) {
     stroke: options.target.fill
   });
 })
-
-//add a circle
-var circle = new fabric.Circle({
-  left: 500,
-  top: 400,
-  name:'ds',
-  radius: 75,
-  fill: 'green',
-  stroke: 'rgba(255,0,0,0.6)',
-  strokeWidth: 15
-});
-
-canvas.add(circle);
-
-//jquery for btn-edit
-$('btn_edit').click(function(){
-  var physics = new fabric.Canvas('physics');
-  console.log('Click Edit');
-  //JSON data
-  var json_data=JSON.stringify(canvas.toDATAlessJSON());
-  console.log(json_data);
-
-  physics.loadFromJSON(JSON.parse(json_data),function(obj){
-    physics.renderAll();
-    console.console.log('This is a callback. Invoked when canvas is loaded');
-    physics.forEachObject(function(obj){
-      console.log(obj.name);
-      physics.add(obj);
-    });
-  });
-});

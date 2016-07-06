@@ -86,3 +86,9 @@ function animation0(){
 
 
 }
+
+//Add equation
+function enterequation(){
+  var equa0 = prompt("Please enter the equation")
+  var myJSON.equations = equa0;
+}
