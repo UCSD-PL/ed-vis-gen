@@ -106,6 +106,20 @@ export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
   return partMap(vals, _ => true)[0]
 }
 
+// extend a map by one value
+export function extend<K, V>(vals: Map<K, V>, [k, v]: Tup<K, V>): Map<K, V> {
+  return copy(vals).set(k, v)
+}
+
+// map a function over a map
+export function mapValues<K, A, R>(vals: Map<K, A>, f: (a: A) => R): Map<K, R> {
+  let ret = new Map<K, R>()
+  for (let [k, v] of vals) {
+    ret.set(k, f(v))
+  }
+  return ret
+}
+
 // test if there exists an element v of vals s.t. f v is true
 // it's implementable using filter, but this version uses less memory and is usually
 // quicker.
