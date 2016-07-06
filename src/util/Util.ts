@@ -63,6 +63,7 @@ export function partSet<U>(vals: Set<U>, f: (u: U) => boolean): [Set<U>, Set<U>]
   return [trus, flses]
 }
 
+
 export function partMap<K, V>(mp: Map<K, V>, f: (kv: [K, V]) => boolean): [Map<K, V>, Map<K, V>] {
   // I would convert the map to tuples, call partSet, and convert the result back to a map,
   // but then I'd be walking mp three times (when I only need to do it once).

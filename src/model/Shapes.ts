@@ -107,6 +107,26 @@ export class DragPoint implements Drawable {
   ){}
 }
 
+export function collectVars(s: Shape): Set<Var> {
+  let ret = new Set<Var>()
+  if (s instanceof Line) {
+    s.points.forEach(([x, y]) => ret.add(x).add(y))
+  } else if (s instanceof Arrow || s instanceof Spring) {
+    ret.add(s.x).add(s.y).add(s.dx).add(s.dy)
+  } else if (s instanceof Circle || s instanceof DragPoint) {
+    ret.add(s.x).add(s.y).add(s.r)
+  } else if (s instanceof Rectangle || s instanceof Image) {
+    ret.add(s.x).add(s.y).add(s.dx).add(s.dy)
+  } else if (s instanceof Text) {
+    ret.add(s.x).add(s.y)
+  } else {
+    console.log('unhandled shape in collectVars:')
+    console.log(s)
+    assert(false)
+  }
+
+  return ret
+}
 
 
 // export type Shape =
