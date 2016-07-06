@@ -50,6 +50,9 @@ canvas.on(
 },
     'object:added', function () {
     updateModifications(true);
+  },
+    'object:removed', function () {
+    updateModifications(true);
 });
 
 function updateModifications(savehistory) {
@@ -62,6 +65,19 @@ function updateModifications(savehistory) {
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
+    console.log(myjson);
+    /*
+    JSON.parse(myjson, function (obj, v) {
+    if (checker(obj)) {
+    }
+    } );
+
+    function checker(obj) {
+      if (type) {
+        obj.red = 'red'
+    }
+  }
+    */
     physics.loadFromJSON(state[current]);
     physics.renderAll();
     physics.forEachObject(function(object){
@@ -85,7 +101,7 @@ undo = function undo() {
 redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
-        current = state.length - mods - 1;
+        current = state.length - mods;
         canvas.loadFromJSON(state[current]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
