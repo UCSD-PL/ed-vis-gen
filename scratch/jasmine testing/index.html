@@ -4,6 +4,7 @@
 </title>
 <head>
     <script src="fabric.js"></script>
+    <script src="spring.js"></script>
 
 </head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
@@ -26,7 +27,7 @@
     EDDIE PLAYGROUND
   </h1>
   <div id="draw" style ="float:left;">
-    <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
+    <canvas id="c" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
   <div style = "float:left;">
     <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
@@ -69,6 +70,10 @@
       <!--animation-->
       <button class="btn btn-default" onclick="animation0()" id="animation0">
         Trigger
+      </button>
+
+      <button class="btn btn-default" onclick="addSpring()" id="spring">
+        Add spring
       </button>
     </div>
 

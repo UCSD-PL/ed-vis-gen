@@ -1,3 +1,10 @@
+//Add Spring
+function addSpring(){
+  var spring0 = new fabric.Spring([50, 100, 50, 300]);
+  canvas.add(spring0);
+  updateLog();
+}
+
 //Add line
 function addLine(){
  var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100, lockRotation: true});
@@ -81,8 +88,10 @@ function animation0(){
   activeObject.animate('top', dis, {
   duration: 1000,
   onChange: physics.renderAll.bind(physics),
-});
+});}
 
-
+//enter equation
+function enterquation0(){
+  var equation0 = prompt("Please enter the equation");
 
 }
