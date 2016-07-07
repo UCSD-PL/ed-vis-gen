@@ -1,110 +1,80 @@
 <html>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="../frontend/cassie/c.js"></script>
-<script src="../frontend/cassie/HashTable.js"></script>
-<script src="../frontend/cassie/HashSet.js"></script>
-<script src="../frontend/cassie/Error.js"></script>
-<script src="../frontend/cassie/SymbolicWeight.js"></script>
-<script src="../frontend/cassie/Strength.js"></script>
-<script src="../frontend/cassie/Variable.js"></script>
-<script src="../frontend/cassie/Point.js"></script>
-<script src="../frontend/cassie/Expression.js"></script>
-<script src="../frontend/cassie/Constraint.js"></script>
-<script src="../frontend/cassie/EditInfo.js"></script>
-<script src="../frontend/cassie/Tableau.js"></script>
-<script src="../frontend/cassie/SimplexSolver.js"></script>
-<script src="../frontend/cassie/Timer.js"></script>
-<script src="../frontend/eddie/helpers.js"> </script>
-<script src="../frontend/eddie/primitives.js"></script>
-<script src="../frontend/eddie/library.js"></script>
-<script src="../frontend/eddie/common.js"></script>
-<script src="../frontend/eddie/display.js"></script>
-<script src="../frontend/eddie/events.js"></script>
-<script src="../frontend/eddie/charts.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jcarousel/0.3.4/jquery.jcarousel.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
-<!-- <script src="eddiflow/out/dfparser.js"></script>
-<script src="eddiflow/out/eddiflow.js"></script> -->
-<!-- <script src="../util/utils.js"></script>
-<script src="../view/view.js"></script> -->
-<script src="../frontend/utils.js"></script>
-<script src="../frontend/view.js"></script>
-<script src="../frontend/main.js"></script>
-
-
-<link href="style.css" type="text/css" rel="stylesheet"/>
+<title>
+  Demo Playground
+</title>
 <head>
-    <title>EDDIE interactive diagram synthesis</title>
+    <!-- frontend script -->
+    <script src="../frontend/fabric.js"></script>
+
+
 </head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<style>
+  h1{
+    text-align:center;
+    font-family: monospace;
 
-<!-- <body style="width:1200px; height:1300px;" onload="initView(); init_frames();"> -->
-<body onload="init_frames();">
+  }
+  .buttons{
+    float: left;
 
-  <div style="text-align:center">
-    <div style="width:100%; margin-bottom: 5px; margin-top: 5px;">
+  }
 
-        <button id='addRect' class="btn btn-info"> Rectangle </button>
-        <button id='addImage' class="btn btn-info"> Image </button>
-        <button id='addSpring' class="btn btn-info"> Spring </button>
-        <button id='addArrow' class="btn btn-info"> Arrow </button>
-        <button id='addCircle' class="btn btn-info"> Circle </button>
-        <button id='addLine' class="btn btn-info"> Line </button>
-
-        <button id='export' class="btn btn-info" style="margin-left:20px;"onclick='
-        initView();
-        learnInteraction();
-        '
-          > Add Interactions </button>
-
-
-    </div>
-    <div id ="currentProgram" style='white-space:pre-wrap'></div>
-
-
-    <div id ='mainPopup' class="popup" style="text-align:center">
-      <div "width:100%; margin-bottom: 5px; margin-top: 5px;">
-        <button id='accept' class="btn btn-success" onclick='acceptPoints()'> Accept </button>
-      </div>
-
-
-      <div class='variant-wrapper'>
-        <a href="#" class="variant-prev" data-jcarouselcontrol="true"></a>
-        <a href="#" class="variant-next" data-jcarouselcontrol="true"></a>
-        <div class="variants">
-          <ul>
-            <li>
-              <iframe id="mainFrame" srcdoc="<html></html>"></iframe>
-            </ul>
-          </div>
-        </div>
-
-        <div style='width:100%;'>
-          <textarea id='physics' style="height:75px; width:100%; margin-bottom:5px; display:none;">
-          </textarea>
-          <textarea id='free_vars' style="height:30px; width:100%; margin-bottom:5px; display:none;">
-          </textarea>
-          <textarea id='on_release' style="height:75px; width:100%; display:none;">
-          </textarea>
-        </div>
-        <div id='shapeDisplay' style="display: none; position:absolute; top: 200px; right: 10px;
-        font-size: 16px;
-        font-family = Comic Sans MS">
-        </div>
-    </div>
-    <canvas id='mainCanvas' style=" border-style: inset;"></canvas>
+</style>
+<body>
+  <h1>
+    EDDIE PLAYGROUND
+  </h1>
+  <div id="draw" style ="float:left;">
+    <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
+  </div>
+  <div style = "float:left;">
+    <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
 
-  <img id="iron" src="../resources/weight.png" height="400" width="400" style="display:none">
-  <img id="mouse" src="../resources/cursor.jpg" height="32" width="30" style="display:none">
+    <div class="buttons">
+      <button class="btn btn-default" onclick="addLine()">
+        <i class="fa fa-minus"></i></button>
+      <button class="btn btn-default" onclick="addTriangle()">
+        <i class="fa fa-play"></i></button>
+      <button class="btn btn-default" onclick="addCircle()">
+        <i class="fa fa-circle"></i></button>
+      <button class="btn btn-default" onclick="addRectangle()">
+        <i class="fa fa-square"></i></button>
+      <button class="btn btn-default" onclick="selectmode()" id="select">
+      <i class="fa fa-hand-o-up"></i></button>
+      <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
+      <i class="fa fa-paint-brush"></i></button>
+
+        <!--delete button-->
+      <button class="btn btn-default" onclick="deleteObjects()" id="delete">
+      <i class="fa fa-trash"></i></button>
 
 
+      <!--undo & redo-->
+      <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
+      <i class="fa fa-mail-reply"></i></button>
+      <button class="btn btn-default" value="redo" onclick="redo()" id="redo">
+      <i class="fa fa-mail-forward"></i></button>
 
-</body>
+      <!-- upload -->
+      <button class="btn btn-default" onclick="EnterURL()" id="loadfromURL">
+      <i class="fa fa-picture-o"></i></button>
 
-<script src="../lib.js"></script>
+      <!--load json-->
+      <button class="btn btn-default" value="transfer" onclick="transfer()" id="transfer">
+      <i class="fa fa-share-square"></i></button>
+
+      <!--animation-->
+      <button class="btn btn-default" onclick="animation0()" id="animation0">
+        Trigger
+      </button>
+    </div>
+
+    <script src="../frontend/fabrication.js"></script>
+    <script src="../frontend/objects.js"></script>
+    <!-- backend script -->
+    <script src="../lib.js"></script>
 </html>

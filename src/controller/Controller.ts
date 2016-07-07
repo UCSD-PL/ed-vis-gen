@@ -106,7 +106,7 @@ export class DragController {
   }
 
   public enableDrags() {
-    let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
+    let mainCanv = this.receiver as HTMLCanvasElement
     let mouseEvents = ["mousedown", "mouseup", "mousemove"]
     mainCanv.addEventListener("mousedown", e => this.handleLeftClick(e))
     mainCanv.addEventListener("mousemove", e => this.handleMove(e))
