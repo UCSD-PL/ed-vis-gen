@@ -30,6 +30,7 @@
     "src/model/Synthesis.ts",
     "src/model/Variable.ts",
     "src/util/Poset.ts",
+    "src/util/Timer.ts",
     "src/util/Util.ts",
     "src/view/Shapes.ts",
     "src/view/View.ts",
