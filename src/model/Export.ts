@@ -38,7 +38,7 @@ type FunAppExpr = {func: String, args: ExprJSON[]}
 type ExprJSON = ConstExpr | VarExpr | BinOpExpr | UnOpExpr | FunAppExpr
 type DeclJSON = {name: string, body: ExprJSON}  // name <- body
 
-type oldJSONObj = {
+type eddieJSONObj = {
   vars: any[], // [{name: number}]
   shapes: {
     type: string, // "line" | "arrow" | "spring" | "circle" | "rectangle" | "image"
@@ -105,7 +105,7 @@ export class oldJSON {
       return {type: type, name: name, args: args}
     })
 
-    let ret: oldJSONObj = {
+    let ret: eddieJSONObj = {
       vars: vars,
       shapes: shapes,
       ipoints: [],

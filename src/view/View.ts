@@ -1,10 +1,11 @@
 import M = require('../model/Model')
 import VS = require('./Shapes')
+import {DISPLAY_ID} from '../util/Util'
 
 type Context = CanvasRenderingContext2D
 
 export function renderModel(m: M.Model) {
-  let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
+  let mainCanv = document.getElementById(DISPLAY_ID) as HTMLCanvasElement
   let mainCtx = mainCanv.getContext('2d')
   renderState(m.main, mainCtx)
 }
@@ -16,8 +17,4 @@ function renderState(s: M.State, ctx: Context) {
   s.prog.shapes.forEach(s => {
     VS.drawShape(ctx, s, vars) // images.....
   })
-}
-
-export class View {
-  // TODO
 }

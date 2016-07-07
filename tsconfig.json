@@ -24,6 +24,7 @@
     "src/controller/Controller.ts",
     "src/main.ts",
     "src/model/Export.ts",
+    "src/model/Import.ts",
     "src/model/Model.ts",
     "src/model/Physics.ts",
     "src/model/PhysicsExpr.ts",

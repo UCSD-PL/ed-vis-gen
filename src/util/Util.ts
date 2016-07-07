@@ -42,6 +42,9 @@ export function toMap<K, V>(tups: Iterable<[K,V]>): Map<K, V> {
 
 // tuple lifters, mainly for clean let-bindings
 // e.g. let [a, b, c] = [x, y, z].map(...)
+export function map2Tup<U, V>(tup: [U, U], f: (u: U) => V): [V, V] {
+  return tup.map(f) as [V, V]
+}
 export function map3Tup<U, V>(tup: [U, U, U], f: (u: U) => V): [V, V, V] {
   return tup.map(f) as [V, V, V]
 }

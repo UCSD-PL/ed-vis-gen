@@ -9,6 +9,8 @@ import Cont = require('./controller/Controller')
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
 import {DISPLAY_ID} from './util/Util'
+import {fabricJSONObj, buildModel} from './model/Import'
+
 
 
 // let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
@@ -26,6 +28,11 @@ let dragCont = new Cont.DragController(initModel, document.getElementById(DISPLA
 export function refresh() {
   dragCont.m = initModel
   View.renderModel(initModel)
+}
+
+export function drawFromFabric(object: fabricJSONObj) {
+  initModel = buildModel(object)
+  refresh()
 }
 
 export function addPoints() {
