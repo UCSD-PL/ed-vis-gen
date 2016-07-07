@@ -31,7 +31,6 @@ export type fabricJSONObj = {
   objects: (fabricCircle | fabricRect | fabricLine )[] // I think this is what we're probably going to end up using the most so far?
 }
 
-// convert an object's fields to eddie conventions
 
 // given a json of shapes, build a model for the shapes
 export function buildModel(shapes: fabricJSONObj): Model {
