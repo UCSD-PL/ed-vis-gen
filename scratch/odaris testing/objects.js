@@ -1,7 +1,12 @@
 fabric.DragPoint = fabric.util.createClass(fabric.Circle, {
   type: 'dragpoint',
 
-  intialize: function() {
+  values: [],
+
+  intialize: function(options) {
+    options = options || { };
+
+    this.callSuper('initialize', options);
   },
 
   _render: function (ctx) {
@@ -86,12 +91,10 @@ function EnterURL(){
       canvas.add(img);
   });}}
 
+//physics.forEachObject() {
+  //if () {}
+//};
 
-//export to JSON
-function exportjson(){
-var json=JSON.stringify(canvas.toJSON());
-//$http.post('http://serverurl/',stringJson);
-}
 
 /*
 canvas.on({

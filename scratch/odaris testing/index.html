@@ -4,20 +4,19 @@
 </title>
 <head>
     <script src="fabric.js"></script>
-
 </head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
 <style>
   h1{
     text-align:center;
     font-family: monospace;
-
   }
   .buttons{
     text-align: center;
-
   }
 
 
@@ -34,11 +33,13 @@
   </div>
     <script src="fabrication1.js"></script>
     <script src="objects.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.js" integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
+    <script src="bootstrap.min.js"></script>
+
+    <!--<script src="custom_objects.js"></script>-->
     <div class="buttons" style = "float:left;">
       <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
-      <button class="btn btn-default" onclick="addTriangle()">
-        <i class="fa fa-play"></i></button>
       <button class="btn btn-default" onclick="addCircle()">
         <i class="fa fa-circle"></i></button>
       <button class="btn btn-default" onclick="addRectangle()">
@@ -63,6 +64,22 @@
       <!-- upload -->
       <button class="btn btn-default" value="transfer" onclick="transfer()">
         <i class="fa fa-upload"></i></button>
+
+      <!--toggling on drag points-->
+      <button class="btn btn-default" onclick="renderDragPoints(true)">
+        <i class="fa fa-circle"></i></button>
+
+      <!--adding drag points-->
+      <button class="btn btn-default" onclick="drawFromFabric(fabricJSONObj)">
+        <i class="fa fa-play"></i></button>
+
+      <!--adding overlay for code-->
+      <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#interact">
+        Add Interactions </button>
+    </div>
+
+    <div class="modal fade" role="dialog" tabindex="-1" aria-labelledby="myModalLabel" id="interact"> <h4 class="modal-title"> Make adjustments here </h4>
+      <div class="modal-footer" data-dismiss="modal"> Close </div>
     </div>
 
 </html>

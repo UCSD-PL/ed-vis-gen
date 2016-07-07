@@ -59,6 +59,7 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        fabricJSONObj = canvas.toJSON();
     }
 }
 
@@ -66,23 +67,12 @@ transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
     console.log(myjson);
-    /*
-    JSON.parse(myjson, function (obj, v) {
-    if (checker(obj)) {
-    }
-    } );
-
-    function checker(obj) {
-      if (type) {
-        obj.red = 'red'
-    }
-  }
-    */
     physics.loadFromJSON(state[current]);
     physics.renderAll();
     physics.forEachObject(function(object){
        object.selectable = false;
 });
+
 }
 
 undo = function undo() {
