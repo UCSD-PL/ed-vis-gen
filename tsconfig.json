@@ -25,6 +25,7 @@
     "src/main.ts",
     "src/model/Export.ts",
     "src/model/Model.ts",
+    "src/model/Physics.ts",
     "src/model/Ranking.ts",
     "src/model/Shapes.ts",
     "src/model/Synthesis.ts",
