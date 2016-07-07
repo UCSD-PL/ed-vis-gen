@@ -1,7 +1,6 @@
 // AST and big-step evaluator for physics terms
 import {Variable} from './Variable'
 
-
 export class PhysExpr {
   // helpers for construction
   public add(r: PhysExpr) {
