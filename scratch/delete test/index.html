@@ -3,9 +3,7 @@
   Demo Playground
 </title>
 <head>
-    <!-- frontend script -->
-    <script src="../frontend/fabric.js"></script>
-
+    <script src="fabric.js"></script>
 
 </head>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
@@ -18,7 +16,7 @@
 
   }
   .buttons{
-    float: left;
+    text-align: center;
 
   }
 
@@ -27,13 +25,11 @@
   <h1>
     EDDIE PLAYGROUND
   </h1>
-  <div id="draw" style ="float:left;">
+  <div>
     <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
-  <div style = "float:left;">
-    <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
-  </div>
-
+    <script src="fabrication.js"></script>
+    <script src="jsontest.js"></script>
     <div class="buttons">
       <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
@@ -61,20 +57,13 @@
 
       <!-- upload -->
       <button class="btn btn-default" onclick="EnterURL()" id="loadfromURL">
-      <i class="fa fa-picture-o"></i></button>
+      <i class="fa fa-upload"></i></button>
 
-      <!--load json-->
-      <button class="btn btn-default" value="transfer" onclick="transfer()" id="transfer">
-      <i class="fa fa-share-square"></i></button>
-
-      <!--animation-->
-      <button class="btn btn-default" onclick="animation0()" id="animation0">
-        Trigger
+      <!-- jsontest-->
+      <button class"btn btn-default" onclick="loadjson()" id="loadfromjson">
+        loadFromJSON
       </button>
+
     </div>
 
-    <script src="../frontend/fabrication.js"></script>
-    <script src="../frontend/objects.js"></script>
-    <!-- backend script -->
-    <script src="../lib.js"></script>
 </html>

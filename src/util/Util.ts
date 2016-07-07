@@ -148,6 +148,7 @@ export function zip<L, R>(ls: L[], rs: R[]): [L, R][] {
 }
 
 export var DEBUG = false
+export var DISPLAY_ID = 'physics'
 export type Point = {x: number, y: number}
 export function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
   thresh = thresh || 100
