@@ -25,6 +25,10 @@ export class PhysExpr {
     let name = f.name
     return new FunAppExpr(name, args) // defer math check to runtime
   }
+
+  public square(): FunAppExpr {
+    return PhysExpr.InvokeMath(Math.pow, [this, new ConstExpr(2)])
+  }
 }
 // constants
 export class ConstExpr extends PhysExpr {

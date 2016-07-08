@@ -36,17 +36,19 @@ export interface PhysicsGroup {
 
 
 export class Pendulum implements PhysicsGroup {
-  private Omega: Variable // angular acceleration
-  private Theta: Variable // angular displacement
-  private L: Variable // lever arm length
-  private C: Variable // coefficient of friction
-  private X_BOB: Variable // x coordinate of moving bob
-  private Y_BOB: Variable // y coordinate of moving bob
-  private X_PIVOT: Variable // x coordinate of pendulum base
-  private Y_PIVOT: Variable // y coordinate of pendulum base
-  private G: Variable // force of gravity
 
-  public constructor() {}
+
+  public constructor(
+    public Omega: Variable, // angular acceleration
+    public Theta: Variable,  // angular displacement
+    public L: Variable,  // lever arm length
+    public C: Variable,  // coefficient of friction
+    public X_BOB: Variable, // x coordinate of moving bob
+    public Y_BOB: Variable, // y coordinate of moving bob
+    public X_PIVOT: Variable, // x coordinate of pendulum base
+    public Y_PIVOT: Variable, // y coordinate of pendulum base
+    public G: Variable // force of gravity)
+  ) {}
 
   public validate() {
     let setVar =
@@ -68,12 +70,17 @@ export class Pendulum implements PhysicsGroup {
 
   // all of the integrator variables need to be set before this function is called
   public instantiate() {
+
+    this.validate()
+    
     let ret = Integrator.empty()
 
     let fv = (v: Variable) => new VarExpr(v)
 
-    let inner = // G * sin(theta) / L
-      PhysExpr.InvokeMath(Math.sin, [fv(this.Theta)]).times(fv(this.G)).div(fv(this.L))
+    let sinTheta = PhysExpr.InvokeMath(Math.sin, [fv(this.Theta)])
+    let cosTheta = PhysExpr.InvokeMath(Math.cos, [fv(this.Theta)])
+
+    let inner = sinTheta.times(fv(this.G)).div(fv(this.L)) // G * sin(theta) / L
     let rhs = inner.plus((fv(this.C)).times(fv(this.Omega))) // inner + C * Omega
     let omegaE = fv(this.Omega).minus(rhs) // Omega - rhs
 
@@ -82,7 +89,17 @@ export class Pendulum implements PhysicsGroup {
     let thetaE = fv(this.Theta).plus(fv(this.Omega))
     ret.add([this.Theta, thetaE])
 
-    // TODO
+    let diffSqr = (l: Variable, r: Variable) => fv(l).minus(fv(r)).square() // (L - R)^2
+    let inside = diffSqr(this.X_BOB, this.X_PIVOT).plus(diffSqr(this.Y_BOB, this.Y_PIVOT))
+    let LE = PhysExpr.InvokeMath(Math.sqrt, [inside])
+
+    ret.add([this.L, LE])
+
+    let XE = sinTheta.times(fv(this.L)).plus(fv(this.X_PIVOT)) // X_PIVOT + L * sin(Theta)
+    let YE = cosTheta.times(fv(this.L)).plus(fv(this.Y_PIVOT)) // Y_PIVOT + L * cos(Theta)
+
+    ret.add([this.X_BOB, XE])
+    ret.add([this.Y_BOB, YE])
 
     return ret
   }
