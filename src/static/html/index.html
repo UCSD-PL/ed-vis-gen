@@ -3,6 +3,7 @@
   Demo Playground
 </title>
 <head>
+
     <!-- frontend script -->
     <script src="../frontend/fabric.js"></script>
 
@@ -33,6 +34,9 @@
   <div style = "float:left;">
     <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
+
+  <!-- backend script -->
+  <script src="../lib.js"></script>
 
     <div class="buttons">
       <button class="btn btn-default" onclick="addLine()">
@@ -71,10 +75,16 @@
       <button class="btn btn-default" onclick="animation0()" id="animation0">
         Trigger
       </button>
+
+      <!--loading-->
+      <button class="btn btn-default" onclick="BACKEND.drawFromFabric(fabricJSON)" id="drawFromFabric">
+        Drawing from Fabric
+      </button>
+
     </div>
 
     <script src="../frontend/fabrication.js"></script>
     <script src="../frontend/objects.js"></script>
-    <!-- backend script -->
-    <script src="../lib.js"></script>
+
+
 </html>

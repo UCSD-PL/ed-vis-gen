@@ -5,6 +5,7 @@ snap = 14, // pixels to snap
 state = [],
 mods = 0,
 snapColor = "red",
+fabricJSON,
 current = 0;
 
 var canvasWidth = document.getElementById('canvas').width;
@@ -55,6 +56,7 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
+        fabricJSON = JSON.parse(canvas);
         current += 1;
     }
 }

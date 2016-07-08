@@ -66,3 +66,6 @@ function testISynth() {
   console.log(synthd)
 
 }
+
+(window as any).BACKEND = {};
+(window as any).BACKEND.drawFromFabric = drawFromFabric
