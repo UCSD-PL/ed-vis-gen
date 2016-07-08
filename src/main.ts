@@ -31,6 +31,7 @@ export function refresh() {
 }
 
 export function drawFromFabric(object: fabricJSONObj) {
+  // console.log(object)
   initModel = buildModel(object)
   refresh()
 }

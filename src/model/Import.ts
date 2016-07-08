@@ -34,6 +34,8 @@ export type fabricJSONObj = {
 
 // given a json of shapes, build a model for the shapes
 export function buildModel(shapes: fabricJSONObj): Model {
+
+  // console.log()
   let retStore: State = State.empty()
   let objs = shapes.objects
   // two passes: first, normalize to eddie's position conventions

@@ -47,16 +47,18 @@ function updateLog() {
 canvas.on(
     'object:modified', function () {
     updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:added', function () {
     updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
 });
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
-        fabricJSON = JSON.parse(canvas);
+        fabricJSON = JSON.parse(myjson); //JSON.parse(canvas);
         current += 1;
     }
 }
