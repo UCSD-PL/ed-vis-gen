@@ -3,6 +3,9 @@
   Demo Playground
 </title>
 <head>
+    <!-- backend script -->
+    <script src="../lib.js"></script>
+    <script src="../../main.ts"></script>
     <!-- frontend script -->
     <script src="../frontend/fabric.js"></script>
 
@@ -71,10 +74,16 @@
       <button class="btn btn-default" onclick="animation0()" id="animation0">
         Trigger
       </button>
+
+      <!--loading-->
+      <button class="btn btn-default" onclick="drawFromFabric(fabricJSON)" id="drawFromFabric">
+        Drawing from Fabric
+      </button>
+
     </div>
 
     <script src="../frontend/fabrication.js"></script>
     <script src="../frontend/objects.js"></script>
-    <!-- backend script -->
-    <script src="../lib.js"></script>
+
+
 </html>

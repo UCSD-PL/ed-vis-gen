@@ -63,10 +63,9 @@ function EnterURL(){
   });}}
 
 
-//export to JSON
-function exportjson(){
-var json=JSON.stringify(canvas.toJSON());
-//$http.post('http://serverurl/',stringJson);
+function transmit() {
+  var fabricJSON = JSON.parse(canvas);
+  physics.loadFromJSON(fabricJSON);
 }
 
 
