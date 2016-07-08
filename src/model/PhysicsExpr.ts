@@ -3,7 +3,7 @@ import {Variable} from './Variable'
 
 export class PhysExpr {
   // helpers for construction
-  public add(r: PhysExpr) {
+  public plus(r: PhysExpr) {
     return new BinOpExpr(this, r, BOP.Plus)
   }
   public minus(r: PhysExpr) {
