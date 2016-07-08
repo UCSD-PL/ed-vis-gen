@@ -74,14 +74,15 @@ function transmit() {
 function animation0(){
   var activeObject = physics.getActiveObject()
   var heights0 = activeObject.getTop();
-  var drop0=document.getElementById('physics').height
-  var dis0= drop0- heights0 - activeObject.getHeight();
-  var dis="+=" + dis0.toString();
+  var drop0 = document.getElementById('physics').height
+  var dis0 = drop0 - heights0 - activeObject.getHeight();
+  var dis = "+=" + dis0.toString();
   activeObject.animate('top', dis, {
   duration: 1000,
   onChange: physics.renderAll.bind(physics),
 });
+}
 
-
+function updatePhysics() {
 
 }

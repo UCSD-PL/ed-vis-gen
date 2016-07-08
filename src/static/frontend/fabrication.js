@@ -52,7 +52,16 @@ canvas.on(
     'object:added', function () {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
-});
+},
+    'object:deselected', function() {
+    updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
+},
+    'mouse:out', function() {
+    updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
+}
+);
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
