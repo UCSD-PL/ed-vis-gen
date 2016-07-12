@@ -33,6 +33,10 @@ transfer = function transfer() {
     physics.renderAll();
 };
 
+function addInteractions() {
+
+}
+
 
 //Deletion
 function deleteObjects(){
