@@ -44,102 +44,130 @@ function updateLog() {
   canvas.counter++;
 }
 
-interact.forEachObject( function (obj) {
-  if (obj === dragPoint) {
-    interact.on('object:selected'), function() {
-      options.target.set({
-        fill: 'green'
-      });
-    }}
-});
-
+// adds in the candidate points on the interact canvas
 function candidatePoints() {
-  var dragPoint;
-  var group1 = new fabric.Group();
-  canvas.forEachObject( function (options) {
-    //interact.getObjects('rect')
-    if (options.target instanceof fabric.Rect) {
-      console.log("it's a rectangle!")
-      addDragPoints(options.target,
-        options.target.getHeight / 2 + options.target.getTop,
-        options.target.getWidth / 2 + options.target.getLeft);
-      addDragPoints(options.target,
-        options.target.getTop,
-        options.target.getLeft);
-      addDragPoints(options.target,
-        options.target.getHeight + options.target.getTop,
-        options.target.getWidth + options.target.getTop);
-      addDragPoints(options.target,
-        options.target.getTop,
-        options.target.getWidth / 2 + options.target.getLeft);
-      addDragPoints(options.target,
-        options.target.getHeight / 2 + options.target.getTop,
-        options.target.getLeft);
-      addDragPoints(options.target,
-        options.target.getHeight / 2 + options.target.getTop,
-        options.target.getWidth + options.target.getTop);
-      addDragPoints(options.target,
-        options.target.getHeight + options.target.getTop,
-        options.target.getWidth / 2 + options.target.getTop);
-    }
-    //interact.getObject('circle')
-    else if (options.target instanceof fabric.Circle) {
-      console.log("it's a circle!")
-      var radius = options.target.get('radius');
-      addDragPoints(options.target,
-        radius / 2 + options.target.getTop,
-        radius / 2 + options.target.getLeft);
-      addDragPoints(options.target,
-        options.target.getTop,
-        options.target.getLeft);
-      addDragPoints(options.target,
-        radius + options.target.getTop,
-        radius + options.target.getTop);
-      addDragPoints(options.target,
-        options.target.getTop,
-        radius / 2 + options.target.getLeft);
-      addDragPoints(options.target,
-        radius / 2 + options.target.getTop,
-        options.target.getLeft);
-      addDragPoints(options.target,
-        radius / 2 + options.target.getTop,
-        radius + options.target.getTop);
-      addDragPoints(options.target,
-        radius + options.target.getTop,
-        radius / 2 + options.target.getTop);
-    }
-  });
-
-  function addDragPoints(target, x, y) {
-      dragPoint = new fabric.Circle({
-        top: x,
-        left: y,
-        radius: 2,
-        fill: 'black',
-        selectable: false
-      });
-      group1.add(target.clone());
-      interact.add(dragPoint.clone());
-      group1.add(dragPoint.clone());
-  }
-
   interact.clear();
-  var justAddAFrigginCircle = new fabric.Circle({
-    left: 100,
-    top: 100,
-    fill: 'red',
-    radius: 2
+  var dragPoint;
+  canvas.forEachObject( function (obj) {
+
+    if (obj != null && obj instanceof fabric.Rect) {
+      obj.set({
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true
+      })
+      interact.add(obj);
+      console.log("it's a rectangle!");
+      var width = obj.getWidth();
+      var height =  obj.getHeight();
+      addDragPoints(
+        width/2 + obj.getLeft(),
+        height/2 + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        height + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        height/2  + obj.getTop());
+      addDragPoints(
+        width/2 + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        height + obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        height/2 + obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        width / 2 + obj.getLeft(),
+        height + obj.getTop());
+    }
+    if (obj != null && obj instanceof fabric.Circle) {
+      obj.set({
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true
+      })
+      interact.add(obj);
+      console.log("it's a circle!");
+      var radiusX = obj.getRadiusX();
+      var radiusY =  obj.getRadiusY();
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        radiusY + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        radiusY*2 + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        radiusY  + obj.getTop());
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        radiusY*2 + obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        radiusY + obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        radiusY*2 + obj.getTop());
+    }
   });
 
-  group1.add(justAddAFrigginCircle);
-  interact.add(group1);
-  interact.renderAll();
-  canvas.clear();
-  canvas.add(group1);
+  function addDragPoints(x, y) {
+      dragPoint = new fabric.Circle({
+        name: 'dragPoint',
+        top: y,
+        left: x,
+        originX: 'center',
+        originY: 'center',
+        radius: 4,
+        fill: 'black',
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        lockScalingX: true,
+        lockMovementY: true,
+        lockRotation: true
+      });
 
+      interact.add(dragPoint);
+      dragPoint.on('selected', function() {
+        console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
+        if (this.get('fill') == 'black') {
+          this.set({
+            fill: 'orange'
+          });
+        }
+        else {
+          this.set({
+            fill: 'black'
+          });
+        }}); }
+  interact.renderAll();
   //myjson = JSON.stringify(canvas);
 }
-/*
+
 canvas.on(
     'object:modified', function () {
     updateModifications(true);
@@ -157,7 +185,7 @@ canvas.on(
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
 }
-);*/
+);
 
 function updateModifications(savehistory) {
     if (savehistory === true) {

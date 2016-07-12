@@ -11,8 +11,16 @@ function buildModel(shapes) {
     objs.forEach(s => {
         if (s.type == 'circle') {
             let newS = s;
-            newS.left = newS.left + newS.radius;
-            newS.top = newS.top + newS.radius;
+            newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY);
+            newS.left += newS.radius;
+            newS.top += newS.radius;
+        }
+        else if (s.type == 'rect') {
+            let newS = s;
+            newS.width *= newS.scaleX / 2; // fabric stores widths in the scale matrix, eddie dx = width/2
+            newS.left += newS.width;
+            newS.height *= newS.scaleY / 2;
+            newS.top += newS.height;
         }
     });
     // next, allocate variables and shapes for each input object
@@ -38,7 +46,7 @@ function buildModel(shapes) {
             console.log(s);
             assert(false);
         }
-        retStore = retStore.addShape(shape);
+        retStore = retStore.addShape(shape, false);
     });
     return new Model_1.Model(retStore);
 }
