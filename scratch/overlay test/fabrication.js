@@ -1,5 +1,6 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
+
 counter = 0,
 snap = 14, // pixels to snap
 state = [],

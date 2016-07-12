@@ -8,7 +8,7 @@ function addLine(){
 //Add triangle
 function addTriangle(){
   var triangle0 = new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true});
-  canvas.add(triangle0);
+  interact.add(triangle0);
   updateLog();
 }
 
@@ -31,6 +31,15 @@ transfer = function transfer() {
     current = state.length - mods - 1;
     physics.loadFromJSON(state[current]);
     physics.renderAll();
+};
+
+
+overlay0 = function overlay() {
+    interact.clear().renderAll();
+    current = state.length - mods - 1;
+    interact.loadFromJSON(state[current]);
+    interact.renderAll();
+    console.log('the overlay function is being called!');
 };
 
 

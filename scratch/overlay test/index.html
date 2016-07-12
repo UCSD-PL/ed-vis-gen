@@ -22,15 +22,54 @@
 
   }
 
+  body {
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+}
+
+.overlay {
+    height: 0%;
+    width: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: rgb(0,0,0);
+    background-color: #ffffff;
+    overflow-y: hidden;
+    transition: 0.5s;
+}
+
+.overlay-content {
+    position: relative;
+    top: 25%;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+}
+
+
+
+
+
+.closebtn {
+    position: absolute;
+    top: 20px;
+    right: 45px;
+    font-size: 60px !important;
+}
+
+@media screen and (max-height: 450px) {
+  .overlay {overflow-y: auto;}
+  .closebtn {
+    font-size: 40px !important;
+    top: 15px;
+    right: 35px;
+  }
+}
+
 </style>
 
-<!-- Overlay -->
-<div>
-  <link rel="shortcut icon" href="../favicon.ico">
-  <link rel="stylesheet" type="text/css" href="css/demo.css" />
-  <link rel="stylesheet" type="text/css" href="css/style1.css" />
-  <script src="js/modernizr.custom.js"></script>
-</div>
 
 <body>
   <h1>
@@ -83,22 +122,62 @@
       </button>
 
       <!--overlay-->
-      <button class="btn btn-default" type="button" id="trigger-overlay">
+      <button class="btn btn-default" type="button" onclick = "open0()" id="trigger-overlay">
         Open Overlay
       </button>
+      </div>
       <!-- open/close -->
-<div class="overlay overlay-hugeinc">
-  <button type="button" class="overlay-close">Close</button>
-  <nav>
-    <ul>
-      <canvas id="myCanvas" width="800" height="600" style="border:3px solid #000000;">
-      Your browser does not support the HTML5 canvas tag.
-    </canvas>
-    </ul>
-  </nav>
-</div>
-<script src="js/classie.js"></script>
-<script src="js/demo1.js"></script>
-    </div>
+      <div id="myNav" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+        <button class="btn btn-default" type='button' onclick="addRec()">Add!</button>
+        <button class="btn btn-default" type = 'button' onclick = "transfer0()" value="transfer0" id="transfer0">
+          load!
+        </button>
+       <div class="overlay-content">
+         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
+
+        </div>
+      </div>
+
+      <script>
+      function open0() {
+        document.getElementById("myNav").style.height = "100%";
+      }
+
+      function close0() {
+        document.getElementById("myNav").style.height = "0%";
+      }
+
+      // create a wrapper around native canvas element (with id="interact")
+      var interact = new fabric.Canvas('interact');
+
+      // create a rectangle object
+      function addRec(){
+      var rect = new fabric.Rect({
+        left: 100,
+        top: 100,
+        fill: 'red',
+        width: 20,
+        height: 20
+      });
+
+      // "add" rectangle onto canvas
+      interact.add(rect);}
+
+
+      transfer0 = function transfer0() {
+          interact.clear().renderAll();
+          current = state.length - mods - 1;
+          interact.loadFromJSON(state[current]);
+          interact.renderAll();
+      };
+
+
+      </script>
+
+
+
+
+
 
 </html>
