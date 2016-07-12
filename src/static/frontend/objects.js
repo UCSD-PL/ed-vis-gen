@@ -33,11 +33,6 @@ transfer = function transfer() {
     physics.renderAll();
 };
 
-function addInteractions() {
-
-}
-
-
 //Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
@@ -53,6 +48,7 @@ function deleteObjects(){
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
+
 //Drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
@@ -85,8 +81,4 @@ function animation0(){
   duration: 1000,
   onChange: physics.renderAll.bind(physics),
 });
-}
-
-function updatePhysics() {
-
 }

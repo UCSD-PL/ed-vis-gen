@@ -1,17 +1,21 @@
 <html>
+
 <title>
   Demo Playground
 </title>
+
 <head>
 
     <!-- frontend script -->
     <script src="../frontend/fabric.js"></script>
 
-
 </head>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Style -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
 <style>
   h1{
     text-align:center;
@@ -20,12 +24,53 @@
   .buttons{
     float: left;
   }
-
+  body {
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+  }
+  .overlay {
+      height: 0%;
+      width: 100%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: rgb(0,0,0);
+      background-color: #ffffff;
+      overflow-y: hidden;
+      transition: 0.5s;
+  }
+  .overlay-content {
+      position: relative;
+      top: 25%;
+      width: 100%;
+      text-align: center;
+      margin-top: 30px;
+  }
+  .closebtn {
+      position: absolute;
+      top: 20px;
+      right: 45px;
+      font-size: 60px !important;
+  }
+  @media screen and (max-height: 450px) {
+    .overlay {overflow-y: auto;}
+    .closebtn {
+      font-size: 40px !important;
+      top: 15px;
+      right: 35px;
+    }
+}
 </style>
+
 <body>
+
+
   <h1>
     EDDIE PLAYGROUND
   </h1>
+
+  <!--our canvases-->
   <div id="draw" style ="float:left;">
     <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
@@ -33,10 +78,12 @@
     <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
 
-  <!-- backend script -->
-  <script src="../lib.js"></script>
+    <script src="fabrication.js"></script>
+
+    <script src="objects.js"></script>
 
     <div class="buttons">
+
       <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
       <button class="btn btn-default" onclick="addTriangle()">
@@ -50,10 +97,9 @@
       <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
       <i class="fa fa-paint-brush"></i></button>
 
-        <!--delete button-->
+      <!--delete button-->
       <button class="btn btn-default" onclick="deleteObjects()" id="delete">
       <i class="fa fa-trash"></i></button>
-
 
       <!--undo & redo-->
       <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
@@ -71,42 +117,44 @@
 
       <!--animation-->
       <button class="btn btn-default" onclick="animation0()" id="animation0">
-        Trigger
+        Trigger </button>
+
+      <!--overlay-->
+      <button class="btn btn-default" type="button" onclick = "open0(); candidatePoints()" id="trigger-overlay">
+        Open Overlay
       </button>
 
-      <!--loading-->
-      <button class="btn btn-default" onclick="BACKEND.drawFromFabric(fabricJSON)" id="drawFromFabric">
-        Drawing from Fabric
-      </button>
+      </div>
 
-      <!--add interactions-->
-      <button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal" onclick="candidatePoints()" id="addInteractions">
-        Add Interactions
-      </button>
+      <!-- open/close -->
+      <div id="myNav" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
 
-      <!--overlay with interactions-->
-      <div class = "modal fade" id = "myModal" tabindex="-1" role="dialog" aria-labelledby = "myModalLabel">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title"> Typing things typing things </h4>
-              </div>
-              <div class="modal-body">
-              </div>
-              <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                  <button type="button" class="btn btn-primary">Save changes</button>
-              </div>
-            </div>
-          </div>
-    </div>
+      <div class="overlay-content">
+         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
+      </div>
 
-    <div style = "float:center;">
-      <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
-    </div>
+      </div>
 
-    <script src="../frontend/fabrication.js"></script>
-    <script src="../frontend/objects.js"></script>
+      <!--more frontend scripts-->
+      <script src="../frontend/fabrication.js"></script>
+      <script src="../frontend/objects.js"></script>
+
+      <!-- backend script -->
+      <script src="../lib.js"></script>
+
+      <!-- opening and closing scripts -->
+      <script>
+
+      function open0() {
+        document.getElementById("myNav").style.height = "100%";
+      }
+
+      function close0() {
+        document.getElementById("myNav").style.height = "0%";
+      }
+
+      </script>
 
 
 </html>

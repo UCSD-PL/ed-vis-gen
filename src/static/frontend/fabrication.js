@@ -51,14 +51,15 @@ function candidatePoints() {
   canvas.forEachObject( function (obj) {
 
     if (obj != null && obj instanceof fabric.Rect) {
-      obj.set({
+      var clone = obj.clone();
+      clone.set({
         hasBorders: false,
         hasControls: false,
         selection: false,
         lockMovementX: true,
         lockMovementY: true
       })
-      interact.add(obj);
+      interact.add(clone);
       console.log("it's a rectangle!");
       var width = obj.getWidth();
       var height =  obj.getHeight();
@@ -91,14 +92,15 @@ function candidatePoints() {
         height + obj.getTop());
     }
     if (obj != null && obj instanceof fabric.Circle) {
-      obj.set({
+      var clone = obj.clone();
+      clone.set({
         hasBorders: false,
         hasControls: false,
         selection: false,
         lockMovementX: true,
         lockMovementY: true
       })
-      interact.add(obj);
+      interact.add(clone);
       console.log("it's a circle!");
       var radiusX = obj.getRadiusX();
       var radiusY =  obj.getRadiusY();
