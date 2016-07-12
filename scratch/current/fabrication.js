@@ -30,7 +30,7 @@ function resizeCanvas () {
 
 function resizePhysicsPanel () {
  physics.setHeight(window.innerHeight*0.7);
- physics.setWidth(window.innerWidth*1.35/3);
+ physics.setWidth(window.innerWidth*(1-1.55/3));
  physics.renderAll();
 }
 
