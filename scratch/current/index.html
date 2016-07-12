@@ -15,11 +15,13 @@
     font-family: monospace;
 
   }
-  .buttons{
+  .leftbuttons{
     float: left;
 
   }
-
+  .rightbuttons{
+    float:right;
+  }
 </style>
 <body>
   <h1>
@@ -33,7 +35,7 @@
   </div>
     <script src="fabrication.js"></script>
     <script src="objects.js"></script>
-    <div class="buttons">
+    <div class="leftbuttons">
       <button class="btn btn-default" onclick="addLine()">
         <i class="fa fa-minus"></i></button>
       <button class="btn btn-default" onclick="addTriangle()">
@@ -47,10 +49,9 @@
       <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
       <i class="fa fa-paint-brush"></i></button>
 
-        <!--delete button-->
+      <!--delete button-->
       <button class="btn btn-default" onclick="deleteObjects()" id="delete">
       <i class="fa fa-trash"></i></button>
-
 
       <!--undo & redo-->
       <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
@@ -65,11 +66,15 @@
       <!--load json-->
       <button class="btn btn-default" value="transfer" onclick="transfer()" id="transfer">
       <i class="fa fa-share-square"></i></button>
-
-      <!--animation-->
-      <button class="btn btn-default" onclick="animation0()" id="animation0">
-        Trigger
-      </button>
     </div>
+
+    <!--buttons-->
+    <div class="rightbuttons">
+      <button class="btn btn-default" onclick="">Start</button>
+      <button class="btn btn-default" onclick="">Stop</button>
+      <button class="btn btn-default" onclick="">Reset</button>
+    </div>
+    
+
 
 </html>
