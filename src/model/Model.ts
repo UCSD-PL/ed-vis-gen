@@ -3,7 +3,8 @@ import S = require('./Shapes')
 import {assert, copy, add, filter, DEBUG, exists, Point} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import Cass = require('cassowary')
-
+import {Timer} from '../util/Timer'
+import {Integrator, PhysicsGroup} from './Physics'
 
 // immutable program
 // we expect to rarely add/remove shapes and other program elements
@@ -208,15 +209,57 @@ export class Store {
   }
 }
 
+// physics engine. can be started, stopped, and reset.
+export class PhysicsEngine {
+  private runner: Timer
+  private initValues: Map<Variable, number>
+  constructor(public decls: Integrator, public freeVars: Set<Variable>,
+    public values: Store, renderer: () => void) {
+    // public freq:number,
+    // public work: (n: number) => void,
+    this.initValues = copy(values.eval())
+
+    let freq = 20
+
+    let work = (n: number) => {
+      let newVals = this.decls.eval(this.values.eval())
+      this.values.suggestEdits(newVals, this.freeVars)
+      renderer()
+    }
+
+    let done = () => {
+      this.values.suggestEdits(this.initValues, new Set<Variable>(this.initValues.keys()))
+    }
+
+    this.runner = new Timer(freq, work, done)
+  }
+
+  public start() {
+    this.runner.start()
+  }
+  public stop() {
+    this.runner.stop()
+  }
+  public reset() {
+    this.runner.reset()
+  }
+
+  public static empty() {
+    return new PhysicsEngine(Integrator.empty(), new Set<Variable>(), new Store(), () => {})
+  }
+}
+
 // package up a program and store
 export class State {
 
   // TODO: convert dragged to option
   constructor(public prog: Program, public store: Store,
-              public dragging: boolean, public draggedPoint: S.DragPoint){}
+              public dragging: boolean, public draggedPoint: S.DragPoint,
+              public physicsEngine: PhysicsEngine
+  ){}
 
   public static empty(): State {
-    return new State( Program.empty(), new Store(), false, null)
+    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty())
   }
 
   // delegate to member instances
@@ -346,10 +389,30 @@ export class State {
 
 
 
-    return new State(newProg, this.store, this.dragging, this.draggedPoint)
+    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine)
   }
   public addFrees(p: S.DragPoint, fvs: Set<Variable>): State {
-    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint)
+    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine)
+  }
+
+  public addPhysDecls(decls: Integrator, freeVals: Set<Variable>, renderer: () => void) {
+    this.physicsEngine = new PhysicsEngine(decls, freeVals, this.store, renderer)
+    return this
+  }
+
+  public addPhysGroup(group: PhysicsGroup, renderer: () => void) {
+    this.physicsEngine = new PhysicsEngine(group.instantiate(), group.frees(), this.store, renderer)
+    return this
+  }
+
+  public start() {
+    this.physicsEngine.start()
+  }
+  public stop() {
+    this.physicsEngine.stop()
+  }
+  public reset() {
+    this.physicsEngine.reset()
   }
 
   public eval() : Map<Variable, number> {

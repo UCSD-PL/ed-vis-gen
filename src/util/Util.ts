@@ -167,6 +167,8 @@ export function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: num
 }
 
 export type Tup<L, R> = [L, R]
+export type Tup3<I> = [I, I, I]
+export type Tup4<I> = [I, I, I, I]
 
 export function assert(e: any, message?: string) {
   if (!e) {

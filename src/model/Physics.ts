@@ -5,6 +5,7 @@ import {Tup, mapValues, extendMap} from '../util/Util'
 export class Integrator {
   private vals: Map<Variable, PhysExpr>
   public constructor(seeds: Iterable<Tup<Variable, PhysExpr>>){
+    this.vals = new Map<Variable, PhysExpr>()
     for (let entry of seeds)
       this.add(entry)
   }
@@ -72,7 +73,7 @@ export class Pendulum implements PhysicsGroup {
   public instantiate() {
 
     this.validate()
-    
+
     let ret = Integrator.empty()
 
     let fv = (v: Variable) => new VarExpr(v)

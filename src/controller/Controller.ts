@@ -110,7 +110,7 @@ export class DragController {
     let mouseEvents = ["mousedown", "mouseup", "mousemove"]
     mainCanv.addEventListener("mousedown", e => this.handleLeftClick(e))
     mainCanv.addEventListener("mousemove", e => this.handleMove(e))
-    mainCanv.addEventListener("mouseup", e => this.handleRightClick(e))
+    mainCanv.addEventListener("mouseup", e => this.handleRelease(e))
 
     mainCanv.style.cursor = 'default';
   }
@@ -137,6 +137,8 @@ export class DragController {
         // console.log(this.m.main.prog.allFrees.get(d))
         this.m.main.draggedPoint = d
         this.m.main.dragging = true
+
+        this.m.main.stop()
         break
       }
     }
@@ -158,13 +160,15 @@ export class DragController {
     }
   }
 
-  private handleRightClick(e: MouseEvent) {
+  private handleRelease(e: MouseEvent) {
     let p = this.convertEvent(e)
     // release!
     if (this.m.main.dragging) {
       // just state change
       this.m.main.draggedPoint = null // TODO: option monad
       this.m.main.dragging = false
+
+      this.m.main.start()
     }
   }
 
