@@ -1,10 +1,9 @@
 // AST and big-step evaluator for physics terms
 import {Variable} from './Variable'
 
-
 export class PhysExpr {
   // helpers for construction
-  public add(r: PhysExpr) {
+  public plus(r: PhysExpr) {
     return new BinOpExpr(this, r, BOP.Plus)
   }
   public minus(r: PhysExpr) {
@@ -25,6 +24,10 @@ export class PhysExpr {
   public static InvokeMath(f:Function, args: PhysExpr[]) {
     let name = f.name
     return new FunAppExpr(name, args) // defer math check to runtime
+  }
+
+  public square(): FunAppExpr {
+    return PhysExpr.InvokeMath(Math.pow, [this, new ConstExpr(2)])
   }
 }
 // constants

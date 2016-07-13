@@ -113,6 +113,13 @@ export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
 export function extend<K, V>(vals: Map<K, V>, [k, v]: Tup<K, V>): Map<K, V> {
   return copy(vals).set(k, v)
 }
+// extend a map by entries in another map
+export function extendMap<K, V>(lhs: Map<K, V>, rhs: Map<K, V>): Map<K, V> {
+  let ret = copy(lhs)
+  for (let [k, v] of rhs)
+    ret.set(k, v)
+  return ret
+}
 
 // map a function over a map
 export function mapValues<K, A, R>(vals: Map<K, A>, f: (a: A) => R): Map<K, R> {
@@ -160,6 +167,8 @@ export function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: num
 }
 
 export type Tup<L, R> = [L, R]
+export type Tup3<I> = [I, I, I]
+export type Tup4<I> = [I, I, I, I]
 
 export function assert(e: any, message?: string) {
   if (!e) {
