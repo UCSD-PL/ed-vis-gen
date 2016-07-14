@@ -34,7 +34,7 @@ type fabricLine = {
 }
 
 export type fabricJSONObj = {
-  objects: (fabricCircle | fabricRect | fabricLine )[] // I think this is what we're probably going to end up using the most so far?
+  objects: (fabricCircle | fabricRect | fabricLine )[]
 }
 
 

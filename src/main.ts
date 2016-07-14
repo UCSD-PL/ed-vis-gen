@@ -93,9 +93,13 @@ function testPendulum() {
                   .addShape(dragPoint, false).addFrees(dragPoint, frees)
   initModel = new Model(newS)
   refresh()
-  newS.start()
+  // newS.start()
 }
+// testPendulum();
 
-(window as any).BACKEND = {};
-(window as any).BACKEND.drawFromFabric = drawFromFabric
-// testPendulum()
+(window as any).BACKEND = {}
+export var backendExport: any = (window as any).BACKEND
+backendExport.drawFromFabric = drawFromFabric
+backendExport.startPhysics = () => initModel.main.start()
+backendExport.stopPhysics = () => initModel.main.stop()
+backendExport.resetPhysics = () => initModel.main.reset()

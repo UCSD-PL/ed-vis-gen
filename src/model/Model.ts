@@ -229,6 +229,7 @@ export class PhysicsEngine {
 
     let done = () => {
       this.values.suggestEdits(this.initValues, new Set<Variable>(this.initValues.keys()))
+      renderer()
     }
 
     this.runner = new Timer(freq, work, done)
