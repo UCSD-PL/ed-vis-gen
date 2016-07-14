@@ -1,7 +1,7 @@
 "use strict";
 class PhysExpr {
     // helpers for construction
-    add(r) {
+    plus(r) {
         return new BinOpExpr(this, r, BOP.Plus);
     }
     minus(r) {
@@ -22,6 +22,9 @@ class PhysExpr {
     static InvokeMath(f, args) {
         let name = f.name;
         return new FunAppExpr(name, args); // defer math check to runtime
+    }
+    square() {
+        return PhysExpr.InvokeMath(Math.pow, [this, new ConstExpr(2)]);
     }
 }
 exports.PhysExpr = PhysExpr;
