@@ -31,6 +31,29 @@ transfer = function transfer() {
     current = state.length - mods - 1;
     physics.loadFromJSON(state[current]);
     physics.renderAll();
+
+    //save the JSON of canvas
+    var canvasJSON = canvas.toJSON();
+
+
+    var grouped = canvas.getActiveGroup().toJSON()['objects'];
+    var activeGroup = canvas.getActiveGroup();
+    var objectsInGroup = activeGroup.getObjects();
+    canvas.discardActiveGroup();
+
+    objectsInGroup.forEach(function(object) {
+		    canvas.remove(object);
+    });
+    var objects = canvas.toObject()['objects'];
+  //******  console.log(activeGroup.toJSON()['objects'])
+    var exported = {'groups': grouped, 'shapes' : objects}
+
+    objectsInGroup.forEach(function(object) {
+		    canvas.add(object);
+    });
+
+    console.log(exported);
+
 };
 
 
