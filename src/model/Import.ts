@@ -33,8 +33,22 @@ type fabricLine = {
   fill: string
 }
 
+export type fabricObject = fabricCircle | fabricRect | fabricLine
+
+type pendulumGroup = {
+  pivot: fabricCircle,
+  rod: fabricLine,
+  bob: fabricCircle
+}
+
+export type fabricPhysicsGroup = {
+  type: string, // for now, 'pendulum'
+  args: pendulumGroup
+}
+
 export type fabricJSONObj = {
-  objects: (fabricCircle | fabricRect | fabricLine )[]
+  objects: fabricObject[],
+  physicsGroups: fabricPhysicsGroup[]
 }
 
 
