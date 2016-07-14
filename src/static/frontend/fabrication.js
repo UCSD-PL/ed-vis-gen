@@ -5,12 +5,15 @@ counter = 0,
 snap = 14, // pixels to snap
 state = [],
 mods = 0,
+selectedObj = [],
 selectedX = [], // array with y-coords of drag points on canvas
-selectedY = [], // array with y-coords of drag points on canvas
+selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // lists of drag points
 snapColor = "red",
 fabricJSON,
 current = 0;
+
+// I_NEED_SOMETHING_LIKE_THIS = [ [dragpoint, [x, y], obj], [dragpoint, [x, y], obj] ]
 
 var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
@@ -66,35 +69,33 @@ function candidatePoints() {
       });
       interact.add(clone);
       console.log("it's a rectangle!");
-      var width = obj.getWidth();
-      var height =  obj.getHeight();
       addDragPoints(obj,
-        width/2 + obj.getLeft(),
-        height/2 + obj.getTop());
+        obj.getWidth()/2 + obj.getLeft(),
+        obj.getHeight()/2 + obj.getTop());
       addDragPoints(obj,
         obj.getLeft(),
         obj.getTop());
       addDragPoints(obj,
-        width + obj.getLeft(),
-        height + obj.getTop());
+        obj.getWidth() + obj.getLeft(),
+        obj.getHeight() + obj.getTop());
       addDragPoints(obj,
         obj.getLeft(),
-        height/2  + obj.getTop());
+        obj.getHeight()/2  + obj.getTop());
       addDragPoints(obj,
-        width/2 + obj.getLeft(),
+        obj.getWidth()/2 + obj.getLeft(),
         obj.getTop());
       addDragPoints(obj,
         obj.getLeft(),
-        height + obj.getTop());
+        obj.getHeight() + obj.getTop());
       addDragPoints(obj,
-        width + obj.getLeft(),
-        height/2 + obj.getTop());
+        obj.getWidth() + obj.getLeft(),
+        obj.getHeight()/2 + obj.getTop());
       addDragPoints(obj,
-        width + obj.getLeft(),
+        obj.getWidth() + obj.getLeft(),
         obj.getTop());
       addDragPoints(obj,
-        width / 2 + obj.getLeft(),
-        height + obj.getTop());
+        obj.getWidth() / 2 + obj.getLeft(),
+        obj.getHeight() + obj.getTop());
     }
     if (obj != null && obj instanceof fabric.Circle) {
       var clone = obj.clone();
@@ -165,8 +166,8 @@ function candidatePoints() {
           this.set({
             fill: 'orange'
           });
-          selectedX.push(obj);
-          selectedY.push(obj);
+          selectedX.push([x]);
+          selectedY.push([y]);
         }
 
         else {
@@ -175,11 +176,11 @@ function candidatePoints() {
           });
 
           function checkX (locations) {
-            return locations === dragPoint.getLeft();
+            return locations === [x];
           }
 
           function checkY (locations) {
-            return locations === dragPoint.getTop();
+            return locations === [y];
           }
 
           whereX = selectedX.findIndex(checkX);
@@ -188,8 +189,7 @@ function candidatePoints() {
           selectedX.splice(whereX, 1);
           selectedY.splice(whereY, 1);
         }});
-      }
-}
+      }}
 
 function onOverlayClosed(){
   console.log("selectedX");
@@ -197,8 +197,8 @@ function onOverlayClosed(){
   for (var i = 0; i < selectedX.length; i++) {
       console.log("the drag point should have been added!");
       var canvasDragPoint = new fabric.Circle({
-        left: selectedX[i].getLeft(),
-        top: selectedY[i].getTop(),
+        left: selectedX[i][0],
+        top: selectedY[i][0],
         originX: 'center',
         originY: 'center',
         hasBorders: true,
@@ -219,9 +219,10 @@ function onOverlayClosed(){
 function keepDragPointsMoving() {
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been moved!");
+      console.log(selectedX[i]);
       dragPointList[i].set({
-        left: selectedX[i].getLeft(),
-        top: selectedY[i].getTop()
+        left: selectedX[i][0],
+        top: selectedY[i][0]
       });
   }
 }
@@ -303,24 +304,26 @@ canvas.on('object:moving', function (options) {
 	options.target.setCoords();
 
 	// Don't allow objects off the canvas
-	if(options.target.getLeft() < snap) {
+	if (options.target.getLeft() < snap) {
 		options.target.setLeft(0);
 	}
 
-	if(options.target.getTop() < snap) {
+	if (options.target.getTop() < snap) {
 		options.target.setTop(0);
 	}
 
-	if((options.target.getWidth() + options.target.getLeft()) > (canvasWidth - snap)) {
+	if ((options.target.getWidth() + options.target.getLeft()) > (canvasWidth - snap)) {
 		options.target.setLeft(canvasWidth - options.target.getWidth());
 	}
 
-	if((options.target.getHeight() + options.target.getTop()) > (canvasHeight - snap)) {
+	if ((options.target.getHeight() + options.target.getTop()) > (canvasHeight - snap)) {
 		options.target.setTop(canvasHeight - options.target.getHeight());
 	}
 
 	// Loop through objects
 	canvas.forEachObject(function (obj) {
+    // makes sure drag points don't get in the way
+    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
 
 		if (obj === options.target) return;
 
@@ -442,6 +445,9 @@ canvas.on('object:moving', function (options) {
 	outerAreaBottom = null;
 
 	canvas.forEachObject(function (obj) {
+
+    // makes sure drag points doesn't get in the way
+    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
 
 		if (obj === options.target) return;
 
