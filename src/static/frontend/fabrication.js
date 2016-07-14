@@ -1,5 +1,6 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
+interact = new fabric.Canvas('interact'), // overlay-side panel
 counter = 0,
 snap = 14, // pixels to snap
 state = [],
@@ -31,17 +32,142 @@ function resizeCanvas () {
 
 function resizePhysicsPanel () {
  physics.setHeight(window.innerHeight*0.7);
- physics.setWidth(window.innerWidth*1.35/3);
+ physics.setWidth(window.innerWidth*(1-1.55/3));
  physics.renderAll();
 }
 
 resizeCanvas();
 resizePhysicsPanel();
 
-
 function updateLog() {
   updateModifications(true);
   canvas.counter++;
+}
+
+// adds in the candidate points on the interact canvas
+function candidatePoints() {
+  interact.clear();
+  var dragPoint;
+  canvas.forEachObject( function (obj) {
+
+    if (obj != null && obj instanceof fabric.Rect) {
+      var clone = obj.clone();
+      clone.set({
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true
+      })
+      interact.add(clone);
+      console.log("it's a rectangle!");
+      var width = obj.getWidth();
+      var height =  obj.getHeight();
+      addDragPoints(
+        width/2 + obj.getLeft(),
+        height/2 + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        height + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        height/2  + obj.getTop());
+      addDragPoints(
+        width/2 + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        height + obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        height/2 + obj.getTop());
+      addDragPoints(
+        width + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        width / 2 + obj.getLeft(),
+        height + obj.getTop());
+    }
+    if (obj != null && obj instanceof fabric.Circle) {
+      var clone = obj.clone();
+      clone.set({
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true
+      })
+      interact.add(clone);
+      console.log("it's a circle!");
+      var radiusX = obj.getRadiusX();
+      var radiusY =  obj.getRadiusY();
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        radiusY + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        radiusY*2 + obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        radiusY  + obj.getTop());
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        obj.getLeft(),
+        radiusY*2 + obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        radiusY + obj.getTop());
+      addDragPoints(
+        radiusX*2 + obj.getLeft(),
+        obj.getTop());
+      addDragPoints(
+        radiusX + obj.getLeft(),
+        radiusY*2 + obj.getTop());
+    }
+  });
+
+  function addDragPoints(x, y) {
+      dragPoint = new fabric.Circle({
+        name: 'dragPoint',
+        top: y,
+        left: x,
+        originX: 'center',
+        originY: 'center',
+        radius: 4,
+        fill: 'black',
+        hasBorders: false,
+        hasControls: false,
+        selection: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        lockScalingX: true,
+        lockMovementY: true,
+        lockRotation: true
+      });
+
+      interact.add(dragPoint);
+      dragPoint.on('selected', function() {
+        console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
+        if (this.get('fill') == 'black') {
+          this.set({
+            fill: 'orange'
+          });
+        }
+        else {
+          this.set({
+            fill: 'black'
+          });
+        }}); }
+  interact.renderAll();
+  //myjson = JSON.stringify(canvas);
 }
 
 canvas.on(
@@ -52,7 +178,16 @@ canvas.on(
     'object:added', function () {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
-});
+},
+    'object:deselected', function() {
+    updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
+},
+    'mouse:out', function() {
+    updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
+}
+);
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
@@ -107,6 +242,7 @@ function findNewPos(distX, distY, target, obj) {
 }
 
 canvas.on('object:moving', function (options) {
+
 	// Sets corner position coordinates based on current angle, width and height
 	options.target.setCoords();
 
@@ -129,6 +265,7 @@ canvas.on('object:moving', function (options) {
 
 	// Loop through objects
 	canvas.forEachObject(function (obj) {
+
 		if (obj === options.target) return;
 
 		// If objects intersect
@@ -249,6 +386,7 @@ canvas.on('object:moving', function (options) {
 	outerAreaBottom = null;
 
 	canvas.forEachObject(function (obj) {
+
 		if (obj === options.target) return;
 
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {

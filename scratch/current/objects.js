@@ -61,28 +61,3 @@ function EnterURL(){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
   });}}
-
-
-//export to JSON
-function exportjson(){
-var json=JSON.stringify(canvas.toJSON());
-//$http.post('http://serverurl/',stringJson);
-}
-
-
-//animation
-
-function animation0(){
-  var activeObject = physics.getActiveObject()
-  var heights0 = activeObject.getTop();
-  var drop0=document.getElementById('physics').height
-  var dis0= drop0- heights0 - activeObject.getHeight();
-  var dis="+=" + dis0.toString();
-  activeObject.animate('top', dis, {
-  duration: 1000,
-  onChange: physics.renderAll.bind(physics),
-});
-
-
-
-}

@@ -8,7 +8,7 @@ function addLine(){
 //Add triangle
 function addTriangle(){
   var triangle0 = new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true});
-  canvas.add(triangle0);
+  interact.add(triangle0);
   updateLog();
 }
 
@@ -33,6 +33,16 @@ transfer = function transfer() {
     physics.renderAll();
 };
 
+
+overlay0 = function overlay() {
+    interact.clear().renderAll();
+    current = state.length - mods - 1;
+    interact.loadFromJSON(state[current]);
+    interact.renderAll();
+    console.log('the overlay function is being called!');
+};
+
+
 //Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
@@ -48,7 +58,6 @@ function deleteObjects(){
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
-
 //Drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
@@ -63,9 +72,10 @@ function EnterURL(){
   });}}
 
 
-function transmit() {
-  var fabricJSON = JSON.parse(canvas);
-  physics.loadFromJSON(fabricJSON);
+//export to JSON
+function exportjson(){
+var json=JSON.stringify(canvas.toJSON());
+//$http.post('http://serverurl/',stringJson);
 }
 
 
@@ -74,11 +84,14 @@ function transmit() {
 function animation0(){
   var activeObject = physics.getActiveObject()
   var heights0 = activeObject.getTop();
-  var drop0 = document.getElementById('physics').height
-  var dis0 = drop0 - heights0 - activeObject.getHeight();
-  var dis = "+=" + dis0.toString();
+  var drop0=document.getElementById('physics').height
+  var dis0= drop0- heights0 - activeObject.getHeight();
+  var dis="+=" + dis0.toString();
   activeObject.animate('top', dis, {
   duration: 1000,
   onChange: physics.renderAll.bind(physics),
 });
+
+
+
 }
