@@ -1,6 +1,7 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
 counter = 0,
+snapping = 'on',
 snap = 14, // pixels to snap
 state = [],
 mods = 0,
@@ -127,6 +128,8 @@ canvas.on('object:moving', function (options) {
 	canvas.forEachObject(function (obj) {
 		if (obj === options.target) return;
 
+    if (snapping === 'off') return;
+
 		// If objects intersect
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
 
@@ -246,6 +249,8 @@ canvas.on('object:moving', function (options) {
 
 	canvas.forEachObject(function (obj) {
 		if (obj === options.target) return;
+
+    if (obj === "off") return;
 
 		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
 
