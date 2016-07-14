@@ -33,7 +33,7 @@ export function refresh() {
 
 export function drawFromFabric(object: fabricJSONObj) {
   // console.log(object)
-  initModel = buildModel(object)
+  initModel = buildModel(object, refresh)
   refresh()
 }
 
@@ -92,7 +92,7 @@ function testPendulum() {
                   .addShape(lever, false).addPhysGroup(pend, refresh)
                   .addShape(dragPoint, false).addFrees(dragPoint, frees)
   initModel = new Model(newS)
-  refresh()
+  // refresh()
   // newS.start()
 }
 // testPendulum();
