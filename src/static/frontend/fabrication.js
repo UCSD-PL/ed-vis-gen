@@ -58,16 +58,16 @@ function candidatePoints() {
   interact.clear();
   canvas.forEachObject( function (obj) {
     if (obj != null && obj instanceof fabric.Rect) {
+      var thing = obj;
       objectlist.push(obj);
-      obj.set({
-        hasBorders: false,
-        hasControls: false,
-        selection: false,
-        lockMovementX: true,
-        lockMovementY: true
-      });
       interact.add(obj);
       console.log("it's a rectangle!");
+      /*
+      canvas.forEachObject( function (possibleDP) {
+        if (obj instanceof fabric.DragPoint && obj.shape == thing) {
+          list_of_drag == 0;
+        }
+      }); */
       addDragPoints(obj, 0.5, 0.5);
       addDragPoints(obj, 0, 0);
       addDragPoints(obj, 1, 1);
@@ -106,21 +106,22 @@ function candidatePoints() {
   });
 
   function addDragPoints(obj, dx, dy) {
-      var dragPoint = new fabric.DragPoint({
+    var drag = new fabric.DragPoint({
         name: 'dragPoint',
         shape: obj,
         DX: dx,
         DY: dy
       });
+      drag.updateCoords(interact);
+      interact.add(drag);
 
-      interact.add(dragPoint);
-      dragPoint.on('selected', function() {
+      drag.on('selected', function() {
         console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         if (this.get('fill') == 'black') {
           this.set({
             fill: 'orange'
           });
-          dragPointList.push(dragPoint);
+          dragPointList.push(drag);
         }
 
         else {
@@ -129,7 +130,7 @@ function candidatePoints() {
           });
 
           function checkDP (dp) {
-            return dp === dragPoint;
+            return dp === drag;
           }
 
           whereDP = dragPointList.findIndex(checkDP);
@@ -144,6 +145,9 @@ function onOverlayClosed(){
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been added!");
+      dragPointList[i].set({
+        fill: 'black'
+      })
       canvas.add(dragPointList[i]);
     }
   for (var i=0; i < objectlist.length; i++) {
@@ -169,20 +173,20 @@ function keepDragPointsMoving() {
 canvas.on(
     'object:modified', function () {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    //window.BACKEND.drawFromFabric(fabricJSON);
     keepDragPointsMoving();
 },
     'object:added', function () {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    //window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:deselected', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    //window.BACKEND.drawFromFabric(fabricJSON);
 },
     'mouse:out', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    //window.BACKEND.drawFromFabric(fabricJSON);
 });
 
 function updateModifications(savehistory) {

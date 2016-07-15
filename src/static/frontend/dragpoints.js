@@ -75,7 +75,7 @@
      * @type Number
      * @default
      */
-    radius: 4,
+    radius: 5,
 
     /**
      * Start angle of the circle, moving clockwise
@@ -134,6 +134,7 @@
 
       this.startAngle = options.startAngle || this.startAngle;
       this.endAngle = options.endAngle || this.endAngle;
+
     },
 
     /**
@@ -159,7 +160,8 @@
     updateCoords: function(canvas) {
       var drag = this;
       canvas.forEachObject( function(ctx) {
-        if (ctx.name === drag.shapeName) {
+        if (ctx === drag) return;
+        if (ctx == drag.shape || ctx.name === drag.shapeName) {
           drag.set({
             shape: ctx
           });
@@ -170,7 +172,7 @@
             top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
        console.log(drag);
-       drag.bringToFront();
+       //drag.bringToFront();
        drag.setCoords(canvas);
      }});
       return;
