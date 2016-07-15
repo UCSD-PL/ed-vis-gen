@@ -4,36 +4,32 @@ import {Circle, Rectangle, Shape, Line} from './Shapes'
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
 
+type fabricCommon = {
+  type: string,
+  fill: string,
+  name: string,
+  scaleX: number,
+  scaleY: number
+}
 type fabricCircle = {
-  type: string, // "circle"
   left: number, // left + radius = x (basically)
   top: number, // top + radius = y (basically)
-  radius: number,
-  scaleX: number,
-  scaleY: number,
-  fill: string
-}
+  radius: number
+} & fabricCommon
 
 type fabricRect = {
-  type: string, // "rect"
   left: number, // x equivalent of RectJSON
   top: number, // y equivalent
   width: number, // dx
-  height: number, // dy
-  scaleX: number,
-  scaleY: number,
-  fill: string
-}
+  height: number
+} & fabricCommon
 
 type fabricLine = {
-  type: string, // "line"
-  left: number, top: number, // x and y equivalent of PointJSON for start (for LineJSON)
+  left: number,
+  top: number, // x and y equivalent of PointJSON for start (for LineJSON)
   width: number,
-  height: number, // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
-  scaleX: number,
-  scaleY: number,
-  fill: string
-}
+  height: number // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
+} & fabricCommon
 
 export type fabricObject = fabricCircle | fabricRect | fabricLine
 
@@ -79,7 +75,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 }
 
 // given a store and (normalized) fabric shape, make variables in the store and return a backend shape over the variables
-function buildBackendShapes(store: State, s: fabricObject) {
+function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
   let shape: Shape
   if (s.type == 'circle') {
     let newS = s as fabricCircle
@@ -98,7 +94,7 @@ function buildBackendShapes(store: State, s: fabricObject) {
     console.log(s)
     assert(false)
   }
-  return shape
+  return [s.name, shape]
 }
 
 function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pendulum {
@@ -150,12 +146,12 @@ export function buildModel(shapes: fabricJSONObj, renderer: () => void): Model {
   let normObjs = objs.map(normalizeFabricShape)
 
   // next, allocate variables and shapes for each input object
-  normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(shape => {
-    retStore = retStore.addShape(shape, false)
+  normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+    retStore = retStore.addShape(name, shape, false)
   })
 
   shapes.physicsGroups.forEach( grp => {
-    let newShapes: Shape[]
+    let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
     if (grp.type == 'pendulum') {
       let physObj = Object.assign({}, grp.args) as pendulumGroup
@@ -170,7 +166,7 @@ export function buildModel(shapes: fabricJSONObj, renderer: () => void): Model {
       console.log(grp)
     }
 
-    newShapes.forEach(s => retStore = retStore.addShape(s, false))
+    newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false))
     retStore.addPhysGroup(newGroup, renderer)
   })
 

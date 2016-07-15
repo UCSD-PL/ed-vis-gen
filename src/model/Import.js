@@ -52,7 +52,7 @@ function buildBackendShapes(store, s) {
         console.log(s);
         assert(false);
     }
-    return shape;
+    return [s.name, shape];
 }
 function buildPendulum(state, pivot, bob, rod) {
     let pBuilder = ([nme, v]) => state.addVar(Variable_1.VType.Prim, nme, v);
@@ -85,8 +85,8 @@ function buildModel(shapes, renderer) {
     // two passes: first, normalize to eddie's position conventions
     let normObjs = objs.map(normalizeFabricShape);
     // next, allocate variables and shapes for each input object
-    normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(shape => {
-        retStore = retStore.addShape(shape, false);
+    normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+        retStore = retStore.addShape(name, shape, false);
     });
     shapes.physicsGroups.forEach(grp => {
         let newShapes;
@@ -101,7 +101,7 @@ function buildModel(shapes, renderer) {
             console.log('unrecognized group tag:');
             console.log(grp);
         }
-        newShapes.forEach(s => retStore = retStore.addShape(s, false));
+        newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false));
         retStore.addPhysGroup(newGroup, renderer);
     });
     return new Model_1.Model(retStore);
