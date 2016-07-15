@@ -11,6 +11,7 @@ selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // lists of drag points
 snapColor = "red",
 fabricJSON,
+snapping = "on",
 current = 0;
 
 // I_NEED_SOMETHING_LIKE_THIS = [ [dragpoint, [x, y], obj], [dragpoint, [x, y], obj] ]
@@ -168,6 +169,7 @@ function candidatePoints() {
           });
           selectedX.push([x]);
           selectedY.push([y]);
+          dragPointList.push(dragPoint);
         }
 
         else {
@@ -183,9 +185,15 @@ function candidatePoints() {
             return locations === [y];
           }
 
+          function checkDP (dp) {
+            return dp === dragPoint;
+          }
+
           whereX = selectedX.findIndex(checkX);
           whereY = selectedY.findIndex(checkY);
+          whereDP = dragPointList.findIndex(checkDP);
 
+          dragPointList.splice(whereDP, 1);
           selectedX.splice(whereX, 1);
           selectedY.splice(whereY, 1);
         }});
@@ -194,6 +202,11 @@ function candidatePoints() {
 function onOverlayClosed(){
   console.log("selectedX");
   // adds drag points to the canvas and attaches them to shapes
+  for (var i = 0; i < dragPointList.length; i++) {
+      console.log("the drag point should have been added!");
+      canvas.add(dragPointList[i]);
+    }
+/**
   for (var i = 0; i < selectedX.length; i++) {
       console.log("the drag point should have been added!");
       var canvasDragPoint = new fabric.Circle({
@@ -211,7 +224,7 @@ function onOverlayClosed(){
       });
       canvas.add(canvasDragPoint);
       dragPointList.push(canvasDragPoint);
-  }
+  } */
   canvas.renderAll();
   interact.renderAll();
 }
@@ -231,7 +244,7 @@ canvas.on(
     'object:modified', function () {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
-    keepDragPointsMoving();
+    //keepDragPointsMoving();
 },
     'object:added', function () {
     updateModifications(true);
@@ -324,6 +337,9 @@ canvas.on('object:moving', function (options) {
 	canvas.forEachObject(function (obj) {
     // makes sure drag points don't get in the way
     if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+
+    // turns snapping off
+    if (snapping === 'off') return;
 
 		if (obj === options.target) return;
 
@@ -448,6 +464,9 @@ canvas.on('object:moving', function (options) {
 
     // makes sure drag points doesn't get in the way
     if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+
+    // turns snapping off
+    if (snapping === 'off') return;
 
 		if (obj === options.target) return;
 
