@@ -162,7 +162,7 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
         (s: fabricObject) => buildBackendShapes(retStore, s)
       )
       newShapes = [pivot, bob, rod]
-      newGroup = buildPendulum(retStore, pivot, bob, rod)
+      newGroup = buildPendulum(retStore, pivot[1], bob[1], rod[1])
     } else {
       console.log('unrecognized group tag:')
       console.log(grp)
