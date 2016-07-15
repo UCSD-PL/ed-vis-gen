@@ -32,17 +32,15 @@ function addRectangle(){
 
 //Add pendulum
 function addPendulum(){
+  //'physics':'the type of physics group', 'item':'the part of one physics group'
   snapping = 'off';
-  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true});
-  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
-  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true})
-  //canvas.add(pivot);
-  //canvas.add(string);
-  //canvas.add(bob);
-  var pendulum = new fabric.Group([pivot, rod, bob], {'physics': 'pendulum'});
-  canvas.add(pendulum);
+  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true, 'physics':'pendulum', 'item':'pivot'});
+  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true, 'physics':'pendulum', 'item':'rod'});
+  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true, 'physics':'pendulum', 'item':'bob'})
+  canvas.add(pivot);
+  canvas.add(rod);
+  canvas.add(bob);
   updateLog();
-
 };
 
 transfer = function transfer() {
@@ -72,28 +70,38 @@ transfer = function transfer() {
     //});
 
     //Array of grouped and ungrouped objects
+
     var exported = {};
     var physicsGroup = [];
     var shapes =[];
-    var objsInCanvas = canvas.getObjects();
+    var pendulumObj = {'type':'pendulum'};
+
     canvas.forEachObject(function(obj){
       if (obj.get('physics') === 'pendulum'){
-        // console.log(obj)
-        var groupObjects=obj.getObjects();
-        pendulumobj = {
-          type:'pendulum',
-          pivot: groupObjects[0],
-          rod: groupObjects[1],
-          bob:groupObjects[2]
-        };
-        physicsGroup.push(pendulumobj);
-        // console.log(pendulumobj);
+
+        if (obj.get('item') === 'pivot'){
+          pendulumObj['pivot'] = obj;
+
+        }
+
+        else if (obj.get('item') === 'rod'){
+          pendulumObj['rod'] = obj;
+
+        }
+
+        else{
+          pendulumObj['bob'] = obj;
+
+        }
+        //var groupObjects=obj.getObjects();
+        //pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+        //physicsGroup.push(pendulumobj);
       }
       else{
         shapes.push(obj);
-        // console.log(obj.type);
       };
     });
+    physicsGroup.push(pendulumObj);
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
     // console.log(exported);
