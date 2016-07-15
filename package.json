@@ -5,7 +5,8 @@
     "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/static/frontend new/target/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",
-    "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts"
+    "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts",
+    "clean": 'rm -rf new'
   },
   "description": "Educational Visualization DSL and Synthesis =============",
   "version": "1.0.0",
@@ -20,6 +21,7 @@
     "browserify": "^13.0.1",
     "cassowary": "^0.1.0",
     "fabric": "^1.6.2",
+    "jison": "^0.4.17",
     "requirejs": "^2.1.22",
     "typescript-require": "^0.2.9"
   },
