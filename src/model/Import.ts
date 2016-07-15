@@ -1,6 +1,6 @@
 import {Model, State} from './Model'
 import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert} from '../util/Util'
-import {Circle, Rectangle, Shape, Line} from './Shapes'
+import {Circle, Rectangle, Shape, Line, DragPoint} from './Shapes'
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
 
@@ -53,7 +53,7 @@ export type fabricJSONObj = {
 // given a fabric object, convert the coordinates to backend conventions
 function normalizeFabricShape(s: fabricObject): fabricObject {
   let ret: fabricObject
-  if (s.type == 'circle') {
+  if (s.type == 'circle' || s.type == 'dragPoint') {
     let newS = Object.assign({}, s) as fabricCircle
     newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY)
     newS.left += newS.radius
@@ -81,10 +81,14 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 // given a store and (normalized) fabric shape, make variables in the store and return a backend shape over the variables
 function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
   let shape: Shape
-  if (s.type == 'circle') {
+  if (s.type == 'circle' || s.type == 'dragPoint') {
     let newS = s as fabricCircle
     let [x, y, r] = map3Tup([newS.left, newS.top, newS.radius], v => store.allocVar(v))
-    shape = new Circle(x, y, r, "black", newS.fill)
+    if (s.type == 'circle') {
+      shape = new Circle(x, y, r, "black", newS.fill)
+    } else {
+      shape = new DragPoint(x, y, r, 'green')
+    }
   } else if (s.type == 'rect') {
     let newS = s as fabricRect
     let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))

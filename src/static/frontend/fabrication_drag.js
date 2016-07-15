@@ -107,7 +107,7 @@ function candidatePoints() {
 
   function addDragPoints(obj, dx, dy) {
     var drag = new fabric.DragPoint({
-        name: 'dragPoint',
+        name: allocSName(),
         shape: obj,
         DX: dx,
         DY: dy
@@ -172,28 +172,28 @@ function keepDragPointsMoving() {
 
 canvas.on(
     'object:modified', function () {
-    updateModifications(true);
-    //window.BACKEND.drawFromFabric(fabricJSON);
     keepDragPointsMoving();
+    updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:added', function () {
     updateModifications(true);
-    //window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:deselected', function() {
     updateModifications(true);
-    //window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'mouse:out', function() {
     updateModifications(true);
-    //window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawFromFabric(fabricJSON);
 });
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
-        fabricJSON = JSON.parse(myjson); //JSON.parse(canvas);
+        fabricJSON = transfer();
         current += 1;
     }
 }

@@ -82,11 +82,7 @@
     <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
 
-  <!--more frontend scripts-->
-  <script src="../frontend/objects.js"></script>
-  <script src="../frontend/fabrication.js"></script>
-    <!-- backend script -->
-    <script src="../lib.js"></script>
+
     <!-- <script src="fabrication.js"></script>
 
     <script src="objects.js"></script> -->
@@ -150,7 +146,7 @@
 
       <!-- open/close -->
       <div id="myCav" class="overlay" >
-        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+        <a href="javascript:void(0)" class="closebtn" onclick="close0(); onOverlayClosed()">x</a>
 
       <div class="overlay-content" >
          <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
@@ -158,6 +154,12 @@
 
       </div>
 
+      <!--more frontend scripts-->
+      <script src="../frontend/objects.js"></script>
+      <script src="../frontend/dragpoints.js"></script>
+      <script src="../frontend/fabrication_drag.js"></script>
+      <!-- backend script -->
+      <script src="../lib.js"></script>
 
 
 

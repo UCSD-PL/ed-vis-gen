@@ -101,7 +101,9 @@ transfer = function transfer() {
         shapes.push(obj);
       };
     });
-    physicsGroup.push(pendulumObj);
+    if ('pivot' in pendulumObj && 'rod' in pendulumObj && 'bob' in pendulumObj) {
+      physicsGroup.push(pendulumObj);
+    }
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
     // console.log(exported);
@@ -158,7 +160,7 @@ function EnterURL(){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
   });}}
-  
+
 // allocator for names
 var allocSName = (function() {
   var suffix = 0;
