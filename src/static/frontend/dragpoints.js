@@ -12,10 +12,10 @@
   }
 
   /**
-   * Circle class
-   * @class fabric.Circle
+   * DragPoint class
+   * @class fabric.DragPoint
    * @extends fabric.Object
-   * @see {@link fabric.Circle#initialize} for constructor definition
+   * @see {@link fabric.DragPoint#initialize} for constructor definition
    */
   fabric.DragPoint = fabric.util.createClass(fabric.Object, /** @lends fabric.Circle.prototype */ {
     /**
@@ -75,7 +75,7 @@
      * @type Number
      * @default
      */
-    radius: 3,
+    radius: 4,
 
     /**
      * Start angle of the circle, moving clockwise
@@ -96,8 +96,9 @@
     */
     originX: 'center',
     originY: 'center',
-    //lockMovementX: true,
-    //lockMovementY: true,
+    fill: 'black',
+    lockMovementX: true,
+    lockMovementY: true,
     lockScalingX: true,
     lockScalingY: true,
     lockRotation: true,
@@ -139,7 +140,7 @@
      * @private
      * @param {String} key
      * @param {Any} value
-     * @return {fabric.Circle} thisArg
+     * @return {fabric.DragPoint} thisArg
      */
     _set: function(key, value) {
       this.callSuper('_set', key, value);
@@ -168,16 +169,6 @@
             left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
             top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
-          /*
-          ctx.on('modified', function() {
-            drag.set({
-              X: ctx.left,
-              Y: ctx.top,
-              left: ctx.left + ctx.width*drag.DX,
-              top: ctx.top + ctx.height*drag.DY
-            });*
-       });*/
-       console.log("OMG");
        console.log(drag);
        drag.bringToFront();
        drag.setCoords(canvas);
@@ -194,12 +185,13 @@
       return extend(this.callSuper('toObject', propertiesToInclude), {
         radius: this.get('radius'),
         shape: this.get('shape'),
-        X: this.get('X'), //optional
-        Y: this.get('Y'), //optional
-        DX: this.get('DX'), //optional
-        DY: this.get('DY'), //optional
-        left: this.get('X') + this.shape.get('width')*this.get('DX'),
-        top: this.get('Y') + this.shape.get('height')*this.get('DY'),
+        shapeName: this.get('shapeName'),
+        X: this.X,
+        Y: this.Y,
+        DX: this.get('DX'),
+        DY: this.get('DY'),
+        left: this.X + this.shape.width*this.DX,
+        top: this.Y + this.shape.height*this.DY,
         startAngle: this.startAngle,
         endAngle: this.endAngle
       });
@@ -286,7 +278,7 @@
 
     /**
      * Sets radius of an object (and updates width accordingly)
-     * @return {fabric.Circle} thisArg
+     * @return {fabric.DragPoint} thisArg
      */
     setRadius: function(value) {
       this.radius = value;
@@ -312,13 +304,13 @@
   fabric.DragPoint.ATTRIBUTE_NAMES = fabric.SHARED_ATTRIBUTES.concat('cx cy r'.split(' '));
 
   /**
-   * Returns {@link fabric.Circle} instance from an SVG element
+   * Returns {@link fabric.DragPoint} instance from an SVG element
    * @static
-   * @memberOf fabric.Circle
+   * @memberOf fabric.DragPoint
    * @param {SVGElement} element Element to parse
    * @param {Object} [options] Options object
    * @throws {Error} If value of `r` attribute is missing or invalid
-   * @return {fabric.Circle} Instance of fabric.Circle
+   * @return {fabric.DragPoint} Instance of fabric.Circle
    */
   fabric.DragPoint.fromElement = function(element, options) {
     options || (options = { });
@@ -348,11 +340,11 @@
   /* _FROM_SVG_END_ */
 
   /**
-   * Returns {@link fabric.Circle} instance from an object representation
+   * Returns {@link fabric.DragPoint} instance from an object representation
    * @static
-   * @memberOf fabric.Circle
+   * @memberOf fabric.DragPoint
    * @param {Object} object Object to create an instance from
-   * @return {Object} Instance of fabric.Circle
+   * @return {Object} Instance of fabric.DragPoint
    */
   fabric.DragPoint.fromObject = function(object) {
     return new fabric.DragPoint(object);

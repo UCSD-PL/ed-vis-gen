@@ -83,13 +83,11 @@
   </div>
 
   <!--more frontend scripts-->
+  <script src="../frontend/dragpoints.js"></script>
   <script src="../frontend/fabrication.js"></script>
   <script src="../frontend/objects.js"></script>
     <!-- backend script -->
-    <script src="../lib.js"></script>
-    <!-- <script src="fabrication.js"></script>
-
-    <script src="objects.js"></script> -->
+  <script src="../lib.js"></script>
 
     <div class="leftbuttons">
 
@@ -129,7 +127,7 @@
         Trigger </button>
 
       <!--overlay-->
-      <button class="btn btn-default" type="button" onclick = "open0(); candidatePoints()" id="trigger-overlay">
+      <button class="btn btn-default" type="button" onclick = "candidatePoints(); open0()" id="trigger-overlay">
         Open Overlay
       </button>
 

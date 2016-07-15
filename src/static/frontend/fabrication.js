@@ -6,11 +6,13 @@ snap = 14, // pixels to snap
 state = [],
 mods = 0,
 selectedObj = [],
+whereDP = 0,
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // lists of drag points
 snapColor = "red",
 fabricJSON,
+objectlist = [],
 snapping = "on",
 current = 0;
 
@@ -54,110 +56,61 @@ function updateLog() {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
-  var dragPoint;
-  var whereX = 0;
-  var whereY = 0;
   canvas.forEachObject( function (obj) {
-
     if (obj != null && obj instanceof fabric.Rect) {
-      var clone = obj.clone();
-      clone.set({
+      objectlist.push(obj);
+      obj.set({
         hasBorders: false,
         hasControls: false,
         selection: false,
         lockMovementX: true,
         lockMovementY: true
       });
-      interact.add(clone);
+      interact.add(obj);
       console.log("it's a rectangle!");
-      addDragPoints(obj,
-        obj.getWidth()/2 + obj.getLeft(),
-        obj.getHeight()/2 + obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        obj.getWidth() + obj.getLeft(),
-        obj.getHeight() + obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        obj.getHeight()/2  + obj.getTop());
-      addDragPoints(obj,
-        obj.getWidth()/2 + obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        obj.getHeight() + obj.getTop());
-      addDragPoints(obj,
-        obj.getWidth() + obj.getLeft(),
-        obj.getHeight()/2 + obj.getTop());
-      addDragPoints(obj,
-        obj.getWidth() + obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        obj.getWidth() / 2 + obj.getLeft(),
-        obj.getHeight() + obj.getTop());
+      addDragPoints(obj, 0.5, 0.5);
+      addDragPoints(obj, 0, 0);
+      addDragPoints(obj, 1, 1);
+      addDragPoints(obj, 0, 0.5);
+      addDragPoints(obj, 0.5, 0);
+      addDragPoints(obj, 0, 1);
+      addDragPoints(obj, 1, 0.5);
+      addDragPoints(obj, 1, 0);
+      addDragPoints(obj, 0.5, 1);
+      interact.renderAll();
     }
     if (obj != null && obj instanceof fabric.Circle) {
-      var clone = obj.clone();
-      clone.set({
+      objectlist.push(obj);
+      obj.set({
         hasBorders: false,
         hasControls: false,
         selection: false,
         lockMovementX: true,
         lockMovementY: true
       });
-      interact.add(clone);
+      interact.add(obj);
       console.log("it's a circle!");
       var radiusX = obj.getRadiusX();
       var radiusY =  obj.getRadiusY();
-      addDragPoints(obj,
-        radiusX + obj.getLeft(),
-        radiusY + obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        radiusX*2 + obj.getLeft(),
-        radiusY*2 + obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        radiusY  + obj.getTop());
-      addDragPoints(obj,
-        radiusX + obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        obj.getLeft(),
-        radiusY*2 + obj.getTop());
-      addDragPoints(obj,
-        radiusX*2 + obj.getLeft(),
-        radiusY + obj.getTop());
-      addDragPoints(obj,
-        radiusX*2 + obj.getLeft(),
-        obj.getTop());
-      addDragPoints(obj,
-        radiusX + obj.getLeft(),
-        radiusY*2 + obj.getTop());
+      addDragPoints(obj, 1, 1);
+      addDragPoints(obj, 0, 0);
+      addDragPoints(obj, 2, 2);
+      addDragPoints(obj, 0, 1);
+      addDragPoints(obj, 1, 0);
+      addDragPoints(obj, 0, 2);
+      addDragPoints(obj, 2, 1);
+      addDragPoints(obj, 2, 0);
+      addDragPoints(obj, 1, 2);
+      interact.renderAll();
     }
   });
 
-  function addDragPoints(obj, x, y) {
-      dragPoint = new fabric.Circle({
+  function addDragPoints(obj, dx, dy) {
+      var dragPoint = new fabric.DragPoint({
         name: 'dragPoint',
-        top: y,
-        left: x,
-        originX: 'center',
-        originY: 'center',
-        radius: 4,
-        fill: 'black',
-        hasBorders: false,
-        hasControls: false,
-        selection: false,
-        lockMovementX: true,
-        lockMovementY: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true
+        shape: obj,
+        DX: dx,
+        DY: dy
       });
 
       interact.add(dragPoint);
@@ -167,8 +120,6 @@ function candidatePoints() {
           this.set({
             fill: 'orange'
           });
-          selectedX.push([x]);
-          selectedY.push([y]);
           dragPointList.push(dragPoint);
         }
 
@@ -177,66 +128,41 @@ function candidatePoints() {
             fill: 'black'
           });
 
-          function checkX (locations) {
-            return locations === [x];
-          }
-
-          function checkY (locations) {
-            return locations === [y];
-          }
-
           function checkDP (dp) {
             return dp === dragPoint;
           }
 
-          whereX = selectedX.findIndex(checkX);
-          whereY = selectedY.findIndex(checkY);
           whereDP = dragPointList.findIndex(checkDP);
 
           dragPointList.splice(whereDP, 1);
-          selectedX.splice(whereX, 1);
-          selectedY.splice(whereY, 1);
         }});
-      }}
+      }
+    }
 
 function onOverlayClosed(){
-  console.log("selectedX");
+  console.log(dragPointList);
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been added!");
       canvas.add(dragPointList[i]);
     }
-/**
-  for (var i = 0; i < selectedX.length; i++) {
-      console.log("the drag point should have been added!");
-      var canvasDragPoint = new fabric.Circle({
-        left: selectedX[i][0],
-        top: selectedY[i][0],
-        originX: 'center',
-        originY: 'center',
-        hasBorders: true,
-        hasControls: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true,
-        radius: 3,
-        fill: 'black'
-      });
-      canvas.add(canvasDragPoint);
-      dragPointList.push(canvasDragPoint);
-  } */
+  for (var i=0; i < objectlist.length; i++) {
+    objectlist[i].set({
+      hasBorders: true,
+      hasControls: true,
+      selection: true,
+      lockMovementX: false,
+      lockMovementY: false
+    });
+  }
   canvas.renderAll();
-  interact.renderAll();
 }
 
+// keeps drag points moving when object is modified
 function keepDragPointsMoving() {
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been moved!");
-      console.log(selectedX[i]);
-      dragPointList[i].set({
-        left: selectedX[i][0],
-        top: selectedY[i][0]
-      });
+      dragPointList[i].updateCoords(canvas);
   }
 }
 
@@ -244,7 +170,7 @@ canvas.on(
     'object:modified', function () {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
-    //keepDragPointsMoving();
+    keepDragPointsMoving();
 },
     'object:added', function () {
     updateModifications(true);

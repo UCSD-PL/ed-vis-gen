@@ -27,18 +27,6 @@ function addRectangle(){
   updateLog();
 }
 
-function addDragPoints(){
-  var rectangle0 = new fabric.Rect({ name: "banana-face", width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true});
-  var dragPoint0 = new fabric.DragPoint({ name: 'first', shape: rectangle0, shapeName: "banana-face", DX: 0.5, DY: 0.5});
-  physics.add(rectangle0);
-  physics.add(dragPoint0);
-  console.log(dragPoint0);
-  rectangle0.on('modified', function(){
-    dragPoint0.updateCoords(physics);
-    console.log('IT SHOULD BE HAPPENING');
-  });
-}
-
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
