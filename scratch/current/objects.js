@@ -29,18 +29,27 @@ function addRectangle(){
 //Add pendulum
 function addPendulum(){
   snapping = 'off';
-  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true});
-  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
-  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true})
-  //canvas.add(pivot);
-  //canvas.add(string);
-  //canvas.add(bob);
-  var pendulum = new fabric.Group([pivot, rod, bob], {'physics': 'pendulum'});
-  canvas.add(pendulum);
+  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true, 'physics':'pendulum', 'item':'pivot'});
+
+  //console.log(pivot.get('physics'));
+  //console.log(pivot.get('item'));
+  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true, 'physics':'pendulum', 'item':'rod'});
+  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true, 'physics':'pendulum', 'item':'bob'})
+  canvas.add(pivot);
+  canvas.add(rod);
+  //console.log(rod.get('item'));
+  canvas.add(bob);
+  //console.log(bob.get('item'));
   updateLog();
 
 };
 
+//Add test
+function addTest(){
+  var testangle = new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, 'physics':'pendulum'});
+  canvas.add(testangle);
+  console.log(testangle.get('physics'));
+}
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
@@ -71,17 +80,37 @@ transfer = function transfer() {
     var exported = {};
     var physicsGroup = [];
     var shapes =[];
-    var objsInCanvas = canvas.getObjects();
+    var pendulumObj = {'type':'pendulum'};
+    //var objsInCanvas = canvas.getObjects();
     canvas.forEachObject(function(obj){
       if (obj.get('physics') === 'pendulum'){
-        var groupObjects=obj.getObjects();
-        pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
-        physicsGroup.push(pendulumobj);
+
+        if (obj.get('item') === 'pivot'){
+          pendulumObj['pivot'] = obj;
+
+        console.log(pendulumObj);}
+
+        else if (obj.get('item') === 'rod'){
+          pendulumObj['rod'] = obj;
+
+        console.log(pendulumObj);
+
+        }
+
+        else{
+          pendulumObj['bob'] = obj;
+
+        console.log(pendulumObj);
+        }
+        //var groupObjects=obj.getObjects();
+        //pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+        //physicsGroup.push(pendulumobj);
       }
       else{
         shapes.push(obj);
       };
     });
+    physicsGroup.push(pendulumObj);
     exported['physicsGroup']=physicsGroup;
     exported['shapes']=shapes;
     console.log(exported);
