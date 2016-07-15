@@ -16,3 +16,5 @@ src/view/Shapes.js
 src/view/View.js
 src/main.js
 target
+index.d.ts
+typings.json
