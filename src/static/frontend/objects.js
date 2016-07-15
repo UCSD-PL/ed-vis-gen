@@ -34,10 +34,8 @@ function addDragPoints(){
   physics.add(dragPoint0);
   console.log(dragPoint0);
   rectangle0.on('modified', function(){
-    dragPoint0.set({
-      shape: rectangle0
-    });
-    dragPoint0.updateCoords(canvas);
+    dragPoint0.updateCoords(physics);
+    console.log('IT SHOULD BE HAPPENING');
   });
 }
 
