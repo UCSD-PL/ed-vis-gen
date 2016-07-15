@@ -6,7 +6,7 @@
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",
     "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts",
-    "clean": 'rm -rf new'
+    "clean": "rm -rf new"
   },
   "description": "Educational Visualization DSL and Synthesis =============",
   "version": "1.0.0",
