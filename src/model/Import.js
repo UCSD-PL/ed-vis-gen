@@ -25,7 +25,7 @@ function normalizeFabricShape(s) {
     else {
         console.log('unrecognized shape in normalize:');
         console.log(s);
-        assert(false);
+        Util_1.assert(false);
     }
     return ret;
 }
@@ -45,12 +45,13 @@ function buildBackendShapes(store, s) {
     else if (s.type == 'line') {
         let newS = s;
         let [x1, y1] = Util_1.map2Tup([newS.left, newS.top], v => store.allocVar(v));
-        shape = new Shapes_1.Line([[x1, y1]], newS.fill, false);
+        let [x2, y2] = Util_1.map2Tup([newS.left + newS.width, newS.top + newS.height], v => store.allocVar(v));
+        shape = new Shapes_1.Line([[x1, y1], [x2, y2]], newS.fill, false);
     }
     else {
         console.log('unrecognized fabric tag:');
         console.log(s);
-        assert(false);
+        Util_1.assert(false);
     }
     return [s.name, shape];
 }
@@ -58,9 +59,9 @@ function buildPendulum(state, pivot, bob, rod) {
     let pBuilder = ([nme, v]) => state.addVar(Variable_1.VType.Prim, nme, v);
     let cBuilder = ([nme, v]) => state.addVar(Variable_1.VType.Cass, nme, v);
     let store = state.eval();
-    assert(pivot instanceof Shapes_1.Circle, 'pendulum builder expected circle for pivot');
-    assert(bob instanceof Shapes_1.Circle, 'pendulum builder expected circle for bob');
-    assert(rod instanceof Shapes_1.Line, 'pendulum builder expected line for rod');
+    Util_1.assert(pivot instanceof Shapes_1.Circle, 'pendulum builder expected circle for pivot');
+    Util_1.assert(bob instanceof Shapes_1.Circle, 'pendulum builder expected circle for bob');
+    Util_1.assert(rod instanceof Shapes_1.Line, 'pendulum builder expected line for rod');
     let [pivotS, bobS, rodS] = [pivot, bob, rod];
     let [pivX, pivY] = Util_1.map2Tup([pivotS.x, pivotS.y], v => store.get(v));
     let [bobX, bobY] = Util_1.map2Tup([bobS.x, bobS.y], v => store.get(v));
@@ -78,21 +79,21 @@ function buildPendulum(state, pivot, bob, rod) {
     return pend;
 }
 // given a json of shapes, build a model for the shapes
-function buildModel(shapes, renderer) {
+function buildModel(canvas, renderer) {
     // console.log()
     let retStore = Model_1.State.empty();
-    let objs = shapes.objects;
+    let objs = canvas.shapes;
     // two passes: first, normalize to eddie's position conventions
     let normObjs = objs.map(normalizeFabricShape);
     // next, allocate variables and shapes for each input object
     normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
         retStore = retStore.addShape(name, shape, false);
     });
-    shapes.physicsGroups.forEach(grp => {
+    canvas.physicsGroups.forEach(grp => {
         let newShapes;
         let newGroup;
         if (grp.type == 'pendulum') {
-            let physObj = Object.assign({}, grp.args);
+            let physObj = Object.assign({}, grp);
             let [pivot, bob, rod] = Util_1.map3Tup([physObj.pivot, physObj.bob, physObj.rod], (s) => buildBackendShapes(retStore, s));
             newShapes = [pivot, bob, rod];
             newGroup = buildPendulum(retStore, pivot, bob, rod);
@@ -104,6 +105,9 @@ function buildModel(shapes, renderer) {
         newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false));
         retStore.addPhysGroup(newGroup, renderer);
     });
-    return new Model_1.Model(retStore);
+    let ret = new Model_1.Model(retStore);
+    console.log('model:');
+    console.log(ret);
+    return ret;
 }
 exports.buildModel = buildModel;

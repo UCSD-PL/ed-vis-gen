@@ -14,7 +14,7 @@ function addTriangle(){
   updateLog();
 }
 
-//Add Circle
+//Add circle
 function addCircle(){
   var name = allocSName();
   var circle0 = new fabric.Circle({ name: name, radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true});
@@ -30,12 +30,98 @@ function addRectangle(){
   updateLog();
 }
 
-transfer = function transfer() {
-    physics.clear().renderAll();
-    current = state.length - mods - 1;
-    physics.loadFromJSON(state[current]);
-    physics.renderAll();
+//Add pendulum
+function addPendulum(){
+  snapping = 'off';
+  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true});
+  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
+  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true})
+  //canvas.add(pivot);
+  //canvas.add(string);
+  //canvas.add(bob);
+  var pendulum = new fabric.Group([pivot, rod, bob], {'physics': 'pendulum'});
+  canvas.add(pendulum);
+  updateLog();
+
 };
+
+transfer = function transfer() {
+    // physics.clear().renderAll();
+    current = state.length - mods - 1;
+    // physics.loadFromJSON(state[current]);
+    // physics.renderAll();
+
+    //save the JSON of canvas
+    var canvasJSON = canvas.toJSON();
+
+
+    //var grouped = canvas.getActiveGroup().toJSON()['objects'];
+    //var activeGroup = canvas.getActiveGroup();
+    //var objectsInGroup = activeGroup.getObjects();
+    //canvas.discardActiveGroup();
+
+    //objectsInGroup.forEach(function(object) {
+		//    canvas.remove(object);
+    //});
+    //var objects = canvas.toObject()['objects'];
+  //******  console.log(activeGroup.toJSON()['objects'])
+    //var exported = {'groups': grouped, 'shapes' : objects}
+
+    //objectsInGroup.forEach(function(object) {
+		//    canvas.add(object);
+    //});
+
+    //Array of grouped and ungrouped objects
+    var exported = {};
+    var physicsGroup = [];
+    var shapes =[];
+    var objsInCanvas = canvas.getObjects();
+    canvas.forEachObject(function(obj){
+      if (obj.get('physics') === 'pendulum'){
+        // console.log(obj)
+        var groupObjects=obj.getObjects();
+        pendulumobj = {
+          type:'pendulum',
+          pivot: groupObjects[0],
+          rod: groupObjects[1],
+          bob:groupObjects[2]
+        };
+        physicsGroup.push(pendulumobj);
+        // console.log(pendulumobj);
+      }
+      else{
+        shapes.push(obj);
+        // console.log(obj.type);
+      };
+    });
+    exported['physicsGroups']=physicsGroup;
+    exported['shapes']=shapes;
+    // console.log(exported);
+    return JSON.parse(JSON.stringify(exported)); // flattens objects
+  }
+//    for (obj in objsInCanvas) {
+//        // this gives you a group
+//        if(objsInCanvas[obj].get('physics')==='pendulum') {
+            // get all the objects in a group
+//            var groupObjects = objsInCanvas[obj].getObjects();
+            // iterate through the group
+//            pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+//            physicsGroup.push(pendulumobj);
+//            exported['physicsGroup'] = physicsGroup;
+//            console.log(exported);
+
+
+  //        }
+  //      else{
+  //        console.log(obj);
+  //        shapes.push(obj);
+  //      }
+
+//};
+//     console.log(shapes);
+
+//};
+
 
 //Deletion
 function deleteObjects(){
@@ -52,7 +138,6 @@ function deleteObjects(){
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
-
 //Drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
@@ -65,7 +150,7 @@ function EnterURL(){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
   });}}
-
+  
 // allocator for names
 var allocSName = (function() {
   var suffix = 0;
@@ -73,23 +158,3 @@ var allocSName = (function() {
     return "S" + (suffix++).toString()
   };
 })()
-
-function transmit() {
-  var fabricJSON = JSON.parse(canvas);
-  physics.loadFromJSON(fabricJSON);
-}
-
-
-//animation
-
-function animation0(){
-  var activeObject = physics.getActiveObject()
-  var heights0 = activeObject.getTop();
-  var drop0 = document.getElementById('physics').height
-  var dis0 = drop0 - heights0 - activeObject.getHeight();
-  var dis = "+=" + dis0.toString();
-  activeObject.animate('top', dis, {
-  duration: 1000,
-  onChange: physics.renderAll.bind(physics),
-});
-}

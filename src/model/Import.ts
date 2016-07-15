@@ -1,5 +1,5 @@
 import {Model, State} from './Model'
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3} from '../util/Util'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert} from '../util/Util'
 import {Circle, Rectangle, Shape, Line} from './Shapes'
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
@@ -33,19 +33,20 @@ type fabricLine = {
 
 export type fabricObject = fabricCircle | fabricRect | fabricLine
 
+type fabricPhysicsCommon = {
+  type: string
+}
 type pendulumGroup = {
   pivot: fabricCircle,
   rod: fabricLine,
   bob: fabricCircle
-}
+} & fabricPhysicsCommon
 
-export type fabricPhysicsGroup = {
-  type: string, // for now, 'pendulum'
-  args: pendulumGroup
-}
+
+export type fabricPhysicsGroup = pendulumGroup
 
 export type fabricJSONObj = {
-  objects: fabricObject[],
+  shapes: fabricObject[],
   physicsGroups: fabricPhysicsGroup[]
 }
 
@@ -88,7 +89,8 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
   } else if (s.type == 'line') {
     let newS = s as fabricLine
     let [x1, y1] = map2Tup([newS.left, newS.top], v => store.allocVar(v))
-    shape = new Line([[x1, y1]], newS.fill, false)
+    let [x2, y2] = map2Tup([newS.left + newS.width, newS.top + newS.height], v => store.allocVar(v))
+    shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
   } else {
     console.log('unrecognized fabric tag:')
     console.log(s)
@@ -137,11 +139,11 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 }
 
 // given a json of shapes, build a model for the shapes
-export function buildModel(shapes: fabricJSONObj, renderer: () => void): Model {
+export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
 
   // console.log()
   let retStore: State = State.empty()
-  let objs = shapes.objects
+  let objs = canvas.shapes
   // two passes: first, normalize to eddie's position conventions
   let normObjs = objs.map(normalizeFabricShape)
 
@@ -150,11 +152,11 @@ export function buildModel(shapes: fabricJSONObj, renderer: () => void): Model {
     retStore = retStore.addShape(name, shape, false)
   })
 
-  shapes.physicsGroups.forEach( grp => {
+  canvas.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
     if (grp.type == 'pendulum') {
-      let physObj = Object.assign({}, grp.args) as pendulumGroup
+      let physObj = Object.assign({}, grp) as pendulumGroup
       let [pivot, bob, rod] = map3Tup(
         [physObj.pivot, physObj.bob, physObj.rod],
         (s: fabricObject) => buildBackendShapes(retStore, s)
@@ -170,5 +172,8 @@ export function buildModel(shapes: fabricJSONObj, renderer: () => void): Model {
     retStore.addPhysGroup(newGroup, renderer)
   })
 
-  return new Model(retStore)
+  let ret = new Model(retStore)
+  console.log('model:')
+  console.log(ret)
+  return ret
 }

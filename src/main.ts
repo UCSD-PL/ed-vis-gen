@@ -54,6 +54,7 @@ function testISynth() {
 }
 
 
+// backend exports
 (window as any).BACKEND = {}
 export var backendExport: any = (window as any).BACKEND
 backendExport.drawFromFabric = drawFromFabric
