@@ -70,6 +70,9 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     newS.height *= newS.scaleY/2
     newS.top += newS.height
     ret = newS
+  } else if (s.type == 'line') {
+    // TODO?
+    ret = Object.assign({}, s) as fabricLine
   } else {
     console.log('unrecognized shape in normalize:')
     console.log(s)
@@ -156,6 +159,7 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
     retStore = retStore.addShape(shape, false)
   })
 
+  // console.log(canvas.physicsGroups)
   canvas.physicsGroups.forEach( grp => {
     let newShapes: Shape[]
     let newGroup: PhysicsGroup
@@ -163,7 +167,7 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
       let physObj = Object.assign({}, grp) as pendulumGroup
       let [pivot, bob, rod] = map3Tup(
         [physObj.pivot, physObj.bob, physObj.rod],
-        (s: fabricObject) => buildBackendShapes(retStore, s)
+        (s: fabricObject) => buildBackendShapes(retStore, normalizeFabricShape(s))
       )
       newShapes = [pivot, bob, rod]
       newGroup = buildPendulum(retStore, pivot, bob, rod)
@@ -177,7 +181,7 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
   })
 
   let ret = new Model(retStore)
-  console.log('model:')
-  console.log(ret)
+  // console.log('model:')
+  // console.log(ret)
   return ret
 }

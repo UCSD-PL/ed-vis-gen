@@ -21,6 +21,9 @@ function normalizeFabricShape(s) {
         newS.top += newS.height;
         ret = newS;
     }
+    else if (s.type == 'line') {
+        ret = Object.assign({}, s);
+    }
     else {
         console.log('unrecognized shape in normalize:');
         console.log(s);
@@ -81,7 +84,7 @@ function buildModel(canvas, renderer) {
         let newGroup;
         if (grp.type == 'pendulum') {
             let physObj = Object.assign({}, grp);
-            let [pivot, bob, rod] = Util_1.map3Tup([physObj.pivot, physObj.bob, physObj.rod], (s) => buildBackendShapes(retStore, s));
+            let [pivot, bob, rod] = Util_1.map3Tup([physObj.pivot, physObj.bob, physObj.rod], (s) => buildBackendShapes(retStore, normalizeFabricShape(s)));
             newShapes = [pivot, bob, rod];
             newGroup = buildPendulum(retStore, pivot, bob, rod);
         }
@@ -93,8 +96,6 @@ function buildModel(canvas, renderer) {
         retStore.addPhysGroup(newGroup, renderer);
     });
     let ret = new Model_1.Model(retStore);
-    console.log('model:');
-    console.log(ret);
     return ret;
 }
 exports.buildModel = buildModel;
