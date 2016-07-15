@@ -119,12 +119,12 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 
   let [pivX, pivY] = map2Tup([pivotS.x, pivotS.y], v => store.get(v))
   let [bobX, bobY] = map2Tup([bobS.x, bobS.y], v => store.get(v))
-  let [dy, dx] = [pivY - bobY, pivX - bobX]
+  let [dy, dx] = [bobY - pivY, bobX - pivX]
 
   // L = sqrt(dx^2 + dy^2)
   // theta = atan2(dy, dx)
   let [omega, theta, l] = map3Tup(
-    [['omega', 0], ['theta', Math.atan2(dy, dx)], ['L', Math.sqrt(dx*dx + dy*dy)]] as Tup3<Tup<string, number>>,
+    [['omega', 0], ['theta', Math.atan2(dx, dy)], ['L', Math.sqrt(dx*dx + dy*dy)]] as Tup3<Tup<string, number>>,
     pBuilder
   )
   let [g, c] = map2Tup(

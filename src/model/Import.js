@@ -69,10 +69,10 @@ function buildPendulum(state, pivot, bob, rod) {
     let [pivotS, bobS, rodS] = [pivot, bob, rod];
     let [pivX, pivY] = Util_1.map2Tup([pivotS.x, pivotS.y], v => store.get(v));
     let [bobX, bobY] = Util_1.map2Tup([bobS.x, bobS.y], v => store.get(v));
-    let [dy, dx] = [pivY - bobY, pivX - bobX];
+    let [dy, dx] = [bobY - pivY, bobX - pivX];
     // L = sqrt(dx^2 + dy^2)
     // theta = atan2(dy, dx)
-    let [omega, theta, l] = Util_1.map3Tup([['omega', 0], ['theta', Math.atan2(dy, dx)], ['L', Math.sqrt(dx * dx + dy * dy)]], pBuilder);
+    let [omega, theta, l] = Util_1.map3Tup([['omega', 0], ['theta', Math.atan2(dx, dy)], ['L', Math.sqrt(dx * dx + dy * dy)]], pBuilder);
     let [g, c] = Util_1.map2Tup([['G', 0.98], ['C', 0.01]], pBuilder);
     // let points: Tup<Variable, Variable>[] = [[pivX, pivY], [bobX, bobY]]
     // let lever = new Line(points, 'black', false)
