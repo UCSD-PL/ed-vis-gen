@@ -30,12 +30,12 @@ function addRectangle(){
 function addPendulum(){
   snapping = 'off';
   var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true});
-  var string = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
+  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
   var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true})
   //canvas.add(pivot);
   //canvas.add(string);
   //canvas.add(bob);
-  var pendulum = new fabric.Group([pivot, string, bob], {'physics': 'pendulum'});
+  var pendulum = new fabric.Group([pivot, rod, bob], {'physics': 'pendulum'});
   canvas.add(pendulum);
   updateLog();
 
@@ -70,21 +70,46 @@ transfer = function transfer() {
     //});
 
     //Array of grouped and ungrouped objects
+    var exported = {};
+    var physicsGroup = [];
+    var shapes =[];
     var objsInCanvas = canvas.getObjects();
-
-    for (obj in objsInCanvas) {
-        // this gives you a group
-        if(objsInCanvas[obj].get('type')==='group') {
+    canvas.forEachObject(function(obj){
+      if (obj.get('physics') === 'pendulum'){
+        var groupObjects=obj.getObjects();
+        pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+        physicsGroup.push(pendulumobj);
+      }
+      else{
+        shapes.push(obj);
+      };
+    });
+    exported['physicsGroup']=physicsGroup;
+    exported['shapes']=shapes;
+    console.log(exported);
+  }
+//    for (obj in objsInCanvas) {
+//        // this gives you a group
+//        if(objsInCanvas[obj].get('physics')==='pendulum') {
             // get all the objects in a group
-            var groupObjects = objsInCanvas[obj].getObjects();
+//            var groupObjects = objsInCanvas[obj].getObjects();
             // iterate through the group
+//            pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+//            physicsGroup.push(pendulumobj);
+//            exported['physicsGroup'] = physicsGroup;
+//            console.log(exported);
 
-          };
-     };
 
-    console.log(JSON.stringify(groupObjects));
+  //        }
+  //      else{
+  //        console.log(obj);
+  //        shapes.push(obj);
+  //      }
 
-};
+//};
+//     console.log(shapes);
+
+//};
 
 
 //Deletion
