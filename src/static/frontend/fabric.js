@@ -11307,6 +11307,14 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
      */
 
     /**
+    * Adds a name to an object('rect0', 'banana-face', etc).
+    * Meant to identify an object
+    * @type String
+    * @default
+    */
+    name:                    'name',
+
+    /**
      * Type of an object (rect, circle, path, etc.).
      * Note that this property is meant to be read-only and not meant to be modified.
      * If you modify, certain parts of Fabric (such as JSON loading) won't work correctly.
@@ -11866,6 +11874,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
       var NUM_FRACTION_DIGITS = fabric.Object.NUM_FRACTION_DIGITS,
 
           object = {
+            name:                     this.name,
             type:                     this.type,
             originX:                  this.originX,
             originY:                  this.originY,
