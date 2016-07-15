@@ -100,7 +100,7 @@ transfer = function transfer() {
     physicsGroup.push(pendulumObj);
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
-    console.log(exported);
+    // console.log(exported);
     return JSON.parse(JSON.stringify(exported)); // flattens objects
   }
 //    for (obj in objsInCanvas) {

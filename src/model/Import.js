@@ -4,6 +4,7 @@ const Util_1 = require('../util/Util');
 const Shapes_1 = require('./Shapes');
 const Physics_1 = require('./Physics');
 const Variable_1 = require('./Variable');
+// given a fabric object, convert the coordinates to backend conventions
 function normalizeFabricShape(s) {
     let ret;
     if (s.type == 'circle') {
@@ -15,13 +16,14 @@ function normalizeFabricShape(s) {
     }
     else if (s.type == 'rect') {
         let newS = Object.assign({}, s);
-        newS.width *= newS.scaleX / 2;
+        newS.width *= newS.scaleX / 2; // fabric stores widths in the scale matrix, eddie dx = width/2
         newS.left += newS.width;
         newS.height *= newS.scaleY / 2;
         newS.top += newS.height;
         ret = newS;
     }
     else if (s.type == 'line') {
+        // TODO?
         ret = Object.assign({}, s);
     }
     else {
@@ -31,6 +33,7 @@ function normalizeFabricShape(s) {
     }
     return ret;
 }
+// given a store and (normalized) fabric shape, make variables in the store and return a backend shape over the variables
 function buildBackendShapes(store, s) {
     let shape;
     if (s.type == 'circle') {
@@ -67,18 +70,30 @@ function buildPendulum(state, pivot, bob, rod) {
     let [pivX, pivY] = Util_1.map2Tup([pivotS.x, pivotS.y], v => store.get(v));
     let [bobX, bobY] = Util_1.map2Tup([bobS.x, bobS.y], v => store.get(v));
     let [dy, dx] = [pivY - bobY, pivX - bobX];
+    // L = sqrt(dx^2 + dy^2)
+    // theta = atan2(dy, dx)
     let [omega, theta, l] = Util_1.map3Tup([['omega', 0], ['theta', Math.atan2(dy, dx)], ['L', Math.sqrt(dx * dx + dy * dy)]], pBuilder);
     let [g, c] = Util_1.map2Tup([['G', 0.98], ['C', 0.01]], pBuilder);
+    // let points: Tup<Variable, Variable>[] = [[pivX, pivY], [bobX, bobY]]
+    // let lever = new Line(points, 'black', false)
+    // let dragPoint = new DragPoint(bobX, bobY, pivR, 'green')
+    // let frees = (new Set<Variable>()).add(bobX).add(bobY)
+    // pendulum group
     let pend = new Physics_1.Pendulum(omega, theta, l, c, bobS.x, bobS.y, pivotS.x, pivotS.y, g);
     return pend;
 }
+// given a json of shapes, build a model for the shapes
 function buildModel(canvas, renderer) {
+    // console.log()
     let retStore = Model_1.State.empty();
     let objs = canvas.shapes;
+    // two passes: first, normalize to eddie's position conventions
     let normObjs = objs.map(normalizeFabricShape);
+    // next, allocate variables and shapes for each input object
     normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(shape => {
         retStore = retStore.addShape(shape, false);
     });
+    // console.log(canvas.physicsGroups)
     canvas.physicsGroups.forEach(grp => {
         let newShapes;
         let newGroup;
@@ -96,6 +111,8 @@ function buildModel(canvas, renderer) {
         retStore.addPhysGroup(newGroup, renderer);
     });
     let ret = new Model_1.Model(retStore);
+    // console.log('model:')
+    // console.log(ret)
     return ret;
 }
 exports.buildModel = buildModel;
