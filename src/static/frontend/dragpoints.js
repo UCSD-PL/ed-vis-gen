@@ -96,13 +96,13 @@
     */
     originX: 'center',
     originY: 'center',
-    lockMovementX: true,
-    lockMovementY: true,
+    //lockMovementX: true,
+    //lockMovementY: true,
     lockScalingX: true,
     lockScalingY: true,
     lockRotation: true,
     hasBorders: false,
-    hasControls: false,
+    //hasControls: false,
     /**
      * Constructor
      * @param {Object} [options] Options object
@@ -117,8 +117,8 @@
       if (options.shape != null) {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
-        this.set('DX', options.shape.width*options.DX);
-        this.set('DY', options.shape.height*options.DY);
+        this.set('DX', options.DX);
+        this.set('DY', options.DY);
         this.set('left', options.shape.left + options.shape.width*options.DX);
         this.set('top', options.shape.top + options.shape.height*options.DY);
       }
@@ -156,28 +156,34 @@
     * @return
     */
     updateCoords: function(canvas) {
-      var objectList = canvas.getObjects();
-      for (var i = 0; i < objectList.length; i++) {
-        if (objectList[i].name === this.shapeName) {
-          this.set({
-            shape: objectList[i]
+      var drag = this;
+      canvas.forEachObject( function(ctx) {
+        if (ctx.name === drag.shapeName) {
+          drag.set({
+            shape: ctx
           });
-          this.set({
-            X: this.shape.getLeft(),
-            Y: this.shape.getTop(),
-            left: this.shape.getLeft() + this.shape.getWidth*this.get('DX'),
-            top: this.shape.getTop() + this.shape.getHeight*this.get('DY')
+          drag.set({
+            X: ctx.getLeft(),
+            Y: ctx.getTop(),
+            left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
+            top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
-          this.shape.on('modified', function() {
-            this.set({
-              X: this.shape.getLeft(),
-              Y: this.shape.getTop(),
-              left: this.shape.getLeft() + this.shape.getWidth*this.get('DX'),
-              top: this.shape.getTop() + this.shape.getHeight*this.get('DY')
-            });
-       });
-      }}
-    },
+          /*
+          ctx.on('modified', function() {
+            drag.set({
+              X: ctx.left,
+              Y: ctx.top,
+              left: ctx.left + ctx.width*drag.DX,
+              top: ctx.top + ctx.height*drag.DY
+            });*
+       });*/
+       console.log("OMG");
+       console.log(drag);
+       drag.bringToFront();
+       drag.setCoords(canvas);
+     }});
+      return;
+   },
 
     /**
      * Returns object representation of an instance
@@ -188,12 +194,12 @@
       return extend(this.callSuper('toObject', propertiesToInclude), {
         radius: this.get('radius'),
         shape: this.get('shape'),
-        X: this.get('X'),
-        Y: this.get('Y'),
-        DX: this.get('DX'),
-        DY: this.get('DY'),
-        left: this.get('X') + this.get('DX'),
-        top: this.get('Y') + this.get('DY'),
+        X: this.get('X'), //optional
+        Y: this.get('Y'), //optional
+        DX: this.get('DX'), //optional
+        DY: this.get('DY'), //optional
+        left: this.get('X') + this.shape.get('width')*this.get('DX'),
+        top: this.get('Y') + this.shape.get('height')*this.get('DY'),
         startAngle: this.startAngle,
         endAngle: this.endAngle
       });
