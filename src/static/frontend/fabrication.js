@@ -193,7 +193,8 @@ function updateModifications(savehistory) {
     if (savehistory === true) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
-        fabricJSON = JSON.parse(myjson); //JSON.parse(canvas);
+        fabricJSON = transfer(); //JSON.parse(myjson); //JSON.parse(canvas);
+
         current += 1;
     }
 }

@@ -12,7 +12,7 @@ function addTriangle(){
   updateLog();
 }
 
-//Add Circle
+//Add circle
 function addCircle(){
   var circle0 = new fabric.Circle({ radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true});
   canvas.add(circle0);
@@ -40,31 +40,84 @@ function addPendulum(){
   updateLog();
 
 };
+
 transfer = function transfer() {
-    physics.clear().renderAll();
+    // physics.clear().renderAll();
     current = state.length - mods - 1;
-    physics.loadFromJSON(state[current]);
-    physics.renderAll();
+    // physics.loadFromJSON(state[current]);
+    // physics.renderAll();
+
+    //save the JSON of canvas
+    var canvasJSON = canvas.toJSON();
 
 
+    //var grouped = canvas.getActiveGroup().toJSON()['objects'];
+    //var activeGroup = canvas.getActiveGroup();
+    //var objectsInGroup = activeGroup.getObjects();
+    //canvas.discardActiveGroup();
+
+    //objectsInGroup.forEach(function(object) {
+		//    canvas.remove(object);
+    //});
+    //var objects = canvas.toObject()['objects'];
+  //******  console.log(activeGroup.toJSON()['objects'])
+    //var exported = {'groups': grouped, 'shapes' : objects}
+
+    //objectsInGroup.forEach(function(object) {
+		//    canvas.add(object);
+    //});
+
+    //Array of grouped and ungrouped objects
     var exported = {};
     var physicsGroup = [];
     var shapes =[];
     var objsInCanvas = canvas.getObjects();
     canvas.forEachObject(function(obj){
       if (obj.get('physics') === 'pendulum'){
+        // console.log(obj)
         var groupObjects=obj.getObjects();
-        pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+        pendulumobj = {
+          type:'pendulum',
+          pivot: groupObjects[0],
+          rod: groupObjects[1],
+          bob:groupObjects[2]
+        };
         physicsGroup.push(pendulumobj);
+        // console.log(pendulumobj);
       }
       else{
         shapes.push(obj);
+        // console.log(obj.type);
       };
     });
-    exported['physicsGroup']=physicsGroup;
+    exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
-    console.log(exported);
-};
+    // console.log(exported);
+    return JSON.parse(JSON.stringify(exported)); // flattens objects
+  }
+//    for (obj in objsInCanvas) {
+//        // this gives you a group
+//        if(objsInCanvas[obj].get('physics')==='pendulum') {
+            // get all the objects in a group
+//            var groupObjects = objsInCanvas[obj].getObjects();
+            // iterate through the group
+//            pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+//            physicsGroup.push(pendulumobj);
+//            exported['physicsGroup'] = physicsGroup;
+//            console.log(exported);
+
+
+  //        }
+  //      else{
+  //        console.log(obj);
+  //        shapes.push(obj);
+  //      }
+
+//};
+//     console.log(shapes);
+
+//};
+
 
 //Deletion
 function deleteObjects(){
@@ -81,7 +134,6 @@ function deleteObjects(){
 function selectmode(){
 	canvas.isDrawingMode=false;
 }
-
 //Drawing mode
 function Drawingmode(){
 	canvas.isDrawingMode=true;
@@ -94,24 +146,3 @@ function EnterURL(){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
   });}}
-
-
-function transmit() {
-  var fabricJSON = JSON.parse(canvas);
-  physics.loadFromJSON(fabricJSON);
-}
-
-
-//animation
-
-function animation0(){
-  var activeObject = physics.getActiveObject()
-  var heights0 = activeObject.getTop();
-  var drop0 = document.getElementById('physics').height
-  var dis0 = drop0 - heights0 - activeObject.getHeight();
-  var dis = "+=" + dis0.toString();
-  activeObject.animate('top', dis, {
-  duration: 1000,
-  onChange: physics.renderAll.bind(physics),
-});
-}

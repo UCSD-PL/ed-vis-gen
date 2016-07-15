@@ -39,8 +39,6 @@ function addPendulum(){
   canvas.add(pendulum);
   updateLog();
 
-
-
 };
 
 transfer = function transfer() {
@@ -87,6 +85,7 @@ transfer = function transfer() {
     exported['physicsGroup']=physicsGroup;
     exported['shapes']=shapes;
     console.log(exported);
+    return exported;
   }
 //    for (obj in objsInCanvas) {
 //        // this gives you a group
