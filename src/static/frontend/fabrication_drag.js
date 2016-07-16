@@ -61,7 +61,7 @@ function candidatePoints() {
       var thing = obj;
       objectlist.push(obj);
       interact.add(obj);
-      console.log("it's a rectangle!");
+      // console.log("it's a rectangle!");
       /*
       canvas.forEachObject( function (possibleDP) {
         if (obj instanceof fabric.DragPoint && obj.shape == thing) {
@@ -89,7 +89,7 @@ function candidatePoints() {
         lockMovementY: true
       });
       interact.add(obj);
-      console.log("it's a circle!");
+      // console.log("it's a circle!");
       var radiusX = obj.getRadiusX();
       var radiusY =  obj.getRadiusY();
       addDragPoints(obj, 0.5, 0.5);
@@ -116,7 +116,7 @@ function candidatePoints() {
       interact.add(drag);
 
       drag.on('selected', function() {
-        console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
+        // console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         if (this.get('fill') == 'black') {
           this.set({
             fill: 'orange'
@@ -141,10 +141,10 @@ function candidatePoints() {
     }
 
 function onOverlayClosed(){
-  console.log(dragPointList);
+  // console.log(dragPointList);
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
-      console.log("the drag point should have been added!");
+      // console.log("the drag point should have been added!");
       dragPointList[i].set({
         fill: 'black'
       })
@@ -165,7 +165,7 @@ function onOverlayClosed(){
 // keeps drag points moving when object is modified
 function keepDragPointsMoving() {
   for (var i = 0; i < dragPointList.length; i++) {
-      console.log("the drag point should have been moved!");
+      // console.log("the drag point should have been moved!");
       dragPointList[i].updateCoords(canvas);
   }
 }

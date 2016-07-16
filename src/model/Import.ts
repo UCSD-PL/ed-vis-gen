@@ -9,29 +9,41 @@ type fabricCommon = {
   fill: string,
   name: string,
   scaleX: number,
-  scaleY: number
+  scaleY: number,
+  height: number,
+  width: number,
+  left: number,
+  top: number
 }
 type fabricCircle = {
-  left: number, // left + radius = x (basically)
-  top: number, // top + radius = y (basically)
+  // left: number, // left + radius = x (basically)
+  // top: number, // top + radius = y (basically)
   radius: number
 } & fabricCommon
 
 type fabricRect = {
-  left: number, // x equivalent of RectJSON
-  top: number, // y equivalent
-  width: number, // dx
-  height: number
+  // left: number, // x equivalent of RectJSON
+  // top: number, // y equivalent
+  // width: number, // dx
+  // height: number
 } & fabricCommon
 
 type fabricLine = {
-  left: number,
-  top: number, // x and y equivalent of PointJSON for start (for LineJSON)
-  width: number,
-  height: number // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
+  // left: number,
+  // top: number, // x and y equivalent of PointJSON for start (for LineJSON)
+  // width: number,
+  // height: number // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
 } & fabricCommon
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine
+type fabricDrag = {
+  X: number,
+  Y: number,
+  DX: number,
+  DY: number,
+  shape: fabricObject
+} & fabricCircle
+
+export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag
 
 type fabricPhysicsCommon = {
   type: string
@@ -53,7 +65,7 @@ export type fabricJSONObj = {
 // given a fabric object, convert the coordinates to backend conventions
 function normalizeFabricShape(s: fabricObject): fabricObject {
   let ret: fabricObject
-  if (s.type == 'circle' || s.type == 'dragPoint') {
+  if (s.type == 'circle') {
     let newS = Object.assign({}, s) as fabricCircle
     newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY)
     newS.left += newS.radius
@@ -69,6 +81,18 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
   } else if (s.type == 'line') {
     // TODO?
     ret = Object.assign({}, s) as fabricLine
+  } else if (s.type == 'dragPoint') {
+    // TODO: left and top don't reflect the underlying object in the import...
+    //       ...but do in the frontend. debug.
+    let newS = Object.assign({}, s) as fabricDrag
+
+    // left: X + shape.width*shape.scaleX*DX,
+    // top: Y  + shape.height*shape.scaleY*DY
+    newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY)
+    newS.left = newS.X + newS.shape.width*newS.shape.scaleX*newS.DX
+    newS.top = newS.Y + newS.shape.height*newS.shape.scaleY*newS.DY
+    ret = newS
+    // console.log(ret)
   } else {
     console.log('unrecognized shape in normalize:')
     console.log(s)
