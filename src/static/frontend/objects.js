@@ -81,6 +81,17 @@ function addLineWithBob() {
   });
 }
 
+// toggle snapping on and off
+
+function toggleSnap() {
+  if (snapping == 'on') {
+    snapping = 'off'
+  } 
+  else {
+    snapping = 'on'
+  }
+}
+
 //Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();

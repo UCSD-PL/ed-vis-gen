@@ -172,6 +172,10 @@ canvas.on(
     //window.BACKEND.drawFromFabric(fabricJSON);
     keepDragPointsMoving();
 },
+    'object:moving', function () {
+    //window.BACKEND.drawFromFabric(fabricJSON);
+    keepDragPointsMoving();
+},
     'object:added', function () {
     updateModifications(true);
     //window.BACKEND.drawFromFabric(fabricJSON);
