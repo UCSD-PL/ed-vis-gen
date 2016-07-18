@@ -87,15 +87,15 @@ function candidatePoints() {
       });
       interact.add(obj);
       console.log("it's a circle!");
-      addDragPoints(obj, 1, 1);
-      addDragPoints(obj, 0, 0);
-      addDragPoints(obj, 2, 2);
-      addDragPoints(obj, 0, 1);
-      addDragPoints(obj, 1, 0);
-      addDragPoints(obj, 0, 2);
-      addDragPoints(obj, 2, 1);
-      addDragPoints(obj, 2, 0);
-      addDragPoints(obj, 1, 2);
+      addDragPoints(obj, 0.5, 0.5);
+      addDragPoints(obj, 0.15, 0.15);
+      addDragPoints(obj, 0.85, 0.85);
+      addDragPoints(obj, 0, 0.5);
+      addDragPoints(obj, 0.5, 0);
+      addDragPoints(obj, 0.15, 0.85);
+      addDragPoints(obj, 1, 0.5);
+      addDragPoints(obj, 0.85, 0.15);
+      addDragPoints(obj, 0.5, 1);
       interact.renderAll();
     }
   });
