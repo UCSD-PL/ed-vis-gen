@@ -34,6 +34,17 @@ transfer = function transfer() {
     physics.renderAll();
 };
 
+//Add line with oversized dragPoint
+function addLineWithBob() {
+  var rod = new fabric.Line([50,100,50,300], {name: "rod", left: 100, top: 100, stroke: 'blue', strokeWidth: 2});
+  var bob = new fabric.DragPoint({ name: "bob", shapeName: "rod", shape: rod, radius: 20});
+  canvas.add(rod);
+  canvas.add(bob);
+  rod.on('modified', function() {
+    bob.updateCoords(canvas);
+  });
+}
+
 //Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
