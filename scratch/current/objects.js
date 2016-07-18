@@ -39,10 +39,16 @@ function addPendulum(){
   canvas.add(pendulum);
   updateLog();
 
-
-
 };
 
+
+//Add Spring
+function addSpring(){
+  var spring = new fabric.Spring([50,50,50,250],{top: 100, left:100, lockRotation: true,'physics':'spring'});
+  canvas.add(spring);
+  updateLog();
+
+}
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
