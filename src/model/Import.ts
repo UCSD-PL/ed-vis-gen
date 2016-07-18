@@ -3,6 +3,7 @@ import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint} from './Shapes'
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
+import {constrainAdjacent} from './Synthesis'
 
 type fabricCommon = {
   type: string,
@@ -204,6 +205,9 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
     retStore.addPhysGroup(newGroup, renderer)
   })
 
+  // console.log('before synthesis:')
+  // console.log(retStore)
+  constrainAdjacent(retStore)
   let ret = new Model(retStore)
   // console.log('model:')
   // console.log(ret)

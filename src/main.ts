@@ -1,5 +1,5 @@
 
-import Cass = require('cassowary')
+import {Expression, Equation} from 'cassowary'
 import {Circle, Line, DragPoint} from './model/Shapes'
 import {VType, CassVar, Variable} from './model/Variable'
 import SView = require('./view/Shapes')
@@ -54,6 +54,23 @@ function testISynth() {
 }
 
 
+function overlayContacts() {
+  let pointGen = new PointGeneration(initModel.main.eval())
+  let r = initModel.main.addVar(VType.Prim, 'arr', 10)
+  let suffix = 0
+  let newS = initModel.main
+  for (let [[xv, xe], [yv, ye]] of pointGen.makePoints(initModel.main.prog)) {
+    initModel.main.store.addCVar(xv)
+    initModel.main.store.addCVar(yv)
+    initModel.main.store.addEq(new Equation(Expression.fromVariable(xv._value), xe))
+    initModel.main.store.addEq(new Equation(Expression.fromVariable(yv._value), ye))
+    let newPoint = new Circle(xv, yv, r, 'black', 'red')
+    newS = newS.addShape("CP" + (suffix++).toString(), newPoint, false)
+  }
+  initModel = new Model(newS)
+  refresh()
+}
+
 // backend exports
 (window as any).BACKEND = {}
 export var backendExport: any = (window as any).BACKEND
@@ -61,3 +78,4 @@ backendExport.drawFromFabric = drawFromFabric
 backendExport.startPhysics = () => initModel.main.start()
 backendExport.stopPhysics = () => initModel.main.stop()
 backendExport.resetPhysics = () => initModel.main.reset()
+backendExport.contacts = overlayContacts

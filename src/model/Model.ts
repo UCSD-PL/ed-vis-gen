@@ -2,7 +2,7 @@ import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image} from '.
 // import U = require('../util/Util')
 import {assert, copy, add, filter, DEBUG, exists, Point, extend} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
-import Cass = require('cassowary')
+import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
 
@@ -37,17 +37,17 @@ export class Program {
 // mutable state store
 // we expect to frequently update internal elements of the store
 export class Store {
-  private csolver: Cass.SimplexSolver
+  private csolver: SimplexSolver
   private cvars: Set<CassVar>
-  private cstays: Map<CassVar, Cass.Equation> // I might not need the variable part...
+  private cstays: Map<CassVar, Equation> // I might not need the variable part...
   private prims: Map<Primitive, number>
 
   constructor() {
-    this.csolver = new Cass.SimplexSolver()
+    this.csolver = new SimplexSolver()
     this.csolver.autoSolve = false
     this.cvars = new Set<CassVar>()
     this.prims = new Map<Primitive, number>()
-    this.cstays = new Map<CassVar, Cass.Equation>()
+    this.cstays = new Map<CassVar, Equation>()
   }
 
   public debug() {
@@ -61,10 +61,14 @@ export class Store {
 
   // helper: create a stay equation for a cassowary variable
   // i.e. v = v.value
-  private static makeStay(v: CassVar): Cass.Equation {
-    let l = Cass.Expression.fromVariable(v._value)
-    let r = Cass.Expression.fromConstant(v._value.value)
-    return new Cass.Equation(l, r)
+  private static makeStay(v: CassVar): Equation {
+    let l = Expression.fromVariable(v._value)
+    let r = Expression.fromConstant(v._value.value)
+    let stay = new Equation(l, r, Strength.strong)
+    // console.log('stay for :')
+    // console.log(v)
+    // console.log(stay.toString())
+    return stay
   }
 
   private clearStays(): void {
@@ -93,8 +97,11 @@ export class Store {
     this.addStays(frees)
   }
 
-  public addEq(e: Cass.Equation): void {
+  public addEq(e: Equation): void {
+    // console.log('adding constraint:')
+    // console.log(e.toString())
     this.csolver.addConstraint(e)
+
   }
 
   public suggestEdits(edits: Map<Variable, number>, frees: Set<Variable>): void {
@@ -117,7 +124,7 @@ export class Store {
 
     for (let [eVar, eValue] of edits) {
       if (eVar instanceof CassVar) {
-        this.csolver.addEditVar(eVar._value, Cass.Strength.medium, 1)
+        this.csolver.addEditVar(eVar._value, Strength.medium, 1)
       }
     }
 
@@ -289,11 +296,11 @@ export class State {
 
   // given an expression, allocate a new variable, add to the store, and
   // return an equation for var = expr.
-  public makeEquation(e: Cass.Expression, v: number): [CassVar, Cass.Equation] {
+  public makeEquation(e: Expression, v: number): [CassVar, Equation] {
     let varValue = -e.constant
   //  console.log(e)
     let retVar = this.allocVar(v)
-    let eq = new Cass.Equation(retVar.toCExpr(), e)
+    let eq = new Equation(retVar.toCExpr(), e, Strength.strong)
     return [retVar, eq]
   }
 
@@ -305,7 +312,7 @@ export class State {
 
     if (withEditPoints) {
       let editPoints = new Map<DragPoint, Set<Variable>>()
-      let editEqs = new Set<Cass.Equation>()
+      let editEqs = new Set<Equation>()
       let vals = this.eval()
 
       // assumes each shape has CassVar variables, which is not realistic... TODO
