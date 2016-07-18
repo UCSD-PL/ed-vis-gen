@@ -27,7 +27,7 @@ function addRectangle(){
 }
 
 //Add pendulum
-function addPendulum(){
+function addPendulum1(){
   snapping = 'off';
   var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true, 'physics':'pendulum', 'item':'pivot'});
 
@@ -46,10 +46,174 @@ function addPendulum(){
 
 //Add test
 function addTest(){
-  var testangle = new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, 'physics':'pendulum'});
-  canvas.add(testangle);
-  console.log(testangle.get('physics'));
+  snapping = 'off';
+  var rod = new fabric.Line([50, 50, 50, 250], {
+    stroke:'cornflowerblue',
+    strokeWidth: 2,
+    selectable: true,
+    hasControls: false,
+    hasBorders: false,
+    centeredRotation: false,
+    centeredScaling: false,
+    selection:true,
+    name:'rod',
+    'physics':'pendulum',
+    'item':'rod',
+    //originX: 'center',
+    //originY: 'center'
+  });
+
+
+  var pivot = new fabric.Circle({
+    radius: 4,
+    fill: 'dogerblue',
+    left: 47,
+    top: 42,
+    hasControls: false,
+    hasBorders: false,
+    name: 'pivot',
+    'physics':'pendulum',
+    'item':'pivot',
+  });
+
+  var bob = new fabric.Circle({
+    radius: 30,
+    fill: 'dogerblue',
+    left: 21,
+    top: 250,
+    hasControls: false,
+    hasBorders: false,
+    name: 'bob',
+    'physics':'pendulum',
+    'item':'bob',
+
+  });
+
+
+
+  physics.on('object:moving', function (options) {
+
+    var objType = options.target.get('type');
+    var p = options.target;
+
+    if (objType == 'rod') {
+        pivot.set({ x1: rod.x1, y1: rod.y1 });
+        bob.set({ left: rod.x2, top: rod.y2 });
+    }
+    if (objType == 'circle') {
+        if (p.name == 'pivot') {
+            rod.set({
+                x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y, selectable: true
+            });
+        } else {
+            if (p.name == 'bob') {
+                rod.set({
+                    x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y, selectable: true
+                });
+            }
+        }
+    }
+    rod.setCoords();
+    pivot.setCoords();
+    bob.setCoords();
+    physics.renderAll();
+
+});
+
+  physics.add(rod);
+  physics.add(pivot);
+  physics.add(bob);
+  physics.renderAll();
 }
+
+
+//Add Pendulum
+function addPendulum(){
+  snapping = 'off';
+  var rod = new fabric.Line([50, 50, 50, 250], {
+    stroke:'cornflowerblue',
+    strokeWidth: 2,
+    selectable: true,
+    hasControls: false,
+    hasBorders: false,
+    centeredRotation: false,
+    centeredScaling: false,
+    selection:true,
+    name:'rod',
+    'physics':'pendulum',
+    'item':'rod',
+    //originX: 'center',
+    //originY: 'center'
+  });
+
+
+  var pivot = new fabric.Circle({
+    radius: 4,
+    fill: 'dogerblue',
+    left: 47,
+    top: 42,
+    hasControls: false,
+    hasBorders: false,
+    name: 'pivot',
+    'physics':'pendulum',
+    'item':'pivot',
+  });
+
+  var bob = new fabric.Circle({
+    radius: 30,
+    fill: 'dogerblue',
+    left: 21,
+    top: 250,
+    hasControls: false,
+    hasBorders: false,
+    name: 'bob',
+    'physics':'pendulum',
+    'item':'bob',
+
+  });
+
+
+
+  canvas.on('object:moving', function (options) {
+
+    var objType = options.target.get('type');
+    var p = options.target;
+
+    if (objType == 'rod') {
+        pivot.set({ x1: rod.x1, y1: rod.y1 });
+        bob.set({ left: rod.x2, top: rod.y2 });
+    }
+    if (objType == 'circle') {
+        if (p.name == 'pivot') {
+            rod.set({
+                x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y, selectable: true
+            });
+        } else {
+            if (p.name == 'bob') {
+                rod.set({
+                    x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y, selectable: true
+                });
+            }
+        }
+    }
+    rod.setCoords();
+    pivot.setCoords();
+    bob.setCoords();
+    canvas.renderAll();
+
+});
+
+  canvas.add(rod);
+  canvas.add(pivot);
+  canvas.add(bob);
+  canvas.renderAll();
+}
+
+
+
+
+
+
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
