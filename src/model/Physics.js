@@ -34,7 +34,8 @@ class Pendulum {
         Y_BOB, // y coordinate of moving bob
         X_PIVOT, // x coordinate of pendulum base
         Y_PIVOT, // y coordinate of pendulum base
-        G // force of gravity)
+        G, // force of gravity)
+        rodVars // additional variables used by the rod -- assumed to connect the bob and pivot by something else
         ) {
         this.Omega = Omega;
         this.Theta = Theta;
@@ -45,6 +46,7 @@ class Pendulum {
         this.X_PIVOT = X_PIVOT;
         this.Y_PIVOT = Y_PIVOT;
         this.G = G;
+        this.rodVars = rodVars;
     }
     validate() {
         let setVar = this.Omega && this.Theta && this.L && this.C && this.G &&
@@ -85,9 +87,9 @@ class Pendulum {
     }
     // free variables for updates
     frees() {
-        return (new Set())
+        return Util_1.union((new Set())
             .add(this.Omega).add(this.Theta).add(this.L)
-            .add(this.X_BOB).add(this.Y_BOB);
+            .add(this.X_BOB).add(this.Y_BOB), this.rodVars);
     }
 }
 exports.Pendulum = Pendulum;

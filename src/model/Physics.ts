@@ -1,6 +1,6 @@
 import {PhysExpr, evalPhysicsExpr, VarExpr} from './PhysicsExpr'
 import {Variable} from './Variable'
-import {Tup, mapValues, extendMap} from '../util/Util'
+import {Tup, mapValues, extendMap, union} from '../util/Util'
 
 export class Integrator {
   private vals: Map<Variable, PhysExpr>
@@ -48,7 +48,8 @@ export class Pendulum implements PhysicsGroup {
     public Y_BOB: Variable, // y coordinate of moving bob
     public X_PIVOT: Variable, // x coordinate of pendulum base
     public Y_PIVOT: Variable, // y coordinate of pendulum base
-    public G: Variable // force of gravity)
+    public G: Variable, // force of gravity)
+    public rodVars: Set<Variable> // additional variables used by the rod -- assumed to connect the bob and pivot by something else
   ) {}
 
   public validate() {
@@ -106,9 +107,9 @@ export class Pendulum implements PhysicsGroup {
   }
   // free variables for updates
   public frees(): Set<Variable> {
-    return (new Set<Variable>())
+    return union((new Set<Variable>())
             .add(this.Omega).add(this.Theta).add(this.L)
-            .add(this.X_BOB).add(this.Y_BOB)
+            .add(this.X_BOB).add(this.Y_BOB), this.rodVars)
 
   }
 }

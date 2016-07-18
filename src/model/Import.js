@@ -78,8 +78,9 @@ function buildPendulum(state, pivot, bob, rod) {
     // let lever = new Line(points, 'black', false)
     // let dragPoint = new DragPoint(bobX, bobY, pivR, 'green')
     // let frees = (new Set<Variable>()).add(bobX).add(bobY)
+    let rodVars = new Set(rodS.points[0]).add(rodS.points[1][0]).add(rodS.points[1][1]);
     // pendulum group
-    let pend = new Physics_1.Pendulum(omega, theta, l, c, bobS.x, bobS.y, pivotS.x, pivotS.y, g);
+    let pend = new Physics_1.Pendulum(omega, theta, l, c, bobS.x, bobS.y, pivotS.x, pivotS.y, g, rodVars);
     return pend;
 }
 // given a json of shapes, build a model for the shapes

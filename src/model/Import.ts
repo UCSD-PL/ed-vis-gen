@@ -1,5 +1,5 @@
 import {Model, State} from './Model'
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert} from '../util/Util'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap} from '../util/Util'
 import {Circle, Rectangle, Shape, Line} from './Shapes'
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
@@ -138,9 +138,11 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
   // let dragPoint = new DragPoint(bobX, bobY, pivR, 'green')
   // let frees = (new Set<Variable>()).add(bobX).add(bobY)
 
+  let rodVars = new Set(rodS.points[0]).add(rodS.points[1][0]).add(rodS.points[1][1])
+
 
   // pendulum group
-  let pend = new Pendulum(omega, theta, l, c, bobS.x, bobS.y, pivotS.x, pivotS.y, g)
+  let pend = new Pendulum(omega, theta, l, c, bobS.x, bobS.y, pivotS.x, pivotS.y, g, rodVars)
 
   return pend
 }
