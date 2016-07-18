@@ -36,12 +36,48 @@ transfer = function transfer() {
 
 //Add line with oversized dragPoint
 function addLineWithBob() {
-  var rod = new fabric.Line([50,100,50,300], {name: "rod", left: 100, top: 100, stroke: 'blue', strokeWidth: 2});
-  var bob = new fabric.DragPoint({ name: "bob", shapeName: "rod", shape: rod, radius: 20});
+  //var rod = new fabric.Line([50,100,50,300], {name: "rod", left: 100, top: 100, stroke: 'blue', strokeWidth: 2});
+  function makeCircle(radius, left, top, select, line1, line2) {
+    var bob = new fabric.Circle({
+      left: left,
+      top: top,
+      strokeWidth: 5,
+      radius: radius,
+      originX: 'center',
+      originY: 'center',
+      fill: '#fff',
+      stroke: 'black',
+      selectable: select
+    });
+    bob.hasControls = bob.hasBorders = false;
+
+    bob.line1 = line1;
+    bob.line2 = line2;
+
+    return bob;
+  }
+
+  function makeALine(coords) {
+    return new fabric.Line(coords, {
+      fill: 'black',
+      stroke: 'black',
+      strokeWidth: 5,
+      selectable: false,
+      snap: false
+    });
+  }
+  rod = makeALine([ 250, 250, 300, 350]);
   canvas.add(rod);
-  canvas.add(bob);
-  rod.on('modified', function() {
-    bob.updateCoords(canvas);
+  canvas.add(
+    makeCircle(5, rod.get('x1'), rod.get('y1'), false, rod),
+    makeCircle(25, rod.get('x2'), rod.get('y2'), true, null, rod)
+  );
+  //var bob = new fabric.DragPoint({ name: "bob", shapeName: "rod", DX: 0.5, DY: 1, shape: rod, radius: 20});
+  canvas.on('object:moving', function(e) {
+    var p = e.target;
+    p.line1 && p.line1.set({ 'x1': p.left, 'y1': p.top});
+    p.line2 && p.line2.set({ 'x2': p.left, 'y2': p.top});
+    canvas.renderAll();
   });
 }
 

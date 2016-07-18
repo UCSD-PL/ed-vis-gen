@@ -7,9 +7,11 @@ state = [],
 mods = 0,
 selectedObj = [],
 whereDP = 0,
+notSnappable = [],
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
-dragPointList = [], // lists of drag points
+dragPointList = [], // list of drag points on canvas
+oldDragPointList = [], // list of unwanted drag points on canvas :(
 snapColor = "red",
 fabricJSON,
 objectlist = [],
@@ -56,18 +58,17 @@ function updateLog() {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
+  oldDragPointList = dragPointList;
+  dragPointList = [];
   canvas.forEachObject( function (obj) {
     if (obj != null && obj instanceof fabric.Rect) {
       var thing = obj;
       objectlist.push(obj);
       interact.add(obj);
+      obj.set({
+        selectable: false
+      });
       console.log("it's a rectangle!");
-      /*
-      canvas.forEachObject( function (possibleDP) {
-        if (obj instanceof fabric.DragPoint && obj.shape == thing) {
-          list_of_drag == 0;
-        }
-      }); */
       addDragPoints(obj, 0.5, 0.5);
       addDragPoints(obj, 0, 0);
       addDragPoints(obj, 1, 1);
@@ -82,16 +83,10 @@ function candidatePoints() {
     if (obj != null && obj instanceof fabric.Circle) {
       objectlist.push(obj);
       obj.set({
-        hasBorders: false,
-        hasControls: false,
-        selection: false,
-        lockMovementX: true,
-        lockMovementY: true
+        selectable: false
       });
       interact.add(obj);
       console.log("it's a circle!");
-      var radiusX = obj.getRadiusX();
-      var radiusY =  obj.getRadiusY();
       addDragPoints(obj, 1, 1);
       addDragPoints(obj, 0, 0);
       addDragPoints(obj, 2, 2);
@@ -130,7 +125,7 @@ function candidatePoints() {
           });
 
           function checkDP (dp) {
-            return dp === drag;
+            return dp == drag;
           }
 
           whereDP = dragPointList.findIndex(checkDP);
@@ -142,21 +137,22 @@ function candidatePoints() {
 
 function onOverlayClosed(){
   console.log(dragPointList);
+  // removes old dragPoints.
+  for (var i = 0; i < oldDragPointList.length; i++) {
+    canvas.remove(oldDragPointList[i]);
+  }
+
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been added!");
       dragPointList[i].set({
         fill: 'black'
-      })
+      });
       canvas.add(dragPointList[i]);
     }
   for (var i=0; i < objectlist.length; i++) {
     objectlist[i].set({
-      hasBorders: true,
-      hasControls: true,
-      selection: true,
-      lockMovementX: false,
-      lockMovementY: false
+      selectable: true
     });
   }
   canvas.renderAll();
@@ -266,7 +262,10 @@ canvas.on('object:moving', function (options) {
 	// Loop through objects
 	canvas.forEachObject(function (obj) {
     // makes sure drag points don't get in the way
-    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
+
+    // makes sure /some/ points don't get in the way
+    if (obj.snap == false || options.target.snap == false) return;
 
     // turns snapping off
     if (snapping === 'off') return;
@@ -393,7 +392,10 @@ canvas.on('object:moving', function (options) {
 	canvas.forEachObject(function (obj) {
 
     // makes sure drag points doesn't get in the way
-    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
+
+    // makes sure /some/ points don't get in the way
+    if (obj.snap == false || options.target.snap == false) return;
 
     // turns snapping off
     if (snapping === 'off') return;
@@ -471,7 +473,14 @@ canvas.on('object:moving', function (options) {
 });
 
 canvas.on('object:modified', function (options) {
-  options.target.set({
-    stroke: options.target.fill
-  });
+  if (options.target.fill != 'white' && options.target.fill != '#fff') {
+     options.target.set({
+      stroke: options.target.fill
+    });
+  }
+  else {
+    options.target.set({
+      stroke: 'black'
+    });
+  }
 })

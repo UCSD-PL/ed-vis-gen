@@ -103,7 +103,7 @@
     lockScalingY: true,
     lockRotation: true,
     hasBorders: false,
-    //hasControls: false,
+    hasControls: false,
     /**
      * Constructor
      * @param {Object} [options] Options object
@@ -113,14 +113,22 @@
       options = options || { };
 
       this.callSuper('initialize', options);
-      this.set('radius', 3);
+      this.set('radius', options.radius || 4);
       this.set('shapeName', options.shapeName || '');
-      if (options.shape != null) {
+      if (options.shape != null && options.shape.type != 'line') {
+        this.set('X', options.shape.left);
+        this.set('Y', options.shape.top);
+        this.set('DX', options.DX || 0);
+        this.set('DY', options.DY|| 0);
+        this.set('left', options.shape.x2);
+        this.set('top', options.shape.y2);
+      }
+      else if (options.shape != null && options.shape.type == 'line') {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
         this.set('DX', options.DX);
         this.set('DY', options.DY);
-        this.set('left', options.shape.left + options.shape.width*options.DX);
+        this.set('left', options.shape.left + options.shape.strokeWidth*options.DX);
         this.set('top', options.shape.top + options.shape.height*options.DY);
       }
       else {
@@ -162,15 +170,25 @@
       canvas.forEachObject( function(ctx) {
         if (ctx === drag) return;
         if (ctx == drag.shape || ctx.name === drag.shapeName) {
-          drag.set({
-            shape: ctx
-          });
-          drag.set({
-            X: ctx.getLeft(),
-            Y: ctx.getTop(),
-            left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
-            top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
-          });
+            drag.set({
+              shape: ctx
+            });
+            if (drag.shape.type === 'line') {
+              drag.set({
+                X: ctx.get('x1'),
+                Y: ctx.get('y1'),
+                left: drag.shape.x2,
+                top: drag.shape.y2
+              });
+            }
+            else {
+              drag.set({
+                X: ctx.getLeft(),
+                Y: ctx.getTop(),
+                left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
+                top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
+              });
+            }
        console.log(drag);
        //drag.bringToFront();
        drag.setCoords(canvas);
