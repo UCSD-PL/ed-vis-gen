@@ -180,13 +180,16 @@ transfer = function transfer() {
       else{
         shapes.push(obj);
       };
-    });
+
     if ('pivot' in pendulumObj && 'rod' in pendulumObj && 'bob' in pendulumObj) {
       physicsGroup.push(pendulumObj);
-    }
+      pendulumObj = {'type':'pendulum'};
+
+      }
+    });
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
-    // console.log(exported);
+    console.log(exported);
     return JSON.parse(JSON.stringify(exported)); // flattens objects
   }
 //    for (obj in objsInCanvas) {
