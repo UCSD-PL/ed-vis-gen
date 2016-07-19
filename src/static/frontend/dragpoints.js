@@ -113,15 +113,21 @@
       options = options || { };
 
       this.callSuper('initialize', options);
-      this.set('radius', 3);
+      this.set('radius', options.shape.radius || 4);
       this.set('shapeName', options.shapeName || '');
       if (options.shape != null) {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
         this.set('DX', options.DX);
         this.set('DY', options.DY);
-        this.set('left', options.shape.left + options.shape.width*options.DX);
-        this.set('top', options.shape.top + options.shape.height*options.DY);
+        if (options.shape instanceof fabric.Line) {
+          this.set('left', options.shape.left + options.shape.strokeWidth);
+          this.set('top', options.shape.top + options.shape.height*options.DY);
+        }
+        else {
+          this.set('left', options.shape.left + options.shape.width*options.DX);
+          this.set('top', options.shape.top + options.shape.height*options.DY);
+        }
       }
       else {
         this.set('X', 0);
@@ -290,7 +296,7 @@
      * @return {Number} complexity of this instance
      */
     complexity: function() {
-      return 1.01;
+      return 1;
     }
   });
 

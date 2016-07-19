@@ -1,7 +1,7 @@
 //Add line
 function addLine(){
  var name = allocSName();
- var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100, lockRotation: true});
+ var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100});
  canvas.add(line0);
  updateLog();
 }

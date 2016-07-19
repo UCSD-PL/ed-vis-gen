@@ -11,6 +11,9 @@ selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
 oldDragPointList = [], // list of unwanted drag points on canvas :(
+canvasList = [], // adds a canvas for separate simulations
+lastCanvas = 0, // last canvas for the drag point selection panel
+currentCanvas = 0, // current canvas for the drag point selection panel
 snapColor = "red",
 fabricJSON,
 objectlist = [],
@@ -58,6 +61,7 @@ function candidatePoints() {
   interact.clear();
   oldDragPointList = dragPointList;
   dragPointList = [];
+  canvasList = [];
   canvas.forEachObject( function (obj) {
     if (obj != null && obj instanceof fabric.Rect) {
       var thing = obj;
@@ -96,6 +100,17 @@ function candidatePoints() {
       addDragPoints(obj, 0.5, 1);
       interact.renderAll();
     }
+    if (obj != null && obj instanceof fabric.Line) {
+      objectlist.push (obj);
+      obj.set({
+        selectable: false
+      });
+      interact.add(obj);
+      addDragPoints(obj, 0, 0);
+      addDragPoints(obj, 0, 0.5);
+      addDragPoints(obj, 0, 1);
+      interact.renderAll();
+    }
   });
 
   function addDragPoints(obj, dx, dy) {
@@ -132,6 +147,49 @@ function candidatePoints() {
         }});
       }
     }
+
+function onOverlayAccept() {
+  // creates and adds canvases to the list
+  for (var i = 0; i < dragPointList.length; i++) {
+    var some_canvas = new fabric.Canvas( i.toString() );
+    canvasList.push([i, some_canvas]);
+    var some_text = new fabric.Text( i.toString(), {
+      fill: 'blue', left: 100, top: 100, fontSize: 60
+    });
+    some_canvas.add(some_text);
+  }
+  // removes old dragPoints.
+  for (var i = 0; i < oldDragPointList.length; i++) {
+    canvas.remove(oldDragPointList[i]);
+  }
+}
+
+//displays next canvas on drag point selection panel
+function onRight() {
+  if (currentCanvas == canvasList.length-1) {
+    lastCanvas = canvasList.length-1;
+    currentCanvas = 0;
+  }
+  else {
+    lastCanvas = currentCanvas;
+    currentCanvas += 1;
+  }
+  document.getElementById(lastCanvas.toString()).id = currentCanvas.toString();
+}
+
+
+//displays previous canvas on drag point selection panel
+function onLeft() {
+  if (currentCanvas == 0) {
+    lastCanvas = 0;
+    currentCanvas = canvasList.length-1;
+  }
+  else {
+    lastCanvas = currentCanvas;
+    currentCanvas -= 1;
+  }
+  document.getElementById(lastCanvas.toString()).id = currentCanvas.toString();
+}
 
 function onOverlayClosed(){
   console.log(dragPointList);
