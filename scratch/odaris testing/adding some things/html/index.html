@@ -1,0 +1,170 @@
+<html>
+
+<title>
+  Demo Playground
+</title>
+
+<head>
+
+    <!-- frontend script -->
+    <script src="../frontend/fabric.js"></script>
+
+</head>
+
+<!-- Style -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<style>
+  h1{
+    text-align:center;
+    font-family: monospace;
+  }
+  .leftbuttons{
+    float: left;
+  }
+
+  .rightbuttons{
+    float: right;
+  }
+  body {
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+  }
+  .overlay {
+      height: 0%;
+      width: 100%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: rgb(0,0,0);
+      background-color: #ffffff;
+      overflow-y: hidden;
+      transition: 0.5s;
+  }
+  .overlay-content {
+      position: relative;
+      top: 10%;
+      width: 100%;
+      text-align: center;
+      margin-top: 30px;
+  }
+  .closebtn {
+      position: absolute;
+      top: 20px;
+      right: 45px;
+      font-size: 60px !important;
+  }
+  @media screen and (max-height: 450px) {
+    .overlay {overflow-y: auto;}
+    .closebtn {
+      font-size: 40px !important;
+      top: 15px;
+      right: 35px;
+    }
+}
+</style>
+
+<body>
+
+
+  <h1>
+    EDDIE PLAYGROUND
+  </h1>
+
+  <!--our canvases-->
+  <div id="draw" style ="float:left;">
+    <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
+  </div>
+  <div style = "float:left;">
+    <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
+  </div>
+
+    <div class="leftbuttons">
+
+      <button class="btn btn-default" onclick="addLineWithBob()">
+        <i class="fa fa-minus"></i></button>
+      <button class="btn btn-default" onclick="addTriangle()">
+        <i class="fa fa-play"></i></button>
+      <button class="btn btn-default" onclick="addCircle()">
+        <i class="fa fa-circle"></i></button>
+      <button class="btn btn-default" onclick="addRectangle()">
+        <i class="fa fa-square"></i></button>
+      <button class="btn btn-default" onclick="selectmode()" id="select">
+      <i class="fa fa-hand-o-up"></i></button>
+      <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
+      <i class="fa fa-paint-brush"></i></button>
+
+      <!--toggles snapping on and off-->
+      <button class="btn btn-default" onclick="toggleSnap()"> Toggle Snapping </button>
+
+      <!--delete button-->
+      <button class="btn btn-default" onclick="deleteObjects()" id="delete">
+      <i class="fa fa-trash"></i></button>
+
+      <!--undo & redo-->
+      <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
+      <i class="fa fa-mail-reply"></i></button>
+      <button class="btn btn-default" value="redo" onclick="redo()" id="redo">
+      <i class="fa fa-mail-forward"></i></button>
+
+      <!-- upload -->
+      <button class="btn btn-default" onclick="EnterURL()" id="loadfromURL">
+      <i class="fa fa-picture-o"></i></button>
+
+      <!--load json-->
+      <button class="btn btn-default" value="transfer" onclick="transfer()" id="transfer">
+      <i class="fa fa-share-square"></i></button>
+
+      <!--animation-->
+      <button class="btn btn-default" onclick="animation0()" id="animation0">
+        Trigger </button>
+
+      <!--overlay-->
+      <button class="btn btn-default" type="button" onclick = "candidatePoints(); open0()" id="trigger-overlay">
+        Open Overlay
+      </button>
+
+      </div>
+
+
+
+      <div class="rightbuttons">
+        <button class="btn btn-default" onclick="BACKEND.startPhysics()">Start</button>
+        <button class="btn btn-default" onclick="BACKEND.stopPhysics()">Stop</button>
+        <button class="btn btn-default" onclick="BACKEND.resetPhysics()">Reset</button>
+      </div>
+
+      <!-- open/close -->
+      <div id="myNav" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="close0(); onOverlayClosed()">x</a>
+
+      <div class="overlay-content" >
+         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
+      </div>
+
+      </div>
+
+      <!--more frontend scripts-->
+      <script src="../frontend/dragpoints.js"></script>
+      <script src="../frontend/fabrication.js"></script>
+      <script src="../frontend/objects.js"></script>
+        <!-- backend script -->
+      <script src="../lib.js"></script>
+
+      <!-- opening and closing scripts -->
+      <script>
+
+      function open0() {
+        document.getElementById("myNav").style.height = "100%";
+      }
+
+      function close0() {
+        document.getElementById("myNav").style.height = "0%";
+      }
+
+      </script>
+
+</html>
