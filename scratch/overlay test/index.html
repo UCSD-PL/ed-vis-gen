@@ -40,6 +40,19 @@
     transition: 0.5s;
 }
 
+.overlay2 {
+    height: 0%;
+    width: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: rgb(0,0,0);
+    background-color: #ffffff;
+    overflow-y: hidden;
+    transition: 0.5s;
+}
+
 .overlay-content {
     position: relative;
     top: 25%;
@@ -129,6 +142,9 @@
       <!-- open/close -->
       <div id="myNav" class="overlay">
         <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+        <button class="btn btn-default" type="button" onclick="open1()" id="trigger-overlay2">
+          Accept
+        </button>
         <button class="btn btn-default" type='button' onclick="addRec()">Add!</button>
         <button class="btn btn-default" type = 'button' onclick = "transfer0()" value="transfer0" id="transfer0">
           load!
@@ -139,6 +155,18 @@
         </div>
       </div>
 
+
+
+      <!--the second overlay-->
+      <div id="mySelect" class="overlay2">
+        <a href="javascript:void(0)" class="closebtn" onclick="close1()">x</a>
+        <div class="overlay-content">
+          <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
+
+         </div>
+       </div>
+
+
       <script>
       function open0() {
         document.getElementById("myNav").style.height = "100%";
@@ -148,29 +176,16 @@
         document.getElementById("myNav").style.height = "0%";
       }
 
-      // create a wrapper around native canvas element (with id="interact")
-      var interact = new fabric.Canvas('interact');
 
-      // create a rectangle object
-      function addRec(){
-      var rect = new fabric.Rect({
-        left: 100,
-        top: 100,
-        fill: 'red',
-        width: 20,
-        height: 20
-      });
+      function open1(){
+        document.getElementById("mySelect").style.height = "100%";
+      }
 
-      // "add" rectangle onto canvas
-      interact.add(rect);}
+      function close1(){
+        document.getElementById("myNav").style.height = "0%";
+        document.getElementById("mySelect").style.height = "0%";
+      }
 
-
-      transfer0 = function transfer0() {
-          interact.clear().renderAll();
-          current = state.length - mods - 1;
-          interact.loadFromJSON(state[current]);
-          interact.renderAll();
-      };
 
 
       </script>
