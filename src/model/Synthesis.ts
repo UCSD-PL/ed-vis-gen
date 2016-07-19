@@ -169,7 +169,7 @@ export class PointGeneration {
 }
 
 // given a state, add in equations enforcing adjacent shapes to the state's store.
-// modifies the store in-place.
+// modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
 export function constrainAdjacent(state: State) {
 
   let store = state.eval()

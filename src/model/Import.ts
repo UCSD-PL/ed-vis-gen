@@ -7,6 +7,8 @@ import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
 import {constrainAdjacent} from './Synthesis'
 
+import {Poset} from '../util/Poset'
+
 type fabricCommon = {
   type: string,
   fill: string,
@@ -229,7 +231,14 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
   // console.log('before synthesis:')
   // console.log(retStore)
   constrainAdjacent(retStore)
-  let ret = new Model(retStore)
+
+  let possibleFrees = new Map<DragPoint, Poset<Set<Variable>>>()
+
+  for (let [dp] of retStore.prog.allFrees) {
+
+  }
+
+  let ret = new Model(retStore, possibleFrees)
   // console.log('model:')
   // console.log(ret)
   return ret
