@@ -32,8 +32,10 @@ function addRectangle(){
 
 //Add pendulum
 function addPendulum(){
+  var rodname = allocSName();
   snapping = 'off';
   var rod = new fabric.Line([50, 50, 50, 250], {
+    name: rodname,
     stroke:'cornflowerblue',
     strokeWidth: 2,
     selectable: true,
@@ -49,8 +51,9 @@ function addPendulum(){
     //originY: 'center'
   });
 
-
+  var pivotname = allocSName();
   var pivot = new fabric.Circle({
+    name: pivotname,
     radius: 4,
     fill: 'dogerblue',
     left: 47,
@@ -62,7 +65,9 @@ function addPendulum(){
     'item':'pivot',
   });
 
+  var bobname = allocSName();
   var bob = new fabric.Circle({
+    name: bobname,
     radius: 30,
     fill: 'dogerblue',
     left: 21,
@@ -172,6 +177,8 @@ transfer = function transfer() {
       };
 
     if ('pivot' in pendulumObj && 'rod' in pendulumObj && 'bob' in pendulumObj) {
+      var pendulumname = allocSName();
+      pendulumObj[name] = pendulumname;
       physicsGroup.push(pendulumObj);
       pendulumObj = {'type':'pendulum'};
 
