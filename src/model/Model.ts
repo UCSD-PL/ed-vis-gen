@@ -1,6 +1,6 @@
 import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
@@ -221,7 +221,7 @@ export class PhysicsEngine {
   private runner: Timer
   private initValues: Map<Variable, number>
   constructor(public decls: Integrator, public freeVars: Set<Variable>,
-    public values: Store, renderer: () => void) {
+    public values: Store, public renderer: () => void) {
     // public freq:number,
     // public work: (n: number) => void,
     this.initValues = copy(values.eval())
@@ -250,6 +250,15 @@ export class PhysicsEngine {
   }
   public reset() {
     this.runner.reset()
+  }
+
+  // extends a physics engine with a new set of decls
+  public extend(rhs: PhysicsEngine) {
+    let newDecls = this.decls.union(rhs.decls)
+    let newFrees = union(this.freeVars, rhs.freeVars)
+    let [newStore, newRenderer] = [rhs.values, rhs.renderer]
+    // TODO: this might not be valid...
+    return new PhysicsEngine(newDecls, newFrees, newStore, newRenderer)
   }
 
   public static empty() {
@@ -404,13 +413,13 @@ export class State {
   }
 
   public addPhysDecls(decls: Integrator, freeVals: Set<Variable>, renderer: () => void) {
-    this.physicsEngine = new PhysicsEngine(decls, freeVals, this.store, renderer)
+    let newEngine = new PhysicsEngine(decls, freeVals, this.store, renderer)
+    this.physicsEngine = this.physicsEngine.extend(newEngine)
     return this
   }
 
   public addPhysGroup(group: PhysicsGroup, renderer: () => void) {
-    this.physicsEngine = new PhysicsEngine(group.instantiate(), group.frees(), this.store, renderer)
-    return this
+    return this.addPhysDecls(group.instantiate(), group.frees(), renderer)
   }
 
   public start() {
