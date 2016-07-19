@@ -11,8 +11,11 @@ src/model/Model.js
 src/model/Shapes.js
 src/model/Synthesis.js
 src/model/Variable.js
+src/model/Import.js
 src/util/Util.js
 src/view/Shapes.js
 src/view/View.js
 src/main.js
 target
+index.d.ts
+typings.json

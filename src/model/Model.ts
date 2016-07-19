@@ -1,53 +1,53 @@
-import S = require('./Shapes')
+import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
-import Cass = require('cassowary')
+import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
 
 // immutable program
 // we expect to rarely add/remove shapes and other program elements
 export class Program {
-  constructor(public shapes: Set<S.Shape>, public allFrees: Map<S.DragPoint, Set<Variable>>) {}
+  constructor(public shapes: Set<Shape>, public names: Map<string, Shape>, public allFrees: Map<DragPoint, Set<Variable>>) {}
   public static empty(): Program {
-    return new Program( new Set<S.Shape>(), new Map<S.DragPoint, Set<Variable>>())
+    return new Program( new Set<Shape>(), new Map<string, Shape>(), new Map<DragPoint, Set<Variable>>())
   }
 
   // (mostly) immutable extension functions
-  public addShape(s: S.Shape) {
-    let newFrees: Map<S.DragPoint, Set<Variable>>
-    if (s instanceof S.DragPoint) {
+  public addShape(name: string, s: Shape) {
+    let newFrees: Map<DragPoint, Set<Variable>>
+    if (s instanceof DragPoint) {
       newFrees = copy(this.allFrees)
       newFrees.set(s, new Set<Variable>())
     } else {
       newFrees = this.allFrees
     }
 
-    return new Program(add(this.shapes, s), newFrees)
+    return new Program(add(this.shapes, s), extend(this.names, [name, s]), newFrees)
   }
 
-  public addFrees(p: S.DragPoint, frees: Set<Variable>) {
+  public addFrees(p: DragPoint, frees: Set<Variable>) {
     let newFrees = copy(this.allFrees)
     newFrees.set(p, frees)
-    return new Program(this.shapes, newFrees)
+    return new Program(this.shapes, this.names, newFrees)
   }
 }
 
 // mutable state store
 // we expect to frequently update internal elements of the store
 export class Store {
-  private csolver: Cass.SimplexSolver
+  private csolver: SimplexSolver
   private cvars: Set<CassVar>
-  private cstays: Map<CassVar, Cass.Equation> // I might not need the variable part...
+  private cstays: Map<CassVar, Equation> // I might not need the variable part...
   private prims: Map<Primitive, number>
 
   constructor() {
-    this.csolver = new Cass.SimplexSolver()
+    this.csolver = new SimplexSolver()
     this.csolver.autoSolve = false
     this.cvars = new Set<CassVar>()
     this.prims = new Map<Primitive, number>()
-    this.cstays = new Map<CassVar, Cass.Equation>()
+    this.cstays = new Map<CassVar, Equation>()
   }
 
   public debug() {
@@ -61,10 +61,14 @@ export class Store {
 
   // helper: create a stay equation for a cassowary variable
   // i.e. v = v.value
-  private static makeStay(v: CassVar): Cass.Equation {
-    let l = Cass.Expression.fromVariable(v._value)
-    let r = Cass.Expression.fromConstant(v._value.value)
-    return new Cass.Equation(l, r)
+  private static makeStay(v: CassVar): Equation {
+    let l = Expression.fromVariable(v._value)
+    let r = Expression.fromConstant(v._value.value)
+    let stay = new Equation(l, r, Strength.strong)
+    // console.log('stay for :')
+    // console.log(v)
+    // console.log(stay.toString())
+    return stay
   }
 
   private clearStays(): void {
@@ -93,8 +97,11 @@ export class Store {
     this.addStays(frees)
   }
 
-  public addEq(e: Cass.Equation): void {
+  public addEq(e: Equation): void {
+    // console.log('adding constraint:')
+    // console.log(e.toString())
     this.csolver.addConstraint(e)
+
   }
 
   public suggestEdits(edits: Map<Variable, number>, frees: Set<Variable>): void {
@@ -117,7 +124,7 @@ export class Store {
 
     for (let [eVar, eValue] of edits) {
       if (eVar instanceof CassVar) {
-        this.csolver.addEditVar(eVar._value, Cass.Strength.medium, 1)
+        this.csolver.addEditVar(eVar._value, Strength.medium, 1)
       }
     }
 
@@ -255,7 +262,7 @@ export class State {
 
   // TODO: convert dragged to option
   constructor(public prog: Program, public store: Store,
-              public dragging: boolean, public draggedPoint: S.DragPoint,
+              public dragging: boolean, public draggedPoint: DragPoint,
               public physicsEngine: PhysicsEngine
   ){}
 
@@ -282,47 +289,47 @@ export class State {
     return this.addVar(VType.Cass, prefix + suffix.toString(), v) as CassVar
   }
   // mutates this to add x, y, and r
-  allocPoint(p: Point): S.DragPoint {
+  allocPoint(p: Point): DragPoint {
     let [x, y, r] = [this.allocVar(p.x), this.allocVar(p.y), this.allocVar(5)]
-    return new S.DragPoint(x, y, r, "blue")
+    return new DragPoint(x, y, r, "blue")
   }
 
   // given an expression, allocate a new variable, add to the store, and
   // return an equation for var = expr.
-  public makeEquation(e: Cass.Expression, v: number): [CassVar, Cass.Equation] {
+  public makeEquation(e: Expression, v: number): [CassVar, Equation] {
     let varValue = -e.constant
   //  console.log(e)
     let retVar = this.allocVar(v)
-    let eq = new Cass.Equation(retVar.toCExpr(), e)
+    let eq = new Equation(retVar.toCExpr(), e, Strength.strong)
     return [retVar, eq]
   }
 
 
-  public addShape(s: S.Shape, withEditPoints?: boolean): State {
+  public addShape(name: string, s: Shape, withEditPoints?: boolean): State {
     // add the shape, as well as edit-points, edit-equations, and free variables
     let newProg = this.prog
     withEditPoints = withEditPoints !== false // default to true unless explicitly false
 
     if (withEditPoints) {
-      let editPoints = new Map<S.DragPoint, Set<Variable>>()
-      let editEqs = new Set<Cass.Equation>()
+      let editPoints = new Map<DragPoint, Set<Variable>>()
+      let editEqs = new Set<Equation>()
       let vals = this.eval()
 
       // assumes each shape has CassVar variables, which is not realistic... TODO
-      if (s instanceof S.Line) {
+      if (s instanceof Line) {
         // foreach point on the line, add a drag point with the underlying variables
         s.points.forEach(([x, y]) => {
           let r = this.allocVar(3.5)
-          let np = new S.DragPoint(x, y, r, "blue")
+          let np = new DragPoint(x, y, r, "blue")
           let newFrees = (new Set<Variable>()).add(x).add(y)
           editPoints.set(np, newFrees)
         })
 
-      } else if (s instanceof S.Arrow || s instanceof S.Spring) {
+      } else if (s instanceof Arrow || s instanceof Spring) {
         // put a drag point on the base, and a drag point at the end. fix
         // the end with equations.
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
-        let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+        let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = (s.x as CassVar).toCExpr().plus(
           (s.dx as CassVar).toCExpr()
@@ -335,15 +342,15 @@ export class State {
         let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) + vals.get(s.dy))
         let baseFrees = (new Set<Variable>()).add(s.x).add(s.y).add(endX).add(endY) // gross
         let endFrees = (new Set<Variable>()).add(s.dx).add(s.dy).add(endX).add(endY)
-        let ep = new S.DragPoint(endX, endY, r2, "blue")
+        let ep = new DragPoint(endX, endY, r2, "blue")
 
         editEqs.add(endXEq).add(endYEq)
         editPoints.set(bp, baseFrees).set(ep, endFrees)
 
-      } else if (s instanceof S.Circle) {
+      } else if (s instanceof Circle) {
         // point in the middle, point on the right edge
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
-        let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+        let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = (s.x as CassVar).toCExpr().plus(
           (s.r as CassVar).toCExpr()
@@ -352,13 +359,13 @@ export class State {
         let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.r))
         let baseFrees = (new Set<Variable>()).add(s.x).add(s.y).add(endX)
         let endFrees = (new Set<Variable>()).add(s.r).add(endX)
-        let ep = new S.DragPoint(endX, s.y, r2, "blue")
+        let ep = new DragPoint(endX, s.y, r2, "blue")
 
         editEqs.add(endXEq)
         editPoints.set(bp, baseFrees).set(ep, endFrees)
-      } else if (s instanceof S.Rectangle || s instanceof S.Image) {
+      } else if (s instanceof Rectangle || s instanceof Image) {
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
-        let bp = new S.DragPoint(s.x, s.y, r1, "blue")
+        let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = (s.x as CassVar).toCExpr().plus(
           (s.dx as CassVar).toCExpr()
@@ -371,7 +378,7 @@ export class State {
         let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) - vals.get(s.dy))
         let baseFrees = (new Set<Variable>()).add(s.x).add(s.y).add(endX).add(endY) // gross
         let endFrees = (new Set<Variable>()).add(s.dx).add(s.dy).add(endX).add(endY)
-        let ep = new S.DragPoint(endX, endY, r2, "blue")
+        let ep = new DragPoint(endX, endY, r2, "blue")
 
         editEqs.add(endXEq).add(endYEq)
         editPoints.set(bp, baseFrees).set(ep, endFrees)
@@ -380,19 +387,19 @@ export class State {
         assert(false)
       }
       for (let [dp, frees] of editPoints) {
-        newProg = newProg.addShape(dp)
+        newProg = newProg.addShape(name, dp)
         newProg = newProg.addFrees(dp, frees)
       }
       for (let editEq of editEqs)
       this.store.addEq(editEq)
     }
-    newProg = newProg.addShape(s)
+    newProg = newProg.addShape(name, s)
 
 
 
     return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine)
   }
-  public addFrees(p: S.DragPoint, fvs: Set<Variable>): State {
+  public addFrees(p: DragPoint, fvs: Set<Variable>): State {
     return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine)
   }
 

@@ -1,41 +1,58 @@
 import {Model, State} from './Model'
+
 import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap} from '../util/Util'
-import {Circle, Rectangle, Shape, Line} from './Shapes'
+import {Circle, Rectangle, Shape, Line, DragPoint} from './Shapes'
+
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable} from './Variable'
+import {constrainAdjacent} from './Synthesis'
 
-type fabricCircle = {
-  type: string, // "circle"
-  left: number, // left + radius = x (basically)
-  top: number, // top + radius = y (basically)
-  radius: number,
+type fabricCommon = {
+  type: string,
+  fill: string,
+  name: string,
   scaleX: number,
   scaleY: number,
-  fill: string
+  height: number,
+  width: number,
+  left: number,
+  top: number,
+  flipX: boolean,
+  flipY: boolean
 }
+type fabricCircle = {
+  // left: number, // left + radius = x (basically)
+  // top: number, // top + radius = y (basically)
+  radius: number
+} & fabricCommon
 
 type fabricRect = {
-  type: string, // "rect"
-  left: number, // x equivalent of RectJSON
-  top: number, // y equivalent
-  width: number, // dx
-  height: number, // dy
-  scaleX: number,
-  scaleY: number,
-  fill: string
-}
+  // left: number, // x equivalent of RectJSON
+  // top: number, // y equivalent
+  // width: number, // dx
+  // height: number
+} & fabricCommon
 
 type fabricLine = {
-  type: string, // "line"
-  left: number, top: number, // x and y equivalent of PointJSON for start (for LineJSON)
-  width: number,
-  height: number, // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
-  scaleX: number,
-  scaleY: number,
-  fill: string
-}
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+  // left: number,
+  // top: number, // x and y equivalent of PointJSON for start (for LineJSON)
+  // width: number,
+  // height: number // (left, height + y) = "end" since shapes aren't rotatable on the fabric.js canvas (yet)
+} & fabricCommon
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine
+type fabricDrag = {
+  X: number,
+  Y: number,
+  DX: number,
+  DY: number,
+  shape: fabricObject
+} & fabricCircle
+
+export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag
 
 type fabricPhysicsCommon = {
   type: string
@@ -72,7 +89,30 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     ret = newS
   } else if (s.type == 'line') {
     // TODO?
-    ret = Object.assign({}, s) as fabricLine
+    console.log(s)
+    let newS = Object.assign({}, s) as fabricLine
+
+    // x, y coordinates are relative to origin, change to absolute system
+    newS.x1 = newS.left + newS.width/2*newS.scaleX + newS.x1
+    newS.x2 = newS.left + newS.width/2*newS.scaleX + newS.x2
+
+    newS.y1 = newS.top + newS.height/2*newS.scaleY + newS.y1
+    newS.y2 = newS.top + newS.height/2*newS.scaleY + newS.y2
+
+    ret = newS
+
+  } else if (s.type == 'dragPoint') {
+    // TODO: left and top don't reflect the underlying object in the import...
+    //       ...but do in the frontend. debug.
+    let newS = Object.assign({}, s) as fabricDrag
+
+    // left: X + shape.width*shape.scaleX*DX,
+    // top: Y  + shape.height*shape.scaleY*DY
+    newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY)
+    newS.left = newS.X + newS.shape.width*newS.shape.scaleX*newS.DX
+    newS.top = newS.Y + newS.shape.height*newS.shape.scaleY*newS.DY
+    ret = newS
+    // console.log(ret)
   } else {
     console.log('unrecognized shape in normalize:')
     console.log(s)
@@ -83,27 +123,31 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 }
 
 // given a store and (normalized) fabric shape, make variables in the store and return a backend shape over the variables
-function buildBackendShapes(store: State, s: fabricObject) {
+function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
   let shape: Shape
-  if (s.type == 'circle') {
+  if (s.type == 'circle' || s.type == 'dragPoint') {
     let newS = s as fabricCircle
     let [x, y, r] = map3Tup([newS.left, newS.top, newS.radius], v => store.allocVar(v))
-    shape = new Circle(x, y, r, "black", newS.fill)
+    if (s.type == 'circle') {
+      shape = new Circle(x, y, r, "black", newS.fill)
+    } else {
+      shape = new DragPoint(x, y, r, 'green')
+    }
   } else if (s.type == 'rect') {
     let newS = s as fabricRect
     let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
     shape = new Rectangle(x, y, dx, dy, 'black')
   } else if (s.type == 'line') {
     let newS = s as fabricLine
-    let [x1, y1] = map2Tup([newS.left, newS.top], v => store.allocVar(v))
-    let [x2, y2] = map2Tup([newS.left + newS.width, newS.top + newS.height], v => store.allocVar(v))
+    let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
+    let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
     shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
   } else {
     console.log('unrecognized fabric tag:')
     console.log(s)
     assert(false)
   }
-  return shape
+  return [s.name, shape]
 }
 
 function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pendulum {
@@ -138,7 +182,7 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
   // let dragPoint = new DragPoint(bobX, bobY, pivR, 'green')
   // let frees = (new Set<Variable>()).add(bobX).add(bobY)
 
-  let rodVars = new Set(rodS.points[0]).add(rodS.points[1][0]).add(rodS.points[1][1])
+  let rodVars = new Set(rodS.points[1]) // assumes rod goes from pivot -> bob
 
 
   // pendulum group
@@ -157,13 +201,13 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
   let normObjs = objs.map(normalizeFabricShape)
 
   // next, allocate variables and shapes for each input object
-  normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(shape => {
-    retStore = retStore.addShape(shape, false)
+  normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+    retStore = retStore.addShape(name, shape, false)
   })
 
   // console.log(canvas.physicsGroups)
   canvas.physicsGroups.forEach( grp => {
-    let newShapes: Shape[]
+    let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
     if (grp.type == 'pendulum') {
       let physObj = Object.assign({}, grp) as pendulumGroup
@@ -172,16 +216,19 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
         (s: fabricObject) => buildBackendShapes(retStore, normalizeFabricShape(s))
       )
       newShapes = [pivot, bob, rod]
-      newGroup = buildPendulum(retStore, pivot, bob, rod)
+      newGroup = buildPendulum(retStore, pivot[1], bob[1], rod[1])
     } else {
       console.log('unrecognized group tag:')
       console.log(grp)
     }
 
-    newShapes.forEach(s => retStore = retStore.addShape(s, false))
+    newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false))
     retStore.addPhysGroup(newGroup, renderer)
   })
 
+  // console.log('before synthesis:')
+  // console.log(retStore)
+  constrainAdjacent(retStore)
   let ret = new Model(retStore)
   // console.log('model:')
   // console.log(ret)

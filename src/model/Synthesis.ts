@@ -1,8 +1,8 @@
 import {Variable, CassVar} from './Variable'
-import {Program} from './Model'
+import {Program, State} from './Model'
 import * as S from './Shapes'
-import {copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap} from '../util/Util'
-import {Expression} from 'cassowary'
+import {overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
+import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
 
 // go from Program -> a set of points and their cass expressions. so, we need to:
@@ -24,7 +24,7 @@ export class PointGeneration {
     return Expression.fromVariable(v._value)
   }
   private alloc(v: number): CassVar {
-    let prefix = "CV"
+    let prefix = "PGV"
     let suffix = 0
     while (exists(this._vars, ([k, v]) => k.name== (prefix + suffix.toString())))
       ++suffix
@@ -75,7 +75,10 @@ export class PointGeneration {
 
   private negate(v: PExpr): PExpr {
     let nv = this.alloc(this._vars.get(v[0]) * -1)
+    // console.log('before:')
+    // console.log(v[1].toString())
     let ne = v[1].times(-1)
+    // console.log(ne.toString())
     return [nv, ne]
   }
   // given a shape, return the points
@@ -158,6 +161,68 @@ export class PointGeneration {
   public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
     // console.log(p)
     return flatMap(p.shapes, e => this.shapePoints(e))
+  }
+
+  public eval(): Map<Variable, number> {
+    return copy(this._vars)
+  }
+}
+
+// given a state, add in equations enforcing adjacent shapes to the state's store.
+// modifies the store in-place.
+export function constrainAdjacent(state: State) {
+
+  let store = state.eval()
+  let pointGen = new PointGeneration(store)
+  let points = pointGen.makePoints(state.prog)
+
+  let newStore = extendMap(store, pointGen.eval())
+  // foreach contact point, there exists another (nonidentical) point with the same
+  // coordinates, add the points to the state and add an equality between the points
+
+  let finder = ([[seedX], [seedY]]: Tup<PExpr, PExpr>) => ([[testX], [testY]]: Tup<PExpr, PExpr>) => {
+    assert(newStore.has(seedX) && newStore.has(seedY) && newStore.has(testX) && newStore.has(testY), 'point not found in pointgen map')
+    let lp = {x: newStore.get(seedX), y: newStore.get(seedY)}
+    let rp = {x: newStore.get(testX), y: newStore.get(testY)}
+
+    return seedX !== testX && seedY !== testY && overlap(lp, rp, 9)
+  }
+  for (let point of points) {
+    let overlapped = find(points, finder(point))
+    // typescript needs if-let -.-
+    if (overlapped) {
+
+      // console.log('adding point variables')
+      point.concat(overlapped).forEach(([v, e]) => {
+        state.store.addCVar(v)
+        let eq = new Equation(Expression.fromVariable(v._value), e, Strength.strong)
+        state.store.addEq(eq)
+      })
+
+      store = state.eval()
+
+
+      let [[x1v], [y1v]] = point
+      let [[x2v], [y2v]] = overlapped
+      let [x1ve, y1ve] = map2Tup([x1v, y1v], v => Expression.fromVariable(v._value))
+      let [x2ve, y2ve] = map2Tup([x2v, y2v], v => Expression.fromVariable(v._value))
+
+      // console.log('hit: ')
+      // console.log([x1v, y1v].map(v => store.get(v)))
+      // console.log([x2v, y2v].map(v => store.get(v)))
+      // console.log([x1v, y1v].map(v => newStore.get(v)))
+      // console.log([x2v, y2v].map(v => newStore.get(v)))
+
+      // console.log('adding contact equations')
+      // console.log(point[0][1].toString())
+      // console.log(' == ')
+      // console.log(overlapped[0][1].toString())
+      // console.log(point[1][1].toString())
+      // console.log(' == ')
+      // console.log(overlapped[1][1].toString())
+      state.store.addEq(new Equation(x1ve, x2ve, Strength.strong))
+      state.store.addEq(new Equation(y1ve, y2ve, Strength.strong))
+    }
   }
 }
 

@@ -29,15 +29,15 @@ declare module "cassowary" {
   export class Inequality {
     constructor(l:Expression, o:BinOp, r:Expression)
   }
-  export class Equation {
-    constructor(l:Expression, r:Expression)
-  }
   export class Constraint {
-    constructor(e:Equation | Inequality, s:Strength, w:number)
+    constructor(e:Expression, s:Strength, w:number)
+  }
+  export class Equation extends Constraint {
+    constructor(l:Expression, r:Expression, s?: Strength)
   }
   export class Expression {
     static fromVariable: (v: Variable) => Expression
-    static fromConstant: (c: number) => Expression
+    static fromConstant: (c: number | Variable) => Expression
     plus: (that: Expression) => Expression
     times: (that: Expression | number) => Expression
     minus: (that: Expression) => Expression
