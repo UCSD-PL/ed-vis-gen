@@ -171,9 +171,7 @@
             left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
             top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
-      //  console.log(drag);
-       //drag.bringToFront();
-       drag.setCoords(canvas);
+        drag.setCoords(canvas);
      }});
       return;
    },

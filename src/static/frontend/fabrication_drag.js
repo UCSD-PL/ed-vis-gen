@@ -9,14 +9,14 @@ selectedObj = [],
 whereDP = 0,
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
-dragPointList = [], // lists of drag points
+dragPointList = [], // list of drag points on canvas
+oldDragPointList = [], // list of unwanted drag points on canvas :(
 snapColor = "red",
 fabricJSON,
 objectlist = [],
 snapping = "on",
 current = 0;
 
-// I_NEED_SOMETHING_LIKE_THIS = [ [dragpoint, [x, y], obj], [dragpoint, [x, y], obj] ]
 
 var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
@@ -56,18 +56,17 @@ function updateLog() {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
+  oldDragPointList = dragPointList;
+  dragPointList = [];
   canvas.forEachObject( function (obj) {
     if (obj != null && obj instanceof fabric.Rect) {
       var thing = obj;
       objectlist.push(obj);
       interact.add(obj);
-      // console.log("it's a rectangle!");
-      /*
-      canvas.forEachObject( function (possibleDP) {
-        if (obj instanceof fabric.DragPoint && obj.shape == thing) {
-          list_of_drag == 0;
-        }
-      }); */
+      obj.set({
+        selectable: false
+      });
+      //console.log("it's a rectangle!");
       addDragPoints(obj, 0.5, 0.5);
       addDragPoints(obj, 0, 0);
       addDragPoints(obj, 1, 1);
@@ -82,24 +81,18 @@ function candidatePoints() {
     if (obj != null && obj instanceof fabric.Circle) {
       objectlist.push(obj);
       obj.set({
-        hasBorders: false,
-        hasControls: false,
-        selection: false,
-        lockMovementX: true,
-        lockMovementY: true
+        selectable: false
       });
       interact.add(obj);
-      // console.log("it's a circle!");
-      var radiusX = obj.getRadiusX();
-      var radiusY =  obj.getRadiusY();
+      //console.log("it's a circle!");
       addDragPoints(obj, 0.5, 0.5);
-      addDragPoints(obj, 0, 0);
-      addDragPoints(obj, 1, 1);
+      addDragPoints(obj, 0.15, 0.15);
+      addDragPoints(obj, 0.85, 0.85);
       addDragPoints(obj, 0, 0.5);
       addDragPoints(obj, 0.5, 0);
-      addDragPoints(obj, 0, 1);
+      addDragPoints(obj, 0.15, 0.85);
       addDragPoints(obj, 1, 0.5);
-      addDragPoints(obj, 1, 0);
+      addDragPoints(obj, 0.85, 0.15);
       addDragPoints(obj, 0.5, 1);
       interact.renderAll();
     }
@@ -116,7 +109,7 @@ function candidatePoints() {
       interact.add(drag);
 
       drag.on('selected', function() {
-        // console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
+        //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         if (this.get('fill') == 'black') {
           this.set({
             fill: 'orange'
@@ -130,7 +123,7 @@ function candidatePoints() {
           });
 
           function checkDP (dp) {
-            return dp === drag;
+            return dp == drag;
           }
 
           whereDP = dragPointList.findIndex(checkDP);
@@ -141,22 +134,23 @@ function candidatePoints() {
     }
 
 function onOverlayClosed(){
-  // console.log(dragPointList);
+  console.log(dragPointList);
+  // removes old dragPoints.
+  for (var i = 0; i < oldDragPointList.length; i++) {
+    canvas.remove(oldDragPointList[i]);
+  }
+
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
-      // console.log("the drag point should have been added!");
+      console.log("the drag point should have been added!");
       dragPointList[i].set({
         fill: 'black'
-      })
+      });
       canvas.add(dragPointList[i]);
     }
   for (var i=0; i < objectlist.length; i++) {
     objectlist[i].set({
-      hasBorders: true,
-      hasControls: true,
-      selection: true,
-      lockMovementX: false,
-      lockMovementY: false
+      selectable: true
     });
   }
   canvas.renderAll();
@@ -165,10 +159,11 @@ function onOverlayClosed(){
 // keeps drag points moving when object is modified
 function keepDragPointsMoving() {
   for (var i = 0; i < dragPointList.length; i++) {
-      // console.log("the drag point should have been moved!");
+      //console.log("the drag point should have been moved!");
       dragPointList[i].updateCoords(canvas);
   }
 }
+
 
 canvas.on(
     'object:modified', function () {
@@ -187,7 +182,8 @@ canvas.on(
     'mouse:out', function() {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
-});
+}
+);
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
@@ -266,7 +262,10 @@ canvas.on('object:moving', function (options) {
 	// Loop through objects
 	canvas.forEachObject(function (obj) {
     // makes sure drag points don't get in the way
-    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
+
+    // makes sure /some/ points don't get in the way
+    if (obj.snap == false || options.target.snap == false) return;
 
     // turns snapping off
     if (snapping === 'off') return;
@@ -392,8 +391,11 @@ canvas.on('object:moving', function (options) {
 
 	canvas.forEachObject(function (obj) {
 
-    // makes sure drag points doesn't get in the way
-    if (dragPointList.indexOf(obj) != -1 || dragPointList.indexOf(options.target) != -1) return;
+    // makes sure drag points don't get in the way
+    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
+
+    // makes sure /some/ points don't get in the way
+    if (obj.snap == false || options.target.snap == false) return;
 
     // turns snapping off
     if (snapping === 'off') return;
@@ -471,7 +473,14 @@ canvas.on('object:moving', function (options) {
 });
 
 canvas.on('object:modified', function (options) {
-  options.target.set({
-    stroke: options.target.fill
-  });
+  if (options.target.fill != 'white' && options.target.fill != '#fff') {
+     options.target.set({
+      stroke: options.target.fill
+    });
+  }
+  else {
+    options.target.set({
+      stroke: 'black'
+    });
+  }
 })

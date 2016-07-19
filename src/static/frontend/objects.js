@@ -30,9 +30,18 @@ function addRectangle(){
   updateLog();
 }
 
+// toggle snapping on and off
+function toggleSnap() {
+  if (snapping == 'on') {
+    snapping = 'off'
+  }
+  else {
+    snapping = 'on'
+  }
+}
+
 //Add pendulum
 function addPendulum(){
-  snapping = 'off';
   var rod = new fabric.Line([50, 50, 50, 250], {
     stroke:'cornflowerblue',
     strokeWidth: 2,
@@ -42,6 +51,7 @@ function addPendulum(){
     centeredRotation: false,
     centeredScaling: false,
     selection:true,
+    snap: false,
     name:'rod',
     'physics':'pendulum',
     'item':'rod',
