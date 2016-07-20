@@ -1,14 +1,15 @@
 import {Variable, CassVar} from './Variable'
 import {Program, State} from './Model'
-import * as S from './Shapes'
-import {overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
+import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
+import {uniqify, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
+import {Expr} from './Expr'
 
 // go from Program -> a set of points and their cass expressions. so, we need to:
 // build a bunch of points, a bunch of corresponding cass expressions, and a map
 // including the new variables.
-type PExpr = Tup<CassVar, Expression>
+type PExpr = Tup<CassVar, Expr>
 
 export class PointGeneration {
   private _vars: Map<CassVar, number>
@@ -19,10 +20,6 @@ export class PointGeneration {
         this._vars.set(k, v)
   }
 
-  // lift a variable to an expression
-  private static liftVar(v: CassVar): Expression {
-    return Expression.fromVariable(v._value)
-  }
   private alloc(v: number): CassVar {
     let prefix = "PGV"
     let suffix = 0
@@ -40,7 +37,7 @@ export class PointGeneration {
     let [rcv, re] = r
     let [lv, rv] = [this._vars.get(lcv), this._vars.get(rcv)]
     let newVar = this.alloc((lv + rv)/2)
-    let newExp = le.plus(re).divide(2)
+    let newExp = le.plus(re).div(2)
     return [newVar, newExp]
   }
 
@@ -82,15 +79,15 @@ export class PointGeneration {
     return [nv, ne]
   }
   // given a shape, return the points
-  private shapePoints(s: S.Shape): Set<Tup<PExpr, PExpr>> {
+  private shapePoints(s: Shape): Set<Tup<PExpr, PExpr>> {
     let ret: Set<Tup<PExpr, PExpr>>
-    if (s instanceof S.Line) {
+    if (s instanceof Line) {
       ret = this.linePoints(s)
-    } else if (s instanceof S.Arrow || s instanceof S.Spring) {
+    } else if (s instanceof Arrow || s instanceof Spring) {
       ret = this.vectPoints(s)
-    } else if (s instanceof S.Circle || s instanceof S.DragPoint) {
+    } else if (s instanceof Circle || s instanceof DragPoint) {
       ret = this.circPoints(s)
-    } else if (s instanceof S.Rectangle || s instanceof S.Image) {
+    } else if (s instanceof Rectangle || s instanceof Image) {
       ret = this.rectPoints(s)
     }  else {
       console.log('unhandled shape for drawing: ' + s.toString())
@@ -101,42 +98,42 @@ export class PointGeneration {
   }
 
   // TODO: this creates shared variable references. clone if necessary
-  private static toPoint(x: Variable, y: Variable): Tup<PExpr, PExpr> {
+  private toPoint(x: Variable, y: Variable): Tup<PExpr, PExpr> {
     assert(x instanceof CassVar)
     assert(y instanceof CassVar)
-    let hd: PExpr = [x as CassVar, PointGeneration.liftVar(x as CassVar)]
-    let tl: PExpr = [y as CassVar, PointGeneration.liftVar(y as CassVar)]
+    let hd: PExpr = [x as CassVar, Expr.fromVar(x as CassVar)]
+    let tl: PExpr = [y as CassVar, Expr.fromVar(y as CassVar)]
     return [hd, tl]
   }
 
   private _line(start: Tup<Variable, Variable>, finish: Tup<Variable, Variable>): Set<Tup<PExpr, PExpr>> {
     let [x1, y1] = start
     let [x2, y2] = finish
-    let begin = PointGeneration.toPoint(x1, y1)
-    let end = PointGeneration.toPoint(x2, y2)
+    let begin = this.toPoint(x1, y1)
+    let end = this.toPoint(x2, y2)
     let mid = this.midPoint(begin, end)
     let ret = new Set<Tup<PExpr, PExpr>>()
     return ret.add(begin).add(end).add(mid)
   }
 
   private static TODO = new Set<Tup<PExpr, PExpr>>()
-  private linePoints(s: S.Line): Set<Tup<PExpr, PExpr>> {
+  private linePoints(s: Line): Set<Tup<PExpr, PExpr>> {
     // beginning, middle, and end
     let begin = s.points[0]
     let end = s.points[1]
     return this._line(begin, end)
   }
-  private vectPoints(s: S.VecLike): Set<Tup<PExpr, PExpr>> {
-    let begin = PointGeneration.toPoint(s.x, s.y)
-    let delta = PointGeneration.toPoint(s.dx, s.dy)
+  private vectPoints(s: VecLike): Set<Tup<PExpr, PExpr>> {
+    let begin = this.toPoint(s.x, s.y)
+    let delta = this.toPoint(s.dx, s.dy)
     let next = this.plusPoint(begin, delta)
     let mid = this.midPoint(begin, next)
     return (new Set<Tup<PExpr, PExpr>>()).add(begin).add(next).add(mid)
   }
-  private circPoints(s: S.Circle | S.DragPoint): Set<Tup<PExpr, PExpr>> {
-    let [x, y] = PointGeneration.toPoint(s.x, s.y)
+  private circPoints(s: Circle | DragPoint): Set<Tup<PExpr, PExpr>> {
+    let [x, y] = this.toPoint(s.x, s.y)
     assert(s.r instanceof CassVar)
-    let r:PExpr = [s.r as CassVar, PointGeneration.liftVar(s.r as CassVar)]
+    let r:PExpr = [s.r as CassVar, Expr.fromVar(s.r as CassVar)]
     let mr = this.negate(r)
     let ret = new Set<Tup<PExpr, PExpr>>()
     ret.add([x, y])
@@ -145,9 +142,9 @@ export class PointGeneration {
 
     return ret
   }
-  private rectPoints(s: S.RecLike): Set<Tup<PExpr, PExpr>> {
-    let [x, y] = PointGeneration.toPoint(s.x, s.y)
-    let [dx, dy] = PointGeneration.toPoint(s.dx, s.dy)
+  private rectPoints(s: RecLike): Set<Tup<PExpr, PExpr>> {
+    let [x, y] = this.toPoint(s.x, s.y)
+    let [dx, dy] = this.toPoint(s.dx, s.dy)
     let [mdx, mdy] = [this.negate(dx), this.negate(dy)]
     let ret = new Set<Tup<PExpr, PExpr>>()
     ret.add([x, y]) // center
@@ -169,8 +166,8 @@ export class PointGeneration {
 }
 
 // given a state, add in equations enforcing adjacent shapes to the state's store.
-// modifies the store in-place.
-export function constrainAdjacent(state: State) {
+// modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
+export function constrainAdjacent(state: State): Set<Set<CassVar>> {
 
   let store = state.eval()
   let pointGen = new PointGeneration(store)
@@ -180,22 +177,33 @@ export function constrainAdjacent(state: State) {
   // foreach contact point, there exists another (nonidentical) point with the same
   // coordinates, add the points to the state and add an equality between the points
 
-  let finder = ([[seedX], [seedY]]: Tup<PExpr, PExpr>) => ([[testX], [testY]]: Tup<PExpr, PExpr>) => {
+  let added = new Set<Tup<PExpr, PExpr>>()
+
+  let finder = ([[seedX], [seedY]]: Tup<PExpr, PExpr>) => (test: Tup<PExpr, PExpr>) => {
+    let [[testX], [testY]] = test
     assert(newStore.has(seedX) && newStore.has(seedY) && newStore.has(testX) && newStore.has(testY), 'point not found in pointgen map')
     let lp = {x: newStore.get(seedX), y: newStore.get(seedY)}
     let rp = {x: newStore.get(testX), y: newStore.get(testY)}
 
-    return seedX !== testX && seedY !== testY && overlap(lp, rp, 9)
+    return seedX !== testX && seedY !== testY && overlap(lp, rp, 9) && !added.has(test)
   }
+  let ret = new Set<Set<CassVar>>()
+
   for (let point of points) {
     let overlapped = find(points, finder(point))
     // typescript needs if-let -.-
     if (overlapped) {
 
+      // console.log('overlap between:')
+      // console.log(point)
+      // console.log(overlapped)
       // console.log('adding point variables')
-      point.concat(overlapped).forEach(([v, e]) => {
+      point.concat(overlapped).filter(([v, e]) => !e.isEqual(v)).forEach(([v, e]) => {
         state.store.addCVar(v)
-        let eq = new Equation(Expression.fromVariable(v._value), e, Strength.strong)
+        ret.add(e.vars().add(v)) // v = e
+        // console.log('adding eq:')
+        // console.log(v.name + " = " + e.toString())
+        let eq = new Equation(Expression.fromVariable(v._value), e.toCass(), Strength.strong)
         state.store.addEq(eq)
       })
 
@@ -220,10 +228,24 @@ export function constrainAdjacent(state: State) {
       // console.log(point[1][1].toString())
       // console.log(' == ')
       // console.log(overlapped[1][1].toString())
+      // console.log('adding point equations:')
+      // console.log(x1v.name + " = " + x2v.name)
+      // console.log(y1v.name + " = " + y2v.name)
       state.store.addEq(new Equation(x1ve, x2ve, Strength.strong))
       state.store.addEq(new Equation(y1ve, y2ve, Strength.strong))
+
+      // x1 = x2
+      // y1 = y2
+      ret.add((new Set<CassVar>()).add(x1v).add(x2v))
+      ret.add((new Set<CassVar>()).add(y1v).add(y2v))
+
+      // console.log('adding:')
+      // console.log(point)
+      added.add(point)
     }
   }
+
+  return uniqify(ret)
 }
 
 // starting from a seed set of source variables:
@@ -390,6 +412,6 @@ export namespace InteractionSynthesis {
 
 
 
-    return ret
+    return uniqify(ret)
   }
 }

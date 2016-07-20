@@ -11,6 +11,7 @@ import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
 import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4} from './util/Util'
 import {fabricJSONObj, buildModel} from './model/Import'
 import {Pendulum} from './model/Physics'
+import {Poset} from './util/Poset'
 
 
 
@@ -62,12 +63,12 @@ function overlayContacts() {
   for (let [[xv, xe], [yv, ye]] of pointGen.makePoints(initModel.main.prog)) {
     initModel.main.store.addCVar(xv)
     initModel.main.store.addCVar(yv)
-    initModel.main.store.addEq(new Equation(Expression.fromVariable(xv._value), xe))
-    initModel.main.store.addEq(new Equation(Expression.fromVariable(yv._value), ye))
+    initModel.main.store.addEq(new Equation(Expression.fromVariable(xv._value), xe.toCass()))
+    initModel.main.store.addEq(new Equation(Expression.fromVariable(yv._value), ye.toCass()))
     let newPoint = new Circle(xv, yv, r, 'black', 'red')
     newS = newS.addShape("CP" + (suffix++).toString(), newPoint, false)
   }
-  initModel = new Model(newS)
+  initModel = new Model(newS, new Map<DragPoint, Set<Variable>[]>())
   refresh()
 }
 

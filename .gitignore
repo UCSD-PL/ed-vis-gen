@@ -7,6 +7,7 @@ src/frontend/eddiflow/dfexpr.js
 src/frontend/eddiflow/dfnetwork.js
 src/frontend/eddiflow/util.js
 src/model/Export.js
+src/model/Ranking.js
 src/model/Model.js
 src/model/Shapes.js
 src/model/Synthesis.js

@@ -1,11 +1,14 @@
-import {Model, State} from './Model'
+import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap} from '../util/Util'
-import {Circle, Rectangle, Shape, Line, DragPoint} from './Shapes'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat} from '../util/Util'
+import {Circle, Rectangle, Shape, Line, DragPoint, pp} from './Shapes'
 
 import {PhysicsGroup, Pendulum} from './Physics'
-import {VType, Variable} from './Variable'
-import {constrainAdjacent} from './Synthesis'
+import {VType, Variable, CassVar} from './Variable'
+import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
+
+import {Poset} from '../util/Poset'
+import {Default} from './Ranking'
 
 type fabricCommon = {
   type: string,
@@ -228,8 +231,46 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
 
   // console.log('before synthesis:')
   // console.log(retStore)
-  constrainAdjacent(retStore)
-  let ret = new Model(retStore)
+  // console.log('shapes:')
+  // console.log([...retStore.prog.shapes].map(s => pp(s)).join())
+  // console.log('equations:')
+  let eqs = constrainAdjacent(retStore)
+  // console.log(eqs)
+  let buildFVs = (seeds: Set<CassVar>) => InteractionSynthesis.validFreeVariables(seeds, eqs)
+
+  let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
+
+
+  fold(retStore.prog.allFrees, (accProg, [dp]) => {
+    assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
+    assert(dp.y instanceof CassVar, 'expected cassvars for dragpoint members')
+
+    // get the candidate sets for seeds {{x}, {y}, {x, y}}
+    let [vX, vY, vBoth] = map3Tup(
+      [[dp.x], [dp.y], [dp.x, dp.y]] as Tup3<CassVar[]>,
+      (vars) => buildFVs(new Set(vars)))
+
+    // collect the results and build programs for the ranker
+    // IMPORTANT: programs are built w.r.t the original program, i.e. independently
+    let newFrees = union(union(vX, vY), vBoth)
+    // console.log('candidates for')
+    // console.log(dp)
+    // console.log(newFrees)
+    let candProgs = map(newFrees, (frees) => retStore.prog.addFrees(dp, frees))
+
+    // rank the results
+    let ranked = new Poset(zip(candProgs, repeat(retStore.store)), Default, [retStore.prog, retStore.store] as Tup<Program, Store>)
+
+    // console.log(ranked)
+
+    // get the top candidate
+    let [topProg]: Tup<Program, Store> = ranked.toArr()[0]
+
+    // pluck out its free-variables for the particular drag point, add to the cumulative program
+    return accProg.addFrees(dp, topProg.allFrees.get(dp))
+  }, retStore.prog)
+
+  let ret = new Model(retStore, possibleFrees)
   // console.log('model:')
   // console.log(ret)
   return ret
