@@ -59,6 +59,7 @@
   }
   @media screen and (max-height: 450px) {
     .overlay {overflow-y: auto;}
+    .overlay2 {overflow-y: auto;}
     .closebtn {
       font-size: 40px !important;
       top: 15px;
@@ -78,9 +79,9 @@
   <div id="draw" style ="float:left;">
     <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
   </div>
-  <!--<div style = "float:left;"><canvas id="physics" width="60" height="60" style="border:5px solid #000000"></canvas>  </div>-->
-  <div style = "float: left;">
-    <canvas id="new" width="600" height="600" style="border:5px solid #000000"></canvas>
+  <div style = "float:left;">
+    <canvas id="physics" width="60" height="60" style="border:5px solid #000000"></canvas>
+  </div>
     <!-- <script src="fabrication.js"></script>
 
     <script src="objects.js"></script> -->
@@ -147,36 +148,63 @@
         <button class="btn btn-default" onclick="BACKEND.resetPhysics()">Reset</button>
       </div>
 
-      <!-- open/close -->
-      <div id="myCav" class="overlay" >
-        <a href="javascript:void(0)" class="closebtn" onclick="close0(); onOverlayClosed()">x</a>
 
-      <div class="overlay-content" >
-         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
-      </div>
+     <!-- open/close -->
+     <div id="myCav" class="overlay">
+       <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+      <div class="overlay-content">
+        <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+       </div>
+     </div>
+
+
+
+     <!--the second overlay-->
+     <div id="mySelect" class="overlay">
+       <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
+         Left
+       </button>
+       <button class="btn btn-default" type="button" onclick="onRight()" id="right">
+         Right
+       </button>
+       <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
+         ACCEPT
+       </button>
+       <a href="javascript:void(0)" class="closebtn" onclick="close1(); onOverlayAccept()">x</a>
+       <div class="overlay-content">
+         <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
+        </div>
 
       </div>
 
       <!--more frontend scripts-->
-      <script src="../frontend/objects.js"></script>
-      <script src="../frontend/fabrication_drag.js"></script>
-      <script src="../frontend/dragpoints.js"></script>
-        <!-- backend script -->
-      <script src="../lib.js"></script>
+   <script src="../frontend/objects.js"></script>
+   <script src="../frontend/fabrication_drag.js"></script>
+   <script src="../frontend/dragpoints.js"></script>
+     <!-- backend script -->
+   <script src="../lib.js"></script>
 
 
-      <!-- opening and closing scripts -->
-      <script>
+     <script>
+     function open0() {
+       document.getElementById("myCav").style.height = "100%";
+     }
 
-      function open0() {
-        document.getElementById("myCav").style.height = "100%";
-      }
+     function close0() {
+       document.getElementById("myCav").style.height = "0%";
+       onOverlayClosed();
+     }
 
-      function close0() {
-        document.getElementById("myCav").style.height = "0%";
-      }
 
-      </script>
+     function open1(){
+       document.getElementById("mySelect").style.height = "100%";
+     }
+
+     function close1(){
+       document.getElementById("mySelect").style.height = "0%";
+     }
+
+     </script>
 
 
 </html>

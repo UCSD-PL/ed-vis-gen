@@ -71,6 +71,13 @@
     DY: null,
 
     /**
+     * chosen simulation to go along with this drag point
+     * @type Number
+     * @default 0
+     */
+    choice: 0,
+
+    /**
      * Radius of this circle
      * @type Number
      * @default
@@ -115,6 +122,7 @@
       this.callSuper('initialize', options);
       this.set('radius', options.shape.radius || 4);
       this.set('shapeName', options.shapeName || '');
+      this.set('choice', options.choice || 0);
       if (options.shape != null) {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
@@ -198,6 +206,7 @@
         DY: this.get('DY'),
         left: this.X + this.shape.width*this.DX,
         top: this.Y + this.shape.height*this.DY,
+        choice: this.choice,
         startAngle: this.startAngle,
         endAngle: this.endAngle
       });

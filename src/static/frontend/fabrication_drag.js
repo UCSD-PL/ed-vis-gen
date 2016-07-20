@@ -1,6 +1,7 @@
 var canvas = new fabric.Canvas('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
 interact = new fabric.Canvas('interact'), // overlay-side panel
+sims = new fabric.Canvas('sims'),
 counter = 0,
 snap = 14, // pixels to snap
 state = [],
@@ -11,9 +12,12 @@ selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
 oldDragPointList = [], // list of unwanted drag points on canvas :(
-canvasList = [], // adds a canvas for separate simulations
-lastCanvas = 0, // last canvas for the drag point selection panel
-currentCanvas = 0, // current canvas for the drag point selection panel
+simArray = [], // adds a canvas for separate simulations
+lastSim = 0, // last canvas for the drag point selection panel
+currentSim = 0, // current canvas for the drag point selection panel
+selectedSim = 0,
+currentDragPoint,
+isNew = false,
 snapColor = "red",
 fabricJSON,
 objectlist = [],
@@ -130,6 +134,8 @@ function candidatePoints() {
             fill: 'orange'
           });
           dragPointList.push(drag);
+          open1();
+          onLoadSims(drag);
         }
 
         else {
@@ -148,47 +154,54 @@ function candidatePoints() {
       }
     }
 
-function onOverlayAccept() {
-  // creates and adds canvases to the list
-  for (var i = 0; i < dragPointList.length; i++) {
-    var some_canvas = new fabric.Canvas( i.toString() );
-    canvasList.push([i, some_canvas]);
-    var some_text = new fabric.Text( i.toString(), {
-      fill: 'blue', left: 100, top: 100, fontSize: 60
-    });
-    some_canvas.add(some_text);
-  }
-  // removes old dragPoints.
-  for (var i = 0; i < oldDragPointList.length; i++) {
-    canvas.remove(oldDragPointList[i]);
-  }
-}
-
-//displays next canvas on drag point selection panel
+//displays next simulation on the simulation selection panel
 function onRight() {
-  if (currentCanvas == canvasList.length-1) {
-    lastCanvas = canvasList.length-1;
-    currentCanvas = 0;
+  sims.clear();
+  if (currentSim == simsArray.length - 1) {
+    lastSim = simsArray.length-1;
+    currentSim = 0;
   }
   else {
-    lastCanvas = currentCanvas;
-    currentCanvas += 1;
+    lastSim = currentSim;
+    currentSim += 1;
   }
-  document.getElementById(lastCanvas.toString()).id = currentCanvas.toString();
+  sims.loadFromJSON(simsArray[currentSim]);
+  sims.renderAll();
 }
 
-
-//displays previous canvas on drag point selection panel
+//displays previous simulation on the simulation selection panel
 function onLeft() {
-  if (currentCanvas == 0) {
-    lastCanvas = 0;
-    currentCanvas = canvasList.length-1;
+  sims.clear();
+  if (currentSim == 0) {
+    lastSim = 0;
+    currentSim = simsArray.length - 1;
   }
   else {
-    lastCanvas = currentCanvas;
-    currentCanvas -= 1;
+    lastSim = currentSim;
+    currentSim -= 1;
   }
-  document.getElementById(lastCanvas.toString()).id = currentCanvas.toString();
+  sims.loadFromJSON(simsArray[currentSim]);
+  sims.renderAll();
+}
+
+function onACCEPT() {
+  // sets 'choice', the selected sim, to the corresponding dragpoint
+  selectedSim = currentSim;
+  currentDragPoint.set({
+    choice: selectedSim
+  });
+  close1(); // closes current screen; returns to drag point selection panel
+  return;
+}
+
+function onLoadSims(dragPoint) {
+  // sets up JSON files the simsArray list and loads the current JSON
+  sims.clear();
+  currentDragPoint = dragPoint;
+  currentSim = 0;
+  simsArray = state;
+  sims.loadFromJSON(simsArray[currentSim]);
+  sims.renderAll();
 }
 
 function onOverlayClosed(){
