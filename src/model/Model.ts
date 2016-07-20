@@ -446,11 +446,11 @@ export class State {
 // export enum MainState {Display}
 export class Model {
 
-  constructor( public main: State, public candidateFrees: Map<DragPoint, Poset<Set<Variable>>>)
+  constructor( public main: State, public candidateFrees: Map<DragPoint, Set<Variable>[]>)
   {}
 
   public static empty(): Model {
-    return new Model( State.empty(), new Map<DragPoint, Poset<Set<Variable>>>())
+    return new Model( State.empty(), new Map<DragPoint, Set<Variable>[]>())
   }
 
 }

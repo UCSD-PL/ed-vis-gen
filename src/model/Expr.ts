@@ -1,6 +1,6 @@
 import {Expression} from 'cassowary'
 import {CassVar, Variable} from './Variable'
-import {partMap, copy, extendMap, mapValues} from '../util/Util'
+import {partMap, copy, extendMap, mapValues, fold} from '../util/Util'
 
 // linear expression class with a conversion function to cassowary expressions
 
@@ -19,9 +19,10 @@ export class Expr {
     return ret
   }
 
-  public static fromVar(v: CassVar, store: Map<Variable, number>) {
+  public static fromVar(v: CassVar) {
     let ret = new Expr()
-    ret.terms.set(v, store.get(v))
+    ret.terms.set(v, 1)
+    return ret
   }
 
   public times(val: number) {
@@ -70,6 +71,36 @@ export class Expr {
     return ret
   }
 
-  
+  public eval(store: Map<Variable, number>) {
+    return fold(this.terms, (acc, [val, coeff]) => acc + store.get(val) * coeff, this.constant)
+  }
+
+  public toCass(): Expression {
+    let ret = Expression.fromConstant(this.constant)
+    return fold(this.terms, (acc, [val, c]) => acc.plus(Expression.fromVariable(val._value).times(c)), ret)
+  }
+
+  public vars(): Set<CassVar> {
+    return new Set(this.terms.keys())
+  }
+
+  public toString() {
+    return fold(this.terms, (accStr, [val, c]) => accStr + " + " + c.toString() + "*" + val.name, this.constant.toString())
+  }
+
+  public isEqual(rhs: Expr | number | CassVar): boolean {
+    if (rhs instanceof Expr) {
+      return fold(
+        this.terms,
+        (bool, [val, c]) => bool && rhs.terms.has(val) && rhs.terms.get(val) == c,
+        this.constant == rhs.constant
+      )
+    } else if (rhs instanceof CassVar) {
+      return this.isEqual(Expr.fromVar(rhs))
+    } else {
+      return this.isEqual(Expr.fromConst(rhs))
+    }
+
+  }
 
 }

@@ -134,7 +134,7 @@ function candidatePoints() {
     }
 
 function onOverlayClosed(){
-  console.log(dragPointList);
+  // console.log(dragPointList);
   // removes old dragPoints.
   for (var i = 0; i < oldDragPointList.length; i++) {
     canvas.remove(oldDragPointList[i]);
@@ -142,7 +142,7 @@ function onOverlayClosed(){
 
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
-      console.log("the drag point should have been added!");
+      // console.log("the drag point should have been added!");
       dragPointList[i].set({
         fill: 'black'
       });
