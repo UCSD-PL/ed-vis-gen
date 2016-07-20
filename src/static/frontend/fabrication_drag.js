@@ -129,6 +129,8 @@ function candidatePoints() {
 
       drag.on('selected', function() {
         //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
+        //if a drag point hasn't been clikced before, upon being clicked,
+        //a drag point is selected and added to dragPointList
         if (this.get('fill') == 'black') {
           this.set({
             fill: 'orange'
@@ -137,23 +139,28 @@ function candidatePoints() {
           open1();
           onLoadSims(drag);
         }
-
+        // undos selection of a drag point if you click it again
         else {
-          this.set({
-            fill: 'black',
-            choice: 0
-          });
-
-          function checkDP (dp) {
-            return dp == drag;
-          }
-
-          whereDP = dragPointList.findIndex(checkDP);
-
-          dragPointList.splice(whereDP, 1);
+          undoSelect(drag);
         }});
       }
     }
+
+//undos selection of a drag point
+function undoSelect(dragPoint) {
+  dragPoint.set({
+    fill: 'black',
+    choice: 0
+  });
+
+  function checkDP (dp) {
+    return dp == dragPoint;
+  }
+
+  whereDP = dragPointList.findIndex(checkDP);
+
+  dragPointList.splice(whereDP, 1);
+}
 
 //displays next simulation on the simulation selection panel
 function onRight() {
@@ -241,6 +248,14 @@ canvas.on(
     'object:modified', function () {
     keepDragPointsMoving();
     updateModifications(true);
+    window.BACKEND.drawFromFabric(fabricJSON);
+},
+    'object:moving', function () {
+    keepDragPointsMoving();
+    window.BACKEND.drawFromFabric(fabricJSON);
+},
+    'touch:drag', function () {
+    keepDragPointsMoving();
     window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:added', function () {

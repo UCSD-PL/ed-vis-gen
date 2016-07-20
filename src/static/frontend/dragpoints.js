@@ -187,6 +187,7 @@
           });
         drag.setCoords(canvas);
      }});
+      canvas.renderAll();
       return;
    },
 
