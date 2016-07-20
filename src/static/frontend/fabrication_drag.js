@@ -140,7 +140,8 @@ function candidatePoints() {
 
         else {
           this.set({
-            fill: 'black'
+            fill: 'black',
+            choice: 0
           });
 
           function checkDP (dp) {
