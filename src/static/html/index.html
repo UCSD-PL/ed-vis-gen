@@ -159,59 +159,62 @@
       </div>
 
       <!-- open/close -->
-      <div id="myCav" class="overlay" >
-        <a href="javascript:void(0)" class="closebtn" onclick="close0(); onOverlayClosed()">x</a>
-        <button class= "btn btn-default" onclick="open1()" id="trigger-overlay1">
+      <div id="myCav" class="overlay">
+        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+       <div class="overlay-content">
+         <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+        </div>
+      </div>
+
+
+
+      <!--the second overlay-->
+      <div id="mySelect" class="overlay">
+        <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
+          Left
+        </button>
+        <button class="btn btn-default" type="button" onclick="onRight()" id="right">
+          Right
+        </button>
+        <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
           Accept
         </button>
+        <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
+        <div class="overlay-content">
+          <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
+         </div>
 
-      <div style= "text-align:center" class="overlay-content" >
-         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
-      </div>
+       </div>
 
-      </div>
-
-      <!--Selection Overlay-->
-      <div id="mySelect" class="overlay-selection" >
-        <a href="javascript:void(0)" class="closebtn" onclick="close1(); onOverlayClosed()">x</a>
-      
-
-      <div style= "text-align:center" class="overlay-content" >
-         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
-      </div>
-
-      </div>
-
-      <!--more frontend scripts-->
-      <script src="../frontend/objects.js"></script>
-      <script src="../frontend/dragpoints.js"></script>
-      <script src="../frontend/fabrication_drag.js"></script>
+       <!--more frontend scripts-->
+    <script src="../frontend/objects.js"></script>
+    <script src="../frontend/fabrication_drag.js"></script>
+    <script src="../frontend/dragpoints.js"></script>
       <!-- backend script -->
-      <script src="../lib.js"></script>
+    <script src="../lib.js"></script>
 
 
-
-      <!-- opening and closing scripts -->
       <script>
-
       function open0() {
         document.getElementById("myCav").style.height = "100%";
       }
 
       function close0() {
         document.getElementById("myCav").style.height = "0%";
+        onOverlayClosed();
       }
 
-      function open1() {
+
+      function open1(){
         document.getElementById("mySelect").style.height = "100%";
       }
 
-      function close1() {
-        document.getElementById("myCav").style.height = "0%";
-        document.getElementById("mySelect").style.height="0%";
+      function close1(){
+        document.getElementById("mySelect").style.height = "0%";
       }
 
       </script>
+
 
 
 </html>
