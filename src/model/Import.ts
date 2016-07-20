@@ -89,7 +89,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     ret = newS
   } else if (s.type == 'line') {
     // TODO?
-    console.log(s)
+    // console.log(s)
     let newS = Object.assign({}, s) as fabricLine
 
     // x, y coordinates are relative to origin, change to absolute system

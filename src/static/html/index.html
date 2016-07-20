@@ -33,6 +33,20 @@
     font-family: 'Lato', sans-serif;
   }
   .overlay {
+      text-align: center;
+      height: 0%;
+      width: 100%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: rgb(0,0,0);
+      background-color: #ffffff;
+      overflow-y: hidden;
+      transition: 0.5s;
+  }
+  .overlay-selection {
+      text-align: center;
       height: 0%;
       width: 100%;
       position: fixed;
@@ -147,8 +161,22 @@
       <!-- open/close -->
       <div id="myCav" class="overlay" >
         <a href="javascript:void(0)" class="closebtn" onclick="close0(); onOverlayClosed()">x</a>
+        <button class= "btn btn-default" onclick="open1()" id="trigger-overlay1">
+          Accept
+        </button>
 
-      <div class="overlay-content" >
+      <div style= "text-align:center" class="overlay-content" >
+         <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
+      </div>
+
+      </div>
+
+      <!--Selection Overlay-->
+      <div id="mySelect" class="overlay-selection" >
+        <a href="javascript:void(0)" class="closebtn" onclick="close1(); onOverlayClosed()">x</a>
+      
+
+      <div style= "text-align:center" class="overlay-content" >
          <canvas id="interact" width="600" height="600" style="border:5px solid #000000"></canvas>
       </div>
 
@@ -172,6 +200,15 @@
 
       function close0() {
         document.getElementById("myCav").style.height = "0%";
+      }
+
+      function open1() {
+        document.getElementById("mySelect").style.height = "100%";
+      }
+
+      function close1() {
+        document.getElementById("myCav").style.height = "0%";
+        document.getElementById("mySelect").style.height="0%";
       }
 
       </script>

@@ -252,19 +252,19 @@ transfer = function transfer() {
         if (obj.get('item') === 'pivot'){
           pendulumObj['pivot'] = obj;
 
-        console.log(pendulumObj);}
+        }
 
         else if (obj.get('item') === 'rod'){
           pendulumObj['rod'] = obj;
 
-        console.log(pendulumObj);
+
 
         }
 
         else{
           pendulumObj['bob'] = obj;
 
-        console.log(pendulumObj);
+
         }
         //var groupObjects=obj.getObjects();
         //pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
@@ -273,8 +273,20 @@ transfer = function transfer() {
       else{
         shapes.push(obj);
       };
-    });
-    physicsGroup.push(pendulumObj);
+
+    if ('pivot' in pendulumObj && 'rod' in pendulumObj && 'bob' in pendulumObj)
+    {
+      physicsGroup.push(pendulumObj);
+
+      pendulumObj = {'type':'pendulum'};
+      console.log(pendulumObj);
+
+    };
+
+
+
+  });
+
     exported['physicsGroup']=physicsGroup;
     exported['shapes']=shapes;
     console.log(exported);
