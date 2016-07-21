@@ -57,7 +57,11 @@ type fabricDrag = {
   choice: number
 } & fabricCircle
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag
+type fabricTriangle = {
+  // something something triangle
+} & fabricCommon
+
+export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle
 
 type fabricPhysicsCommon = {
   type: string
@@ -68,6 +72,10 @@ type pendulumGroup = {
   bob: fabricCircle
 } & fabricPhysicsCommon
 
+type arrowGroup = {
+  line: fabricLine,
+  head: fabricTriangle
+} & fabricPhysicsCommon
 
 export type fabricPhysicsGroup = pendulumGroup
 

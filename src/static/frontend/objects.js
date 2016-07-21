@@ -30,6 +30,7 @@ function addRectangle(){
   updateLog();
 }
 
+//Add arrow
 function addArrow(){
   var name = allocSName();
   var lineArrow = new fabric.Line([50,160,50,320], { name: name, stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
@@ -47,6 +48,15 @@ function toggleSnap() {
   else {
     snapping = 'on'
   }
+}
+
+//Add spring
+function addSpring(){
+  var rodname = allocSName();
+  var spring = new fabric.Spring([50,50,50,250],{name: name, stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
+  canvas.add(spring);
+  updateLog();
+​
 }
 
 //Add pendulum
