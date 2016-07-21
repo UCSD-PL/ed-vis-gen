@@ -30,6 +30,15 @@ function addRectangle(){
   updateLog();
 }
 
+function addArrow(){
+  var name = allocSName();
+  var lineArrow = new fabric.Line([50,160,50,320], { name: name, stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
+  var triangleArrow = new fabric.Triangle({ name: name, width: 30, height:30, fill: 'black', top: 60, left: 100});
+  var arrowGroup = new fabric.Group([lineArrow, triangleArrow]);
+  canvas.add(arrowGroup);
+  updateLog();
+}
+
 // toggle snapping on and off
 function toggleSnap() {
   if (snapping == 'on') {

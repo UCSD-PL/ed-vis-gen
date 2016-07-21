@@ -129,7 +129,7 @@ function candidatePoints() {
 
       drag.on('selected', function() {
         //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
-        //if a drag point hasn't been clikced before, upon being clicked,
+        //if a drag point hasn't been clicked before, upon being clicked,
         //a drag point is selected and added to dragPointList
         if (this.get('fill') == 'black') {
           this.set({
@@ -247,14 +247,10 @@ function keepDragPointsMoving() {
 canvas.on(
     'object:modified', function () {
     keepDragPointsMoving();
-    updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);
+    updateModifications(true);
 },
     'object:moving', function () {
-    keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON);
-},
-    'touch:drag', function () {
     keepDragPointsMoving();
     window.BACKEND.drawFromFabric(fabricJSON);
 },
