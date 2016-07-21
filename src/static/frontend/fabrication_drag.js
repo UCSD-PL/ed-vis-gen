@@ -247,28 +247,28 @@ function keepDragPointsMoving() {
 canvas.on(
     'object:modified', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
     updateModifications(true);
 },
     'object:moving', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'touch:drag', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:added', function () {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'object:deselected', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
 },
     'mouse:out', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON, physics);
+    window.BACKEND.drawFromFabric(fabricJSON);
 }
 );
 
