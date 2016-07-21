@@ -9,6 +9,7 @@ import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
 
 import {Poset} from '../util/Poset'
 import {Default} from './Ranking'
+import {ICanvas} from 'fabric'
 
 type fabricCommon = {
   type: string,
@@ -52,7 +53,8 @@ type fabricDrag = {
   Y: number,
   DX: number,
   DY: number,
-  shape: fabricObject
+  shape: fabricObject,
+  choice: number
 } & fabricCircle
 
 export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag
@@ -195,21 +197,25 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 }
 
 // given a json of shapes, build a model for the shapes
-export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
+export function buildModel(model: fabricJSONObj, canvas: ICanvas, renderer: () => void): Model {
 
   // console.log()
   let retStore: State = State.empty()
-  let objs = canvas.shapes
-  // two passes: first, normalize to eddie's position conventions
+  let objs = model.shapes
+  // three passes: first, normalize to eddie's position conventions
   let normObjs = objs.map(normalizeFabricShape)
+
+  // second, pluck out dragpoint choices
+  // let dragChoices: Map<string, number> = (normObjs.filter(s => s.type == 'dragPoint') as fabricDrag)
+    // .map(dp => [dp.name, dp.choice])
 
   // next, allocate variables and shapes for each input object
   normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
 
-  // console.log(canvas.physicsGroups)
-  canvas.physicsGroups.forEach( grp => {
+  // console.log(model.physicsGroups)
+  model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
     if (grp.type == 'pendulum') {

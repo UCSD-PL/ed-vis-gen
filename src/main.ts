@@ -1,17 +1,17 @@
-
 import {Expression, Equation} from 'cassowary'
 import {Circle, Line, DragPoint} from './model/Shapes'
 import {VType, CassVar, Variable} from './model/Variable'
 import SView = require('./view/Shapes')
 import {Model} from './model/Model'
 import View = require('./view/View')
-import Cont = require('./controller/Controller')
+import {DragController} from './controller/Controller'
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
 import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4} from './util/Util'
 import {fabricJSONObj, buildModel} from './model/Import'
 import {Pendulum} from './model/Physics'
 import {Poset} from './util/Poset'
+import {ICanvas} from 'fabric'
 
 
 
@@ -23,8 +23,8 @@ export var initModel = Model.empty()
 
 // // build a circle, add to the model
 
+let dragCont: DragController
 
-let dragCont = new Cont.DragController(initModel, document.getElementById(DISPLAY_ID))
 // let buttonCont = new Cont.ButtonController()
 
 export function refresh() {
@@ -32,9 +32,11 @@ export function refresh() {
   View.renderModel(initModel)
 }
 
-export function drawFromFabric(object: fabricJSONObj) {
+export function drawFromFabric(object: fabricJSONObj, canvas: ICanvas) {
   // console.log(object)
-  initModel = buildModel(object, refresh)
+  initModel = buildModel(object, canvas, refresh)
+  dragCont = new DragController(initModel, canvas)
+  dragCont.enableDrags()
   refresh()
 }
 
