@@ -78,6 +78,13 @@
     choice: 0,
 
     /**
+     * true when the drag point is on the canvas
+     * @type Boolean
+     * @default false
+     */
+     onCanvas: false,
+
+    /**
      * Radius of this circle
      * @type Number
      * @default
@@ -123,6 +130,7 @@
       this.set('radius', options.shape.radius || 4);
       this.set('shapeName', options.shapeName || '');
       this.set('choice', options.choice || 0);
+      this.set('onCanvas', options.onCanvas || false);
       if (options.shape != null) {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
@@ -208,6 +216,7 @@
         left: this.X + this.shape.width*this.DX,
         top: this.Y + this.shape.height*this.DY,
         choice: this.choice,
+        onCanvas: this.onCanvas,
         startAngle: this.startAngle,
         endAngle: this.endAngle
       });

@@ -131,7 +131,7 @@ function candidatePoints() {
         //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         //if a drag point hasn't been clicked before, upon being clicked,
         //a drag point is selected and added to dragPointList
-        if (this.get('fill') == 'black') {
+        if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
           this.set({
             fill: 'orange'
           });
@@ -139,10 +139,17 @@ function candidatePoints() {
           open1();
           onLoadSims(drag);
         }
+        else if (this.get('fill') == 'black' && this.get('onCanvas') == true) {
+          open1();
+          onLoadSims(drag);
+        }
         // undos selection of a drag point if you click it again
         else {
           undoSelect(drag);
         }});
+      drag.on('deleted', function() {
+        undoSelect(drag);
+      });
       }
     }
 
@@ -223,7 +230,8 @@ function onOverlayClosed(){
   for (var i = 0; i < dragPointList.length; i++) {
       console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'black'
+        fill: 'black',
+        onCanvas: true
       });
       canvas.add(dragPointList[i]);
     }
@@ -243,17 +251,24 @@ function keepDragPointsMoving() {
   }
 }
 
+function updateWithObject(obj) {
+  obj.on('moving', function() {
+    window.BACKEND.drawFromFabric(fabricJSON);
+    keepDragPointsMoving();
+  });
+  obj.on('modified', function() {
+    window.BACKEND.drawFromFabric(fabricJSON);
+    keepDragPointsMoving();
+  });
+}
 
 canvas.on(
+/*
     'object:modified', function () {
     keepDragPointsMoving();
     window.BACKEND.drawFromFabric(fabricJSON);
     updateModifications(true);
-},
-    'object:moving', function () {
-    keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON);
-},
+},*/
     'object:added', function () {
     updateModifications(true);
     window.BACKEND.drawFromFabric(fabricJSON);

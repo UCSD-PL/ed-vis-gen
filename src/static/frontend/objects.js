@@ -4,6 +4,7 @@ function addLine(){
  var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100});
  canvas.add(line0);
  updateLog();
+ updateWithObject(line0);
 }
 
 //Add triangle
@@ -52,11 +53,10 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var rodname = allocSName();
+  var name = allocSName();
   var spring = new fabric.Spring([50,50,50,250],{name: name, stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
   canvas.add(spring);
   updateLog();
-​
 }
 
 //Add pendulum
