@@ -27,193 +27,28 @@ function addRectangle(){
 }
 
 //Add pendulum
-function addPendulum1(){
+function addPendulum(){
   snapping = 'off';
-  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true, 'physics':'pendulum', 'item':'pivot'});
-
-  //console.log(pivot.get('physics'));
-  //console.log(pivot.get('item'));
-  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true, 'physics':'pendulum', 'item':'rod'});
-  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true, 'physics':'pendulum', 'item':'bob'})
-  canvas.add(pivot);
-  canvas.add(rod);
-  //console.log(rod.get('item'));
-  canvas.add(bob);
-  //console.log(bob.get('item'));
+  var pivot = new fabric.Circle({radius:4, fill:'dogerblue', top:42, left:47, lockRotation:true});
+  var rod = new fabric.Line([50,50,50,250], {stroke:'cornflowerblue', strokeWidth: 2,lockRotation: true});
+  var bob = new fabric.Circle({radius:30,fill:'dogerblue', top:250, left:21, lockRotation:true})
+  //canvas.add(pivot);
+  //canvas.add(string);
+  //canvas.add(bob);
+  var pendulum = new fabric.Group([pivot, rod, bob], {'physics': 'pendulum'});
+  canvas.add(pendulum);
   updateLog();
 
 };
 
-//Add test
-function addTest(){
-  snapping = 'off';
-  var rod = new fabric.Line([50, 50, 50, 250], {
-    stroke:'cornflowerblue',
-    strokeWidth: 2,
-    selectable: true,
-    hasControls: false,
-    hasBorders: false,
-    centeredRotation: false,
-    centeredScaling: false,
-    selection:true,
-    name:'rod',
-    'physics':'pendulum',
-    'item':'rod',
-    //originX: 'center',
-    //originY: 'center'
-  });
 
+//Add Spring
+function addSpring(){
+  var spring = new fabric.Spring([50,50,50,250],{stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
+  canvas.add(spring);
+  updateLog();
 
-  var pivot = new fabric.Circle({
-    radius: 4,
-    fill: 'dogerblue',
-    left: 47,
-    top: 42,
-    hasControls: false,
-    hasBorders: false,
-    name: 'pivot',
-    'physics':'pendulum',
-    'item':'pivot',
-  });
-
-  var bob = new fabric.Circle({
-    radius: 30,
-    fill: 'dogerblue',
-    left: 21,
-    top: 250,
-    hasControls: false,
-    hasBorders: false,
-    name: 'bob',
-    'physics':'pendulum',
-    'item':'bob',
-
-  });
-
-
-
-  physics.on('object:moving', function (options) {
-
-    var objType = options.target.get('type');
-    var p = options.target;
-
-    if (objType == 'rod') {
-        pivot.set({ x1: rod.x1, y1: rod.y1 });
-        bob.set({ left: rod.x2, top: rod.y2 });
-    }
-    if (objType == 'circle') {
-        if (p.name == 'pivot') {
-            rod.set({
-                x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y, selectable: true
-            });
-        } else {
-            if (p.name == 'bob') {
-                rod.set({
-                    x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y, selectable: true
-                });
-            }
-        }
-    }
-    rod.setCoords();
-    pivot.setCoords();
-    bob.setCoords();
-    physics.renderAll();
-
-});
-
-  physics.add(rod);
-  physics.add(pivot);
-  physics.add(bob);
-  physics.renderAll();
 }
-
-
-//Add Pendulum
-function addPendulum(){
-  snapping = 'off';
-  var rod = new fabric.Line([50, 50, 50, 250], {
-    stroke:'cornflowerblue',
-    strokeWidth: 2,
-    selectable: true,
-    hasControls: false,
-    hasBorders: false,
-    centeredRotation: false,
-    centeredScaling: false,
-    selection:true,
-    name:'rod',
-    'physics':'pendulum',
-    'item':'rod',
-    //originX: 'center',
-    //originY: 'center'
-  });
-
-
-  var pivot = new fabric.Circle({
-    radius: 4,
-    fill: 'dogerblue',
-    left: 47,
-    top: 42,
-    hasControls: false,
-    hasBorders: false,
-    name: 'pivot',
-    'physics':'pendulum',
-    'item':'pivot',
-  });
-
-  var bob = new fabric.Circle({
-    radius: 30,
-    fill: 'dogerblue',
-    left: 21,
-    top: 250,
-    hasControls: false,
-    hasBorders: false,
-    name: 'bob',
-    'physics':'pendulum',
-    'item':'bob',
-
-  });
-
-
-
-  canvas.on('object:moving', function (options) {
-
-    var objType = options.target.get('type');
-    var p = options.target;
-
-    if (objType == 'rod') {
-        pivot.set({ x1: rod.x1, y1: rod.y1 });
-        bob.set({ left: rod.x2, top: rod.y2 });
-    }
-    if (objType == 'circle') {
-        if (p.name == 'pivot') {
-            rod.set({
-                x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y, selectable: true
-            });
-        } else {
-            if (p.name == 'bob') {
-                rod.set({
-                    x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y, selectable: true
-                });
-            }
-        }
-    }
-    rod.setCoords();
-    pivot.setCoords();
-    bob.setCoords();
-    canvas.renderAll();
-
-});
-
-  canvas.add(rod);
-  canvas.add(pivot);
-  canvas.add(bob);
-  canvas.renderAll();
-}
-
-
-
-
-
-
 transfer = function transfer() {
     physics.clear().renderAll();
     current = state.length - mods - 1;
@@ -244,53 +79,20 @@ transfer = function transfer() {
     var exported = {};
     var physicsGroup = [];
     var shapes =[];
-    var pendulumObj = {'type':'pendulum'};
-    //var objsInCanvas = canvas.getObjects();
+    var objsInCanvas = canvas.getObjects();
     canvas.forEachObject(function(obj){
       if (obj.get('physics') === 'pendulum'){
-
-        if (obj.get('item') === 'pivot'){
-          pendulumObj['pivot'] = obj;
-
-        }
-
-        else if (obj.get('item') === 'rod'){
-          pendulumObj['rod'] = obj;
-
-
-
-        }
-
-        else{
-          pendulumObj['bob'] = obj;
-
-
-        }
-        //var groupObjects=obj.getObjects();
-        //pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
-        //physicsGroup.push(pendulumobj);
+        var groupObjects=obj.getObjects();
+        pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
+        physicsGroup.push(pendulumobj);
       }
       else{
         shapes.push(obj);
       };
-
-    if ('pivot' in pendulumObj && 'rod' in pendulumObj && 'bob' in pendulumObj)
-    {
-      physicsGroup.push(pendulumObj);
-
-      pendulumObj = {'type':'pendulum'};
-      console.log(pendulumObj);
-
-    };
-
-
-
-  });
-
+    });
     exported['physicsGroup']=physicsGroup;
     exported['shapes']=shapes;
     console.log(exported);
-    return exported;
   }
 //    for (obj in objsInCanvas) {
 //        // this gives you a group
