@@ -125,7 +125,7 @@ export function map<A, R>(vals: Set<A>, f: (a: A) => R): Set<R> {
   return ret
 }
 
-export function flatMap<A, R>(vals: Set<A>, f: (a: A) => Set<R>) {
+export function flatMap<A, R>(vals: Iterable<A>, f: (a: A) => Set<R>) {
   let ret = new Set<R>()
   // console.log(vals)
   for (let v of vals)
@@ -141,6 +141,15 @@ export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
 // extend a map by one value
 export function extend<K, V>(vals: Map<K, V>, [k, v]: Tup<K, V>): Map<K, V> {
   return copy(vals).set(k, v)
+}
+
+// invert a map
+export function flip<K, V>(vals: Map<K, V>): Map<V, K> {
+  let ret = new Map<V, K>()
+  for (let [k, v] of vals) {
+    ret.set(v, k)
+  }
+  return ret
 }
 // extend a map by entries in another map
 export function extendMap<K, V>(lhs: Map<K, V>, rhs: Map<K, V>): Map<K, V> {
@@ -239,4 +248,22 @@ export function forall<U>(col: Iterable<U>, f: (u: U) => boolean) {
       return false
   }
   return true
+}
+
+export function getNth<T>(col: Iterable<T>, index: number) {
+  assert(index >= 0, 'expected nonzero index to getNth: ' + index.toString())
+
+  let idx = index
+  let iter = col[Symbol.iterator]()
+  let res: IteratorResult<T>
+  while (idx >= 0) {
+    res = iter.next()
+    idx--
+    if (res.done && index >= 0) {
+      console.log('invalid index ' + index.toString())
+      console.log('for collection ')
+      console.log(col)
+    }
+  }
+  return res.value
 }

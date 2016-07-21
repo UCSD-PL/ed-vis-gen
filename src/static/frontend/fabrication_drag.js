@@ -29,6 +29,7 @@ var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
 canvas.selectable = true;
+// physics.selectable = true;
 physics.selectable = false;
 physics.isDrawingMode = false;
 canvas.counter = 0;
@@ -122,7 +123,8 @@ function candidatePoints() {
         name: allocSName(),
         shape: obj,
         DX: dx,
-        DY: dy
+        DY: dy,
+        radius: 10
       });
       drag.updateCoords(interact);
       interact.add(drag);
@@ -247,24 +249,24 @@ function keepDragPointsMoving() {
 canvas.on(
     'object:modified', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON);
     updateModifications(true);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:moving', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:deselected', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'mouse:out', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 );
 

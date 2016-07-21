@@ -1,6 +1,6 @@
 import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat} from '../util/Util'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint, pp} from './Shapes'
 
 import {PhysicsGroup, Pendulum} from './Physics'
@@ -197,7 +197,7 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 }
 
 // given a json of shapes, build a model for the shapes
-export function buildModel(model: fabricJSONObj, canvas: ICanvas, renderer: () => void): Model {
+export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   // console.log()
   let retStore: State = State.empty()
@@ -206,10 +206,10 @@ export function buildModel(model: fabricJSONObj, canvas: ICanvas, renderer: () =
   let normObjs = objs.map(normalizeFabricShape)
 
   // second, pluck out dragpoint choices
-  // let dragChoices: Map<string, number> = (normObjs.filter(s => s.type == 'dragPoint') as fabricDrag)
-    // .map(dp => [dp.name, dp.choice])
+  let dragChoices: Map<string, number> = toMap((normObjs.filter(s => s.type == 'dragPoint') as fabricDrag[])
+    .map(dp => [dp.name, dp.choice] as Tup<string, number>))
 
-  // next, allocate variables and shapes for each input object
+  // finally, allocate variables and shapes for each input object
   normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
@@ -247,7 +247,7 @@ export function buildModel(model: fabricJSONObj, canvas: ICanvas, renderer: () =
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
 
 
-  fold(retStore.prog.allFrees, (accProg, [dp]) => {
+  retStore.prog = fold(retStore.prog.allFrees, (accProg, [dp]) => {
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
     assert(dp.y instanceof CassVar, 'expected cassvars for dragpoint members')
 
@@ -267,13 +267,15 @@ export function buildModel(model: fabricJSONObj, canvas: ICanvas, renderer: () =
     // rank the results
     let ranked = new Poset(zip(candProgs, repeat(retStore.store)), Default, [retStore.prog, retStore.store] as Tup<Program, Store>)
 
-    // console.log(ranked)
+    // console.log(ranked.toArr())
 
-    // get the top candidate
-    let [topProg]: Tup<Program, Store> = ranked.toArr()[0]
-
+    let frees = ranked.toArr().map(([p]: [Program, Store]) => p.allFrees.get(dp))
+    possibleFrees.set(dp, frees)
+    let dpName = flip(retStore.prog.names).get(dp)
     // pluck out its free-variables for the particular drag point, add to the cumulative program
-    return accProg.addFrees(dp, topProg.allFrees.get(dp))
+    let selFrees = frees[dragChoices.get(dpName)]
+
+    return accProg.addFrees(dp, selFrees)
   }, retStore.prog)
 
   let ret = new Model(retStore, possibleFrees)

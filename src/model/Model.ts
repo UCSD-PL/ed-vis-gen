@@ -1,6 +1,6 @@
-import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image} from './Shapes'
+import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend, union} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
@@ -13,6 +13,10 @@ export class Program {
   constructor(public shapes: Set<Shape>, public names: Map<string, Shape>, public allFrees: Map<DragPoint, Set<Variable>>) {}
   public static empty(): Program {
     return new Program( new Set<Shape>(), new Map<string, Shape>(), new Map<DragPoint, Set<Variable>>())
+  }
+
+  public printShapes() {
+    console.log([...this.shapes].map(s => flip(this.names).get(s) + " => " + pp(s)).join('\n'))
   }
 
   // (mostly) immutable extension functions

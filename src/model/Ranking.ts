@@ -16,6 +16,10 @@ export function FreeVars([p, s]: Tup<Program, Store>): number {
   }).reduce((sum, next) => sum + next)
 }
 
+export function Invert(rs: ProgRanker): ProgRanker {
+  return (a) => -1 * rs(a)
+}
+
 // weighted sum of input rankings
 
 export function WeightedSum(rs: Set<Tup<number, ProgRanker>>) : ProgRanker {

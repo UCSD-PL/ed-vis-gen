@@ -82,7 +82,7 @@
      * @type Number
      * @default
      */
-    radius: 5,
+    radius: 10,
 
     /**
      * Start angle of the circle, moving clockwise
@@ -120,7 +120,7 @@
       options = options || { };
 
       this.callSuper('initialize', options);
-      this.set('radius', options.shape.radius || 4);
+      this.set('radius', options.shape.radius || 7);
       this.set('shapeName', options.shapeName || '');
       this.set('choice', options.choice || 0);
       if (options.shape != null) {

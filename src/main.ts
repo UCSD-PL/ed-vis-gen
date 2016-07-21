@@ -1,13 +1,13 @@
 import {Expression, Equation} from 'cassowary'
-import {Circle, Line, DragPoint} from './model/Shapes'
+import {Circle, Line, DragPoint, pp} from './model/Shapes'
 import {VType, CassVar, Variable} from './model/Variable'
 import SView = require('./view/Shapes')
 import {Model} from './model/Model'
-import View = require('./view/View')
+import {renderState} from './view/View'
 import {DragController} from './controller/Controller'
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
-import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4} from './util/Util'
+import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip} from './util/Util'
 import {fabricJSONObj, buildModel} from './model/Import'
 import {Pendulum} from './model/Physics'
 import {Poset} from './util/Poset'
@@ -27,17 +27,45 @@ let dragCont: DragController
 
 // let buttonCont = new Cont.ButtonController()
 
-export function refresh() {
+export function refresh(canv: ICanvas) {
   dragCont.m = initModel
-  View.renderModel(initModel)
+  // dragCont.receiver = canv
+  renderState(initModel.main, canv.getContext())
 }
 
-export function drawFromFabric(object: fabricJSONObj, canvas: ICanvas) {
+let physicsFirst = true
+export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   // console.log(object)
-  initModel = buildModel(object, canvas, refresh)
-  dragCont = new DragController(initModel, canvas)
-  dragCont.enableDrags()
-  refresh()
+  initModel = buildModel(object, () => refresh(canvas))
+  if (physicsFirst) {
+    canvas.on('after:render', () => refresh(canvas))
+    dragCont = new DragController(initModel, canvas)
+    physicsFirst = false
+  }
+  // dragCont.enableDrags()
+  refresh(canvas)
+
+}
+
+let editFirst = true
+export function drawToEdit(dpName: string, dpChoice: number, canvas: ICanvas) {
+  changeDPChoice(dpName, dpChoice)
+  // draw
+  if (editFirst) {
+    canvas.on('after:render', () => refresh(canvas))
+    dragCont = new DragController(initModel, canvas)
+    editFirst = false
+  }
+  refresh(canvas)
+}
+
+export function changeDPChoice(dpName: string, dpChoice: number) {
+  let dp = initModel.main.prog.names.get(dpName)
+  assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  let choices = initModel.candidateFrees.get(dp as DragPoint)
+
+  initModel.main.prog = initModel.main.prog.addFrees(dp as DragPoint, choices[dpChoice])
+
 }
 
 // console.log(finalModel.eval())
@@ -71,13 +99,14 @@ function overlayContacts() {
     newS = newS.addShape("CP" + (suffix++).toString(), newPoint, false)
   }
   initModel = new Model(newS, new Map<DragPoint, Set<Variable>[]>())
-  refresh()
+  // refresh()
 }
 
 // backend exports
 (window as any).BACKEND = {}
 export var backendExport: any = (window as any).BACKEND
-backendExport.drawFromFabric = drawFromFabric
+backendExport.drawToPhysics = drawToPhysics
+backendExport.drawToEdit = drawToEdit
 backendExport.startPhysics = () => initModel.main.start()
 backendExport.stopPhysics = () => initModel.main.stop()
 backendExport.resetPhysics = () => initModel.main.reset()
