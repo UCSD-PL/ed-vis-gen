@@ -16,6 +16,10 @@ export function FreeVars([p, s]: Tup<Program, Store>): number {
   }).reduce((sum, next) => sum + next)
 }
 
+export function Invert(rs: ProgRanker): ProgRanker {
+  return (a) => -1 * rs(a)
+}
+
 // weighted sum of input rankings
 
 export function WeightedSum(rs: Set<Tup<number, ProgRanker>>) : ProgRanker {
@@ -23,6 +27,25 @@ export function WeightedSum(rs: Set<Tup<number, ProgRanker>>) : ProgRanker {
     ([weight, ranker]) => weight*ranker(a)
   ).reduce((sum, next) => sum + next)
 }
+
+export function Default([p, s]: Tup<Program, Store>) {
+  let weights = new Set<Tup<number, ProgRanker>>()
+  weights.add([1, FreeVars])
+  let ranker = WeightedSum(weights)
+  return ranker([p, s])
+}
+/*
+object Default extends Ranker {
+  val inner = WeightedSum(Set(
+    (0 → LinkLength),
+    (1 → ShapeMotion),
+    (1 → ShapeHeuristics),
+    (1 → ShapeCoordination),
+    (1 → PointMotion)
+  ))
+
+  def eval(c: Configuration) = inner eval(c)
+} */
 
 
 // thesis: stationary shapes are ideal. foreach shape that changes as a function

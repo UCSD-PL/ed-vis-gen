@@ -1,11 +1,15 @@
-import {Model, State} from './Model'
+import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap} from '../util/Util'
-import {Circle, Rectangle, Shape, Line, DragPoint} from './Shapes'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip} from '../util/Util'
+import {Circle, Rectangle, Shape, Line, DragPoint, pp} from './Shapes'
 
 import {PhysicsGroup, Pendulum} from './Physics'
-import {VType, Variable} from './Variable'
-import {constrainAdjacent} from './Synthesis'
+import {VType, Variable, CassVar} from './Variable'
+import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
+
+import {Poset} from '../util/Poset'
+import {Default} from './Ranking'
+import {ICanvas} from 'fabric'
 
 type fabricCommon = {
   type: string,
@@ -49,7 +53,8 @@ type fabricDrag = {
   Y: number,
   DX: number,
   DY: number,
-  shape: fabricObject
+  shape: fabricObject,
+  choice: number
 } & fabricCircle
 
 type fabricTriangle = {
@@ -200,21 +205,25 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 }
 
 // given a json of shapes, build a model for the shapes
-export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
+export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   // console.log()
   let retStore: State = State.empty()
-  let objs = canvas.shapes
-  // two passes: first, normalize to eddie's position conventions
+  let objs = model.shapes
+  // three passes: first, normalize to eddie's position conventions
   let normObjs = objs.map(normalizeFabricShape)
 
-  // next, allocate variables and shapes for each input object
+  // second, pluck out dragpoint choices
+  let dragChoices: Map<string, number> = toMap((normObjs.filter(s => s.type == 'dragPoint') as fabricDrag[])
+    .map(dp => [dp.name, dp.choice] as Tup<string, number>))
+
+  // finally, allocate variables and shapes for each input object
   normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
 
-  // console.log(canvas.physicsGroups)
-  canvas.physicsGroups.forEach( grp => {
+  // console.log(model.physicsGroups)
+  model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
     if (grp.type == 'pendulum') {
@@ -236,8 +245,48 @@ export function buildModel(canvas: fabricJSONObj, renderer: () => void): Model {
 
   // console.log('before synthesis:')
   // console.log(retStore)
-  constrainAdjacent(retStore)
-  let ret = new Model(retStore)
+  // console.log('shapes:')
+  // console.log([...retStore.prog.shapes].map(s => pp(s)).join())
+  // console.log('equations:')
+  let eqs = constrainAdjacent(retStore)
+  // console.log(eqs)
+  let buildFVs = (seeds: Set<CassVar>) => InteractionSynthesis.validFreeVariables(seeds, eqs)
+
+  let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
+
+
+  retStore.prog = fold(retStore.prog.allFrees, (accProg, [dp]) => {
+    assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
+    assert(dp.y instanceof CassVar, 'expected cassvars for dragpoint members')
+
+    // get the candidate sets for seeds {{x}, {y}, {x, y}}
+    let [vX, vY, vBoth] = map3Tup(
+      [[dp.x], [dp.y], [dp.x, dp.y]] as Tup3<CassVar[]>,
+      (vars) => buildFVs(new Set(vars)))
+
+    // collect the results and build programs for the ranker
+    // IMPORTANT: programs are built w.r.t the original program, i.e. independently
+    let newFrees = union(union(vX, vY), vBoth)
+    // console.log('candidates for')
+    // console.log(dp)
+    // console.log(newFrees)
+    let candProgs = map(newFrees, (frees) => retStore.prog.addFrees(dp, frees))
+
+    // rank the results
+    let ranked = new Poset(zip(candProgs, repeat(retStore.store)), Default, [retStore.prog, retStore.store] as Tup<Program, Store>)
+
+    // console.log(ranked.toArr())
+
+    let frees = ranked.toArr().map(([p]: [Program, Store]) => p.allFrees.get(dp))
+    possibleFrees.set(dp, frees)
+    let dpName = flip(retStore.prog.names).get(dp)
+    // pluck out its free-variables for the particular drag point, add to the cumulative program
+    let selFrees = frees[dragChoices.get(dpName)]
+
+    return accProg.addFrees(dp, selFrees)
+  }, retStore.prog)
+
+  let ret = new Model(retStore, possibleFrees)
   // console.log('model:')
   // console.log(ret)
   return ret

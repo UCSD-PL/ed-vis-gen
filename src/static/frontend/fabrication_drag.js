@@ -29,6 +29,7 @@ var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
 canvas.selectable = true;
+// physics.selectable = true;
 physics.selectable = false;
 physics.isDrawingMode = false;
 canvas.counter = 0;
@@ -122,7 +123,8 @@ function candidatePoints() {
         name: allocSName(),
         shape: obj,
         DX: dx,
-        DY: dy
+        DY: dy,
+        radius: 10
       });
       drag.updateCoords(interact);
       interact.add(drag);
@@ -131,7 +133,7 @@ function candidatePoints() {
         //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         //if a drag point hasn't been clicked before, upon being clicked,
         //a drag point is selected and added to dragPointList
-        if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
+        if (this.get('fill') == 'black') {
           this.set({
             fill: 'orange'
           });
@@ -139,17 +141,10 @@ function candidatePoints() {
           open1();
           onLoadSims(drag);
         }
-        else if (this.get('fill') == 'black' && this.get('onCanvas') == true) {
-          open1();
-          onLoadSims(drag);
-        }
         // undos selection of a drag point if you click it again
         else {
           undoSelect(drag);
         }});
-      drag.on('deleted', function() {
-        undoSelect(drag);
-      });
       }
     }
 
@@ -220,7 +215,7 @@ function onLoadSims(dragPoint) {
 }
 
 function onOverlayClosed(){
-  console.log(dragPointList);
+  // console.log(dragPointList);
   // removes old dragPoints.
   for (var i = 0; i < oldDragPointList.length; i++) {
     canvas.remove(oldDragPointList[i]);
@@ -228,10 +223,9 @@ function onOverlayClosed(){
 
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
-      console.log("the drag point should have been added!");
+      // console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'black',
-        onCanvas: true
+        fill: 'black'
       });
       canvas.add(dragPointList[i]);
     }
@@ -251,35 +245,28 @@ function keepDragPointsMoving() {
   }
 }
 
-function updateWithObject(obj) {
-  obj.on('moving', function() {
-    window.BACKEND.drawFromFabric(fabricJSON);
-    keepDragPointsMoving();
-  });
-  obj.on('modified', function() {
-    window.BACKEND.drawFromFabric(fabricJSON);
-    keepDragPointsMoving();
-  });
-}
 
 canvas.on(
-/*
     'object:modified', function () {
     keepDragPointsMoving();
-    window.BACKEND.drawFromFabric(fabricJSON);
     updateModifications(true);
-},*/
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
+},
+    'object:moving', function () {
+    keepDragPointsMoving();
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
+},
     'object:added', function () {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:deselected', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'mouse:out', function() {
     updateModifications(true);
-    window.BACKEND.drawFromFabric(fabricJSON);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 );
 

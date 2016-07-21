@@ -2,8 +2,9 @@
 // removing elements, and for...of iteration.
 "use strict";
 class Poset {
-    constructor(seeds, ranker) {
+    constructor(seeds, ranker, defaultValue) {
         this.ranker = ranker;
+        this.defaultValue = defaultValue;
         this.vals = new Map();
         for (let v of seeds)
             this.add(v);
@@ -30,9 +31,16 @@ class Poset {
             return false;
         }
     }
+    toArr() {
+        return [...this];
+    }
     [Symbol.iterator]() {
         let vals = [...this.vals.entries()].sort((l, r) => l[0] - r[0]);
+        let me = this;
         let ret = function* () {
+            if (vals.length == 0) {
+                yield me.defaultValue;
+            }
             for (let [_, retVals] of vals) {
                 for (let rv of retVals) {
                     yield rv;

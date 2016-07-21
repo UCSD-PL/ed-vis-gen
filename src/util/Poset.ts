@@ -5,7 +5,7 @@ export type Ranker<A> = (i: A) => number
 export class Poset<A> implements Iterable<A>{
   private vals: Map<number, Set<A>>
 
-  public constructor(seeds: Iterable<A>, private ranker: Ranker<A>){
+  public constructor(seeds: Iterable<A>, private ranker: Ranker<A>, public defaultValue: A){
     this.vals = new Map<number, Set<A>>()
 
     for (let v of seeds)
@@ -32,9 +32,18 @@ export class Poset<A> implements Iterable<A>{
     }
   }
 
+  public toArr(): A[] {
+    return [... this]
+  }
+
+
   public [Symbol.iterator]() {
     let vals = [... this.vals.entries()].sort((l, r) => l[0] - r[0])
+    let me = this
     let ret = function* () {
+      if (vals.length == 0) {
+        yield me.defaultValue
+      }
       for (let [_, retVals] of vals) {
         for (let rv of retVals) {
           yield rv

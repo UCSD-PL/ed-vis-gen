@@ -20,6 +20,35 @@ export function union<T, U>(l: Set<T>, r: Set<U>): Set<T | U> {
   return ret
 }
 
+// 'l is a subset of r iff all l' in l are in r'
+export function subset<T>(l: Set<T>, r: Set<T>): boolean {
+  return forall(l, t => r.has(t))
+}
+// 'l == r iff l <= r and r <= l'
+export function seteq<T>(l: Set<T>, r: Set<T>): boolean {
+  return subset(l, r) && subset(r, l)
+}
+
+// so, sets hash to their reference (i think), and not to their values.
+// this is not ideal because then sets of sets are actually multisets:
+// {1} != {1}, so {{1}, {1}} is valid.
+// this hack uniqifies nested sets...gross but effective.
+export function uniqify<T>(multi: Set<Set<T>>) : Set<Set<T>> {
+  let ret = new Set<Set<T>>()
+
+  // duplication check -- have we already found lhs in ret?
+  let finder = (lhs: Set<T>) => (rhs: Set<T>) => seteq(lhs, rhs)
+
+  for (let ss of multi) {
+    if (exists(ret, finder(ss))) {
+      // if there's a duplicate, *don't* add this set
+    } else {
+      ret.add(ss)
+    }
+  }
+  return ret
+}
+
 // intersect two sets together and returns the result
 export function intersect<T>(l: Set<T>, r: Set<T>): Set<T> {
   let ret = new Set<T>()
@@ -96,7 +125,7 @@ export function map<A, R>(vals: Set<A>, f: (a: A) => R): Set<R> {
   return ret
 }
 
-export function flatMap<A, R>(vals: Set<A>, f: (a: A) => Set<R>) {
+export function flatMap<A, R>(vals: Iterable<A>, f: (a: A) => Set<R>) {
   let ret = new Set<R>()
   // console.log(vals)
   for (let v of vals)
@@ -113,6 +142,15 @@ export function copy<K, V>(vals: Map<K, V>): Map<K, V> {
 export function extend<K, V>(vals: Map<K, V>, [k, v]: Tup<K, V>): Map<K, V> {
   return copy(vals).set(k, v)
 }
+
+// invert a map
+export function flip<K, V>(vals: Map<K, V>): Map<V, K> {
+  let ret = new Map<V, K>()
+  for (let [k, v] of vals) {
+    ret.set(v, k)
+  }
+  return ret
+}
 // extend a map by entries in another map
 export function extendMap<K, V>(lhs: Map<K, V>, rhs: Map<K, V>): Map<K, V> {
   let ret = copy(lhs)
@@ -126,6 +164,15 @@ export function mapValues<K, A, R>(vals: Map<K, A>, f: (a: A) => R): Map<K, R> {
   let ret = new Map<K, R>()
   for (let [k, v] of vals) {
     ret.set(k, f(v))
+  }
+  return ret
+}
+
+// fold a function over a map
+export function fold<K, V, R>(vals: Map<K, V>, f: (old: R, next: Tup<K, V>) => R, init: R): R {
+  let ret = init
+  for (let next of vals) {
+    ret = f(ret, next)
   }
   return ret
 }
@@ -150,11 +197,27 @@ export function find<U>(vals: Iterable<U>, f: (u: U) => boolean): U {
   return null
 }
 
-// zip up two arrays into an array of tuples
-// not sure what happens when arrays have different length... don't do it
-export function zip<L, R>(ls: L[], rs: R[]): [L, R][] {
-  let mapper = (x: L, i:number) => [x, rs[i]] as [L, R]
-  return ls.map(mapper)
+// zip up two iterables into an iterable of tuples
+// stop as soon as one iterable is done
+// don't use on two infinite iterables...
+export function* zip <L, R> (ls: Iterable<L>, rs: Iterable<R>):Iterable<Tup<L, R>> {
+  let [li, ri] = [ls[Symbol.iterator](), rs[Symbol.iterator]()]
+  let [lr, rr] = [li.next(), ri.next()]
+  while(! (lr.done || rr.done)) {
+    yield [lr.value, rr.value];
+    [lr, rr] = [li.next(), ri.next()]
+  }
+}
+
+// export function zip<L, R>(ls: Set<L>, rs: Set<R>): Set<Tup<L, R>> {
+//
+// }
+
+// generator for an infinite stream
+export function* repeat<A> (a: A) {
+  while (true) {
+    yield a
+  }
 }
 
 export var DEBUG = false
@@ -185,4 +248,22 @@ export function forall<U>(col: Iterable<U>, f: (u: U) => boolean) {
       return false
   }
   return true
+}
+
+export function getNth<T>(col: Iterable<T>, index: number) {
+  assert(index >= 0, 'expected nonzero index to getNth: ' + index.toString())
+
+  let idx = index
+  let iter = col[Symbol.iterator]()
+  let res: IteratorResult<T>
+  while (idx >= 0) {
+    res = iter.next()
+    idx--
+    if (res.done && index >= 0) {
+      console.log('invalid index ' + index.toString())
+      console.log('for collection ')
+      console.log(col)
+    }
+  }
+  return res.value
 }

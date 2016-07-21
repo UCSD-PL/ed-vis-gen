@@ -1,10 +1,11 @@
-import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image} from './Shapes'
+import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend, union} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
+import {Poset} from '../util/Poset'
 
 // immutable program
 // we expect to rarely add/remove shapes and other program elements
@@ -12,6 +13,10 @@ export class Program {
   constructor(public shapes: Set<Shape>, public names: Map<string, Shape>, public allFrees: Map<DragPoint, Set<Variable>>) {}
   public static empty(): Program {
     return new Program( new Set<Shape>(), new Map<string, Shape>(), new Map<DragPoint, Set<Variable>>())
+  }
+
+  public printShapes() {
+    console.log([...this.shapes].map(s => flip(this.names).get(s) + " => " + pp(s)).join('\n'))
   }
 
   // (mostly) immutable extension functions
@@ -38,6 +43,7 @@ export class Program {
 // we expect to frequently update internal elements of the store
 export class Store {
   private csolver: SimplexSolver
+  private equations: Set<Equation>
   private cvars: Set<CassVar>
   private cstays: Map<CassVar, Equation> // I might not need the variable part...
   private prims: Map<Primitive, number>
@@ -48,6 +54,7 @@ export class Store {
     this.cvars = new Set<CassVar>()
     this.prims = new Map<Primitive, number>()
     this.cstays = new Map<CassVar, Equation>()
+    this.equations = new Set<Equation>()
   }
 
   public debug() {
@@ -100,6 +107,7 @@ export class Store {
   public addEq(e: Equation): void {
     // console.log('adding constraint:')
     // console.log(e.toString())
+    this.equations.add(e)
     this.csolver.addConstraint(e)
 
   }
@@ -252,12 +260,13 @@ export class PhysicsEngine {
     this.runner.reset()
   }
 
-  // extends a physics engine with a new set of decls
+  // extends a physics engine with a new engine, preferring the fields of the RHS
+  // this is pretty key -- PhysicsEngine.empty's values and renderer don't extend
+  // properly.
   public extend(rhs: PhysicsEngine) {
     let newDecls = this.decls.union(rhs.decls)
     let newFrees = union(this.freeVars, rhs.freeVars)
     let [newStore, newRenderer] = [rhs.values, rhs.renderer]
-    // TODO: this might not be valid...
     return new PhysicsEngine(newDecls, newFrees, newStore, newRenderer)
   }
 
@@ -441,11 +450,11 @@ export class State {
 // export enum MainState {Display}
 export class Model {
 
-  constructor( public main: State //, public mainState: MainState
-  ){}
+  constructor( public main: State, public candidateFrees: Map<DragPoint, Set<Variable>[]>)
+  {}
 
   public static empty(): Model {
-    return new Model( State.empty())
+    return new Model( State.empty(), new Map<DragPoint, Set<Variable>[]>())
   }
 
 }
