@@ -94,15 +94,15 @@ function candidatePoints() {
       });
       interact.add(obj);
       //console.log("it's a circle!");
-      addDragPoints(obj, 0.5, 0.5);
+      //addDragPoints(obj, 0.5, 0.5);
       addDragPoints(obj, 0.15, 0.15);
       addDragPoints(obj, 0.85, 0.85);
-      addDragPoints(obj, 0, 0.5);
-      addDragPoints(obj, 0.5, 0);
+      //addDragPoints(obj, 0, 0.5);
+      //addDragPoints(obj, 0.5, 0);
       addDragPoints(obj, 0.15, 0.85);
       addDragPoints(obj, 1, 0.5);
       addDragPoints(obj, 0.85, 0.15);
-      addDragPoints(obj, 0.5, 1);
+      //addDragPoints(obj, 0.5, 1);
       interact.renderAll();
     }
     if (obj != null && obj instanceof fabric.Line) {
@@ -124,7 +124,7 @@ function candidatePoints() {
         shape: obj,
         DX: dx,
         DY: dy,
-        radius: 10
+        radius: 7
       });
       drag.updateCoords(interact);
       interact.add(drag);
@@ -162,6 +162,10 @@ function undoSelect(dragPoint) {
   whereDP = dragPointList.findIndex(checkDP);
 
   dragPointList.splice(whereDP, 1);
+
+  currentDragPoint.set({
+    choice: 0
+  });
 }
 
 //displays next simulation on the simulation selection panel
@@ -175,7 +179,10 @@ function onRight() {
     lastSim = currentSim;
     currentSim += 1;
   }
-  sims.loadFromJSON(simsArray[currentSim]);
+  currentDragPoint.set({
+    choice: selectedSim
+  });
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('name'), sims);
   sims.renderAll();
 }
 
@@ -190,7 +197,11 @@ function onLeft() {
     lastSim = currentSim;
     currentSim -= 1;
   }
-  sims.loadFromJSON(simsArray[currentSim]);
+  currentDragPoint.set({
+    choice: selectedSim
+  });
+  //sims.loadFromJSON(simsArray[currentSim]);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
   sims.renderAll();
 }
 
@@ -200,8 +211,10 @@ function onACCEPT() {
   currentDragPoint.set({
     choice: selectedSim
   });
+  editJSON = JSON.stringify(sims);
   close1(); // closes current screen; returns to drag point selection panel
-  return;
+  //window.BACKEND.drawToPhysics(JSON.parse(editJSON), physics);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onLoadSims(dragPoint) {
@@ -210,8 +223,10 @@ function onLoadSims(dragPoint) {
   currentDragPoint = dragPoint;
   currentSim = 0;
   simsArray = state;
-  sims.loadFromJSON(simsArray[currentSim]);
-  sims.renderAll();
+  currentDragPoint.set({
+    choice: selectedSim
+  });
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onOverlayClosed(){

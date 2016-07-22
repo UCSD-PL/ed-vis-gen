@@ -278,4 +278,4 @@ var allocSName = (function() {
   return function() {
     return "S" + (suffix++).toString()
   };
-})()
+})();
