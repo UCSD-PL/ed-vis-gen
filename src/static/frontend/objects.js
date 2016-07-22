@@ -52,11 +52,10 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var rodname = allocSName();
-  var spring = new fabric.Spring([50,50,50,250],{name: name, stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
+  var springname = allocSName();
+  var spring = new fabric.Spring([50,50,50,250],{name: springname, stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
   canvas.add(spring);
   updateLog();
-​
 }
 
 //Add pendulum
@@ -278,4 +277,4 @@ var allocSName = (function() {
   return function() {
     return "S" + (suffix++).toString()
   };
-})()
+})();
