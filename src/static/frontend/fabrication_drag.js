@@ -16,6 +16,7 @@ simArray = [], // adds a canvas for separate simulations
 lastSim = 0, // last canvas for the drag point selection panel
 currentSim = 0, // current canvas for the drag point selection panel
 selectedSim = 0,
+numOfChoices = 8, // # of "choices" for the drag point edit panel, right now a random #
 currentDragPoint,
 isNew = false,
 snapColor = "red",
@@ -171,8 +172,8 @@ function undoSelect(dragPoint) {
 //displays next simulation on the simulation selection panel
 function onRight() {
   sims.clear();
-  if (currentSim == simsArray.length - 1) {
-    lastSim = simsArray.length-1;
+  if (currentSim == numOfChoices) {
+    lastSim = numOfChoices;
     currentSim = 0;
   }
   else {
@@ -180,9 +181,9 @@ function onRight() {
     currentSim += 1;
   }
   currentDragPoint.set({
-    choice: selectedSim
+    choice: currentSim
   });
-  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('name'), sims);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
 
@@ -191,17 +192,17 @@ function onLeft() {
   sims.clear();
   if (currentSim == 0) {
     lastSim = 0;
-    currentSim = simsArray.length - 1;
+    currentSim = numOfChoices;
   }
   else {
     lastSim = currentSim;
     currentSim -= 1;
   }
   currentDragPoint.set({
-    choice: selectedSim
+    choice: currentSim
   });
   //sims.loadFromJSON(simsArray[currentSim]);
-  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
 
@@ -211,7 +212,7 @@ function onACCEPT() {
   currentDragPoint.set({
     choice: selectedSim
   });
-  editJSON = JSON.stringify(sims);
+
   close1(); // closes current screen; returns to drag point selection panel
   window.BACKEND.drawToPhysics(fabricJSON, physics);
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
@@ -222,7 +223,7 @@ function onLoadSims(dragPoint) {
   sims.clear();
   currentDragPoint = dragPoint;
   currentSim = 0;
-  simsArray = state;
+  numOfChoices = 8;
   currentDragPoint.set({
     choice: selectedSim
   });
