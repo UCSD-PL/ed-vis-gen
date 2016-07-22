@@ -127,7 +127,7 @@
       options = options || { };
 
       this.callSuper('initialize', options);
-      this.set('radius', options.shape.radius || 7);
+      this.set('radius', options.radius || 7);
       this.set('shapeName', options.shapeName || '');
       this.set('choice', options.choice || 0);
       this.set('onCanvas', options.onCanvas || false);

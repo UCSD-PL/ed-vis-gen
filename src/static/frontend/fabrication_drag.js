@@ -94,15 +94,15 @@ function candidatePoints() {
       });
       interact.add(obj);
       //console.log("it's a circle!");
-      //addDragPoints(obj, 0.5, 0.5);
+      addDragPoints(obj, 0.5, 0.5);
       addDragPoints(obj, 0.15, 0.15);
       addDragPoints(obj, 0.85, 0.85);
-      //addDragPoints(obj, 0, 0.5);
-      //addDragPoints(obj, 0.5, 0);
+      addDragPoints(obj, 0, 0.5);
+      addDragPoints(obj, 0.5, 0);
       addDragPoints(obj, 0.15, 0.85);
       addDragPoints(obj, 1, 0.5);
       addDragPoints(obj, 0.85, 0.15);
-      //addDragPoints(obj, 0.5, 1);
+      addDragPoints(obj, 0.5, 1);
       interact.renderAll();
     }
     if (obj != null && obj instanceof fabric.Line) {
@@ -213,7 +213,7 @@ function onACCEPT() {
   });
   editJSON = JSON.stringify(sims);
   close1(); // closes current screen; returns to drag point selection panel
-  //window.BACKEND.drawToPhysics(JSON.parse(editJSON), physics);
+  window.BACKEND.drawToPhysics(fabricJSON, physics);
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
