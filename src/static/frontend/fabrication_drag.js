@@ -149,7 +149,7 @@ function candidatePoints() {
       }
     }
 
-//undos selection of a drag point
+//undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
     fill: 'black',
@@ -520,7 +520,7 @@ canvas.on('object:moving', function (options) {
 			objectBottom = objectTop + obj.getHeight();
 
 			// Find intersect information for X axis
-			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
+			if (targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
 

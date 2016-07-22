@@ -193,6 +193,20 @@
             left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
             top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
+        if (ctx.angle != 0) {
+          var center = ctx.getCenterPoint();
+          var fromCenterX = drag.get('DX') - 0.5;
+          var fromCenterY = drag.get('DY') - 0.5;
+          var pos = fabric.util.rotatePoint(
+                new fabric.Point( center.x + fromCenterX*ctx.getWidth(), center.y + fromCenterY*ctx.getHeight() ), center,
+                fabric.util.degreesToRadians(ctx.angle)
+              );
+          drag.set({
+            left: pos.x,
+            top: pos.y,
+            angle: ctx.angle
+          });
+        }
         drag.setCoords(canvas);
      }});
       canvas.renderAll();
