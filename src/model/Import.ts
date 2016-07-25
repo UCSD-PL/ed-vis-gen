@@ -37,6 +37,13 @@ type fabricRect = {
   // height: number
 } & fabricCommon
 
+type fabricSpring = {
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+} & fabricCommon
+
 type fabricLine = {
   x1: number,
   y1: number,
@@ -61,8 +68,7 @@ type fabricTriangle = {
   // something something triangle
 } & fabricCommon
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle
-
+export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle | fabricSpring
 type fabricPhysicsCommon = {
   type: string
 }
@@ -114,6 +120,22 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 
     ret = newS
 
+  } else if (s.type == 'spring') {
+    // TODO?
+    // console.log(s)
+    let newS = Object.assign({}, s) as fabricSpring
+
+    // x, y coordinates are relative to origin, change to absolute system
+    newS.x1 = newS.left + newS.width/2*newS.scaleX + newS.x1
+    newS.x2 = newS.left + newS.width/2*newS.scaleX + newS.x2
+
+    newS.y1 = newS.top + newS.height/2*newS.scaleY + newS.y1
+    newS.y2 = newS.top + newS.height/2*newS.scaleY + newS.y2
+
+    ret = newS
+
+    //Just copy-paste the code for 'line'
+
   } else if (s.type == 'dragPoint') {
     // TODO: left and top don't reflect the underlying object in the import...
     //       ...but do in the frontend. debug.
@@ -155,6 +177,12 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
     let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
     shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
+  } else if (s.type == 'spring') {
+    let newS = s as fabricLine
+    let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
+    let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
+    shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
+    //Just copy-paste the code for 'line'
   } else {
     console.log('unrecognized fabric tag:')
     console.log(s)

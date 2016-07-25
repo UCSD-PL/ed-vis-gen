@@ -1,6 +1,6 @@
-var canvas = new fabric.Canvas('canvas'), // left-side panel
+var canvas = new fabric.CanvasEx('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
-interact = new fabric.Canvas('interact'), // overlay-side panel
+interact = new fabric.CanvasEx('interact'), // overlay-side panel
 sims = new fabric.Canvas('sims'),
 counter = 0,
 snap = 14, // pixels to snap
@@ -46,6 +46,10 @@ function resizeCanvas () {
  canvas.renderAll();
  canvasWidth = document.getElementById('canvas').width;
  canvasHeight = document.getElementById('canvas').height;
+ interact.setWidth(canvasWidth);
+ interact.setHeight(canvasHeight);
+ sims.setWidth(canvasWidth);
+ sims.setHeight(canvasHeight);
 }
 
 function resizePhysicsPanel () {
@@ -130,18 +134,25 @@ function candidatePoints() {
       drag.updateCoords(interact);
       interact.add(drag);
 
+      drag.on('mousedown', function (options) {
+        // on right click, opens up the edit simulation panel
+        if (options.e.which === 3) {
+            if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
+                select(this);
+            }
+            open1();
+            onLoadSims(drag);
+            //console.log('BETTER BE RIGHT CLICKING');
+        } } );
+
       drag.on('selected', function() {
-        //console.log("THE DRAG POINTS ARE BEING RECOGNIZED");
         //if a drag point hasn't been clicked before, upon being clicked,
         //a drag point is selected and added to dragPointList
-        if (this.get('fill') == 'black') {
-          this.set({
-            fill: 'orange'
-          });
-          dragPointList.push(drag);
-          open1();
-          onLoadSims(drag);
+        if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
+          select(this);
         }
+        // if it's just on the canvas, do nothing
+        else if (this.get('onCanvas') === true) {}
         // undos selection of a drag point if you click it again
         else {
           undoSelect(drag);
@@ -149,7 +160,15 @@ function candidatePoints() {
       }
     }
 
-//undos selection of a drag point
+// selects drag point and adds it to the drag point list
+function select(dragPoint) {
+    dragPoint.set({
+      fill: 'orange'
+    });
+    dragPointList.push(dragPoint);
+  }
+
+//undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
     fill: 'black',
@@ -244,7 +263,8 @@ function onOverlayClosed(){
   for (var i = 0; i < dragPointList.length; i++) {
       // console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'black'
+        fill: 'black',
+        onCanvas: true
       });
       canvas.add(dragPointList[i]);
     }
@@ -523,7 +543,7 @@ canvas.on('object:moving', function (options) {
 			objectBottom = objectTop + obj.getHeight();
 
 			// Find intersect information for X axis
-			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
+			if (targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
 

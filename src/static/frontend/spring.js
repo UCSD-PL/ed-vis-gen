@@ -25,7 +25,7 @@
      * @type String
      * @default
      */
-    type: 'Spring',
+    type: 'spring',
 
     /**
      * x value or first Spring edge
@@ -184,7 +184,7 @@
         var dx2 = dist * Math.cos(theta);
         var dy2 = dist * Math.sin(theta);
 
-        
+
         ctx.moveTo(x1, y1);
         ctx.lineTo(x1+dx2, y1+dy2);
         for (let i = 100; i < iMAX - 100; ++i){
