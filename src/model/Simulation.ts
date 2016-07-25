@@ -1,4 +1,6 @@
 import {Point} from '../util/Util'
+import {triggerMD, triggerMU, triggerMM} from './Events'
+import {ICanvas} from 'fabric'
 
 // Functions for displaying and simulating interactions.
 
@@ -10,8 +12,10 @@ import {Point} from '../util/Util'
 function scheduleCalls(work: (n: number) => void, time: number, resolution: number, done: () => void, shouldStop: boolean): number {
   let i = 0
   let calls = setInterval( () =>  {
+    // console.log('working outer')
     requestAnimationFrame(() => {
       work(i)
+      // console.log('working inner')
       ++i
     })
     if (shouldStop && i > resolution) {
@@ -50,8 +54,7 @@ function scheduleCalls(work: (n: number) => void, time: number, resolution: numb
 // given a center point and a receiver for events, click on the center,
 // drag to the start of a circle, drag a circle, and release.
 
-export function circularSim(center: Point /* receiver */) {
-  // TODO
+export function circularSim(center: Point, receiver: ICanvas) {
     let circResolution = 25
     let circDuration = 1000
     let r = 25
@@ -60,9 +63,19 @@ export function circularSim(center: Point /* receiver */) {
     let cdelta = 20
     // cursor = Image(point.x + cdelta/2-5, point.y + cdelta/2 -2, cdelta, cdelta, "mouse")
 
-    let startPoint = {x: center.x + deltaX, y: center.y + deltaY}
+    let startPoint = {x: center.x + deltaX, y: center.y + deltaY, r: r}
+    // console.log(center)
+    triggerMD(receiver, startPoint)
 
-    //
+    return scheduleCalls( (i) => {
+      let theta = i*Math.PI * 2/circResolution
+      let p = {
+         x: startPoint.x + startPoint.r * Math.sin(theta),
+         y: startPoint.y + startPoint.r * Math.cos(theta)
+      }
+       triggerMM(receiver, p)
+     }, circDuration, circResolution, () => null, false
+    )
 }
 
 

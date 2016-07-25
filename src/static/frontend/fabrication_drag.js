@@ -167,6 +167,8 @@ function undoSelect(dragPoint) {
   currentDragPoint.set({
     choice: 0
   });
+
+  window.BACKEND.finishEditChoice();
 }
 
 //displays next simulation on the simulation selection panel
@@ -215,7 +217,8 @@ function onACCEPT() {
 
   close1(); // closes current screen; returns to drag point selection panel
   window.BACKEND.drawToPhysics(fabricJSON, physics);
-  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
+  window.BACKEND.finishEditChoice();
+  // window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onLoadSims(dragPoint) {

@@ -23,7 +23,7 @@ function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
 
 
 export class DragController {
-  constructor(public m: M.Model, public receiver: ICanvas) {
+  constructor(public m: M.Model, public receiver: ICanvas, private simulationMode: boolean) {
 
     this.enableDrags()
   }
@@ -38,35 +38,55 @@ export class DragController {
     mainCanv.setCursor('default')
   }
 
+  // return an optional point. if the event should not be handled, return null.
   private convertEvent(e: IEvent): Point {
     // let event = e.e as MouseEvent
     // let rect = this.receiver.getBoundingRect()
     // let [dx, dy] = [-rect.left, -rect.top]
     // return {x: event.x + dx, y: event.y + dy}
-    assert(e.e instanceof MouseEvent, 'tried to convert event that wasnt mouseclick:' + e.toString())
-    return this.receiver.getPointer(e.e as MouseEvent)
+    // assert(e.e instanceof MouseEvent, 'tried to convert event that wasnt mouseclick:' + e.toString())
+
+    let ret: Point
+    if (e.e instanceof MouseEvent && !this.simulationMode) {
+      ret = this.receiver.getPointer(e.e as MouseEvent)
+    } else if (this.simulationMode) {
+      let eAny = e as any
+      if ('clientX' in eAny && 'clientY' in eAny) {
+        ret = {x: eAny.clientX, y: eAny.clientY}
+      } else {
+        console.log('unrecognized event:')
+        console.log(e)
+        assert(false)
+      }
+      // assert('clientX' in eAny && 'clientY' in eAny, 'expected point-like argument to convert event:' + e.toString())
+    } else {
+      // nothing
+    }
+    return ret
   }
 
   private handleLeftClick(e: IEvent) {
     let p = this.convertEvent(e)
     // console.log("click at: ")
     // console.log(p)
-    let drags: Set<S.DragPoint> =
+    if (p) {
+      let drags: Set<S.DragPoint> =
       filter(this.m.main.prog.shapes, s => s instanceof S.DragPoint) as Set<S.DragPoint>
-    for (let d of drags) {
-      // console.log("drag at: ")
-      // console.log(d)
-      if (overlap(p, pointFromDrag(d, this.m.main.store))) {
-        // console.log("clicked:")
+      for (let d of drags) {
+        // console.log("drag at: ")
         // console.log(d)
-        // this.m.main.prog.printShapes()
-        // console.log("drag frees:")
-        // console.log(this.m.main.prog.allFrees.get(d))
-        this.m.main.draggedPoint = d
-        this.m.main.dragging = true
+        if (overlap(p, pointFromDrag(d, this.m.main.store))) {
+          // console.log("clicked:")
+          // console.log(d)
+          // this.m.main.prog.printShapes()
+          // console.log("drag frees:")
+          // console.log(this.m.main.prog.allFrees.get(d))
+          this.m.main.draggedPoint = d
+          this.m.main.dragging = true
 
-        this.m.main.stop()
-        break
+          this.m.main.stop()
+          break
+        }
       }
     }
 
@@ -74,7 +94,7 @@ export class DragController {
 
   private handleMove(e: IEvent) {
     let p = this.convertEvent(e)
-    if (this.m.main.dragging) {
+    if (p && this.m.main.dragging) {
       // suggest value for x and y
       // gross...refactor or something idk
       let [x,y] = [this.m.main.draggedPoint.x, this.m.main.draggedPoint.y]
@@ -90,7 +110,7 @@ export class DragController {
   private handleRelease(e: IEvent) {
     let p = this.convertEvent(e)
     // release!
-    if (this.m.main.dragging) {
+    if (p && this.m.main.dragging) {
       // just state change
       this.m.main.draggedPoint = null // TODO: option monad
       this.m.main.dragging = false
