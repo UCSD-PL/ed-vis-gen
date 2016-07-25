@@ -1,4 +1,5 @@
 import {Variable} from './Variable'
+import {assert} from '../util/Util'
 
 export interface Shape {}
 export interface Drawable extends Shape {

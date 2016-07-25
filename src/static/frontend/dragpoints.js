@@ -78,6 +78,13 @@
     choice: 0,
 
     /**
+     * true when the drag point is on the canvas
+     * @type Boolean
+     * @default false
+     */
+     onCanvas: false,
+
+    /**
      * Radius of this circle
      * @type Number
      * @default
@@ -120,9 +127,10 @@
       options = options || { };
 
       this.callSuper('initialize', options);
-      this.set('radius', options.shape.radius || 7);
+      this.set('radius', options.radius || 7);
       this.set('shapeName', options.shapeName || '');
       this.set('choice', options.choice || 0);
+      this.set('onCanvas', options.onCanvas || false);
       if (options.shape != null) {
         this.set('X', options.shape.left);
         this.set('Y', options.shape.top);
@@ -185,6 +193,20 @@
             left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
             top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
           });
+        if (ctx.angle != 0) {
+          var center = ctx.getCenterPoint();
+          var fromCenterX = drag.get('DX') - 0.5;
+          var fromCenterY = drag.get('DY') - 0.5;
+          var pos = fabric.util.rotatePoint(
+                new fabric.Point( center.x + fromCenterX*ctx.getWidth(), center.y + fromCenterY*ctx.getHeight() ), center,
+                fabric.util.degreesToRadians(ctx.angle)
+              );
+          drag.set({
+            left: pos.x,
+            top: pos.y,
+            angle: ctx.angle
+          });
+        }
         drag.setCoords(canvas);
      }});
       canvas.renderAll();
@@ -208,6 +230,7 @@
         left: this.X + this.shape.width*this.DX,
         top: this.Y + this.shape.height*this.DY,
         choice: this.choice,
+        onCanvas: this.onCanvas,
         startAngle: this.startAngle,
         endAngle: this.endAngle
       });

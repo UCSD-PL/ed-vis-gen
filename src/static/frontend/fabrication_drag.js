@@ -16,6 +16,7 @@ simArray = [], // adds a canvas for separate simulations
 lastSim = 0, // last canvas for the drag point selection panel
 currentSim = 0, // current canvas for the drag point selection panel
 selectedSim = 0,
+numOfChoices = 8, // # of "choices" for the drag point edit panel, right now a random #
 currentDragPoint,
 isNew = false,
 snapColor = "red",
@@ -45,6 +46,10 @@ function resizeCanvas () {
  canvas.renderAll();
  canvasWidth = document.getElementById('canvas').width;
  canvasHeight = document.getElementById('canvas').height;
+ interact.setWidth(canvasWidth);
+ interact.setHeight(canvasHeight);
+ sims.setWidth(canvasWidth);
+ sims.setHeight(canvasHeight);
 }
 
 function resizePhysicsPanel () {
@@ -124,7 +129,7 @@ function candidatePoints() {
         shape: obj,
         DX: dx,
         DY: dy,
-        radius: 10
+        radius: 7
       });
       drag.updateCoords(interact);
       interact.add(drag);
@@ -148,7 +153,7 @@ function candidatePoints() {
       }
     }
 
-//undos selection of a drag point
+//undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
     fill: 'black',
@@ -162,20 +167,27 @@ function undoSelect(dragPoint) {
   whereDP = dragPointList.findIndex(checkDP);
 
   dragPointList.splice(whereDP, 1);
+
+  currentDragPoint.set({
+    choice: 0
+  });
 }
 
 //displays next simulation on the simulation selection panel
 function onRight() {
   sims.clear();
-  if (currentSim == simsArray.length - 1) {
-    lastSim = simsArray.length-1;
+  if (currentSim == numOfChoices) {
+    lastSim = numOfChoices;
     currentSim = 0;
   }
   else {
     lastSim = currentSim;
     currentSim += 1;
   }
-  sims.loadFromJSON(simsArray[currentSim]);
+  currentDragPoint.set({
+    choice: currentSim
+  });
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
 
@@ -184,13 +196,17 @@ function onLeft() {
   sims.clear();
   if (currentSim == 0) {
     lastSim = 0;
-    currentSim = simsArray.length - 1;
+    currentSim = numOfChoices;
   }
   else {
     lastSim = currentSim;
     currentSim -= 1;
   }
-  sims.loadFromJSON(simsArray[currentSim]);
+  currentDragPoint.set({
+    choice: currentSim
+  });
+  //sims.loadFromJSON(simsArray[currentSim]);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
 
@@ -200,8 +216,10 @@ function onACCEPT() {
   currentDragPoint.set({
     choice: selectedSim
   });
+
   close1(); // closes current screen; returns to drag point selection panel
-  return;
+  window.BACKEND.drawToPhysics(fabricJSON, physics);
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onLoadSims(dragPoint) {
@@ -209,9 +227,11 @@ function onLoadSims(dragPoint) {
   sims.clear();
   currentDragPoint = dragPoint;
   currentSim = 0;
-  simsArray = state;
-  sims.loadFromJSON(simsArray[currentSim]);
-  sims.renderAll();
+  numOfChoices = 8;
+  currentDragPoint.set({
+    choice: selectedSim
+  });
+  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onOverlayClosed(){
@@ -504,7 +524,7 @@ canvas.on('object:moving', function (options) {
 			objectBottom = objectTop + obj.getHeight();
 
 			// Find intersect information for X axis
-			if(targetLeft >= objectLeft && targetLeft <= objectRight) {
+			if (targetLeft >= objectLeft && targetLeft <= objectRight) {
 				intersectLeft = targetLeft;
 				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
 

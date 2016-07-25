@@ -7,7 +7,7 @@ import {renderState} from './view/View'
 import {DragController} from './controller/Controller'
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
-import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip} from './util/Util'
+import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip, assert} from './util/Util'
 import {fabricJSONObj, buildModel} from './model/Import'
 import {Pendulum} from './model/Physics'
 import {Poset} from './util/Poset'
@@ -23,27 +23,28 @@ export var initModel = Model.empty()
 
 // // build a circle, add to the model
 
-let dragCont: DragController
+let physCont: DragController
+let editCont: DragController
 
 // let buttonCont = new Cont.ButtonController()
 
-export function refresh(canv: ICanvas) {
-  dragCont.m = initModel
-  // dragCont.receiver = canv
+export function refresh(cont: DragController, canv: ICanvas) {
+  cont.m = initModel
+  cont.receiver = canv
   renderState(initModel.main, canv.getContext())
 }
 
 let physicsFirst = true
 export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   // console.log(object)
-  initModel = buildModel(object, () => refresh(canvas))
+  initModel = buildModel(object, () => refresh(physCont, canvas))
   if (physicsFirst) {
-    canvas.on('after:render', () => refresh(canvas))
-    dragCont = new DragController(initModel, canvas)
+    physCont = new DragController(initModel, canvas)
+    canvas.on('after:render', () => refresh(physCont, canvas))
     physicsFirst = false
   }
   // dragCont.enableDrags()
-  refresh(canvas)
+  refresh(physCont, canvas)
 
 }
 
@@ -52,17 +53,29 @@ export function drawToEdit(dpName: string, dpChoice: number, canvas: ICanvas) {
   changeDPChoice(dpName, dpChoice)
   // draw
   if (editFirst) {
-    canvas.on('after:render', () => refresh(canvas))
-    dragCont = new DragController(initModel, canvas)
+    editCont = new DragController(initModel, canvas)
+    canvas.on('after:render', () => refresh(editCont, canvas))
     editFirst = false
   }
-  refresh(canvas)
+  refresh(editCont, canvas)
 }
 
 export function changeDPChoice(dpName: string, dpChoice: number) {
   let dp = initModel.main.prog.names.get(dpName)
+  if (!dp) {
+    console.log('WARNING: dragpoint not found:')
+    console.log(dpName)
+    console.log('store:')
+    initModel.main.prog.printShapes()
+    return
+  }
   assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  // console.log('frees:')
+  // console.log(initModel.candidateFrees)
+  // console.log('choices:')
   let choices = initModel.candidateFrees.get(dp as DragPoint)
+  // console.log(choices)
+
 
   initModel.main.prog = initModel.main.prog.addFrees(dp as DragPoint, choices[dpChoice])
 

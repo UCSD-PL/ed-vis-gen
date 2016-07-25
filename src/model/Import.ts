@@ -235,7 +235,7 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
 // given a json of shapes, build a model for the shapes
 export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
-  // console.log()
+  // console.log(model)
   let retStore: State = State.empty()
   let objs = model.shapes
   // three passes: first, normalize to eddie's position conventions

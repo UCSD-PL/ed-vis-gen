@@ -20,3 +20,6 @@ src/main.js
 target
 index.d.ts
 typings.json
+Expr.js
+Events.js
+Simulation.js

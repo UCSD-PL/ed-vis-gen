@@ -23,6 +23,7 @@
   "files": [
     "src/controller/Controller.ts",
     "src/main.ts",
+    "src/model/Events.ts",
     "src/model/Export.ts",
     "src/model/Expr.ts",
     "src/model/Import.ts",
@@ -31,6 +32,7 @@
     "src/model/PhysicsExpr.ts",
     "src/model/Ranking.ts",
     "src/model/Shapes.ts",
+    "src/model/Simulation.ts",
     "src/model/Synthesis.ts",
     "src/model/Variable.ts",
     "src/util/Poset.ts",
