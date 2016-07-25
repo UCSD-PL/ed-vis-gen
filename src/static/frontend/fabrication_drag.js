@@ -32,6 +32,7 @@ var canvasHeight = document.getElementById('canvas').height;
 canvas.selectable = true;
 // physics.selectable = true;
 physics.selectable = false;
+physics.selection = false;
 physics.isDrawingMode = false;
 canvas.counter = 0;
 physics.counter = 0;
@@ -237,7 +238,6 @@ function onACCEPT() {
   close1(); // closes current screen; returns to drag point selection panel
   window.BACKEND.drawToPhysics(fabricJSON, physics);
   window.BACKEND.finishEditChoice();
-  // window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
 function onLoadSims(dragPoint) {

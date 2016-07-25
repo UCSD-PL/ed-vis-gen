@@ -40,7 +40,7 @@ let editFirst = true // does the edit drag controller need to be initialized?
 export function refresh(cont: DragController, canv: ICanvas) {
   cont.m = initModel
   cont.receiver = canv
-  renderState(initModel.main, canv.getContext())
+  renderState(initModel.main, canv)
 }
 
 export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
@@ -48,7 +48,7 @@ export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   physCanv = canvas
   initModel = buildModel(object, () => refresh(physCont, canvas))
   if (physicsFirst) {
-    physCont = new DragController(initModel, canvas)
+    physCont = new DragController(initModel, canvas, false)
     canvas.on('after:render', () => refresh(physCont, canvas))
     physicsFirst = false
   }
@@ -67,7 +67,7 @@ export function drawToEdit(dpName: string, dpChoice: number, canvas: ICanvas) {
 
   let dp = changeDPChoice(dpName, dpChoice)
   if (editFirst) {
-    editCont = new DragController(initModel, canvas)
+    editCont = new DragController(initModel, canvas, true)
     canvas.on('after:render', () => refresh(editCont, canvas))
     editFirst = false
   }

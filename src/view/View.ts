@@ -5,16 +5,13 @@ import {ICanvas} from 'fabric'
 
 type Context = CanvasRenderingContext2D
 
-export function renderModel(m: M.Model) {
-  let mainCanv = document.getElementById(DISPLAY_ID) as HTMLCanvasElement
-  let mainCtx = mainCanv.getContext('2d')
-  renderState(m.main, mainCtx)
-}
-
 // grab the variable values using eval and draw the model's shapes on the canvas
-export function renderState(s: M.State, ctx: Context) {
+export function renderState(s: M.State, canvas: ICanvas) {
   let vars = s.eval()
-  ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height)
+  // canvas.clear()
+
+  let ctx = canvas.getContext()
+  ctx.clearRect(0,0, canvas.getWidth(), canvas.getHeight())
   s.prog.shapes.forEach(s => {
     VS.drawShape(ctx, s, vars)
   })

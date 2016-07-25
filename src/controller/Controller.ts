@@ -23,6 +23,9 @@ function overlap({x: lx, y:ly}: Point, {x: rx, y:ry}: Point, thresh?: number) {
 
 
 export class DragController {
+
+  // simulation mode == false =>  DragController handles wrapped MouseEvents
+  // simulation mode == true =>   DragController handles events with clientX and clientY (unwrapped events)
   constructor(public m: M.Model, public receiver: ICanvas, private simulationMode: boolean) {
 
     this.enableDrags()
@@ -54,9 +57,9 @@ export class DragController {
       if ('clientX' in eAny && 'clientY' in eAny) {
         ret = {x: eAny.clientX, y: eAny.clientY}
       } else {
-        console.log('unrecognized event:')
-        console.log(e)
-        assert(false)
+        // console.log('unrecognized event:')
+        // console.log(e)
+        // assert(false)
       }
       // assert('clientX' in eAny && 'clientY' in eAny, 'expected point-like argument to convert event:' + e.toString())
     } else {
@@ -103,7 +106,7 @@ export class DragController {
       // console.log(edits)
       this.m.main.store.suggestEdits(edits, this.m.main.prog.allFrees.get(this.m.main.draggedPoint))
       // redraw
-      renderState(this.m.main, this.receiver.getContext())
+      renderState(this.m.main, this.receiver)
     }
   }
 
