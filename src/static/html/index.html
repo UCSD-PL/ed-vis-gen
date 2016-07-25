@@ -9,6 +9,13 @@
     <!-- frontend script -->
     <script src="../frontend/fabric.js"></script>
     <script src="../frontend/fabricEX.js"></script>
+    <script src="../frontend/jquery.js"></script>
+    <!--stops the default right-click menu from opening-->
+    <script>
+      $(document).bind('contextmenu', function(e) {
+        e.preventDefault();
+      });
+    </script>
 
 </head>
 
