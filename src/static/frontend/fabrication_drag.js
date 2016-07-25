@@ -46,6 +46,10 @@ function resizeCanvas () {
  canvas.renderAll();
  canvasWidth = document.getElementById('canvas').width;
  canvasHeight = document.getElementById('canvas').height;
+ interact.setWidth(canvasWidth);
+ interact.setHeight(canvasHeight);
+ sims.setWidth(canvasWidth);
+ sims.setHeight(canvasHeight);
 }
 
 function resizePhysicsPanel () {
