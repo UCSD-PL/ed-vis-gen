@@ -1,6 +1,6 @@
-import {Expression} from 'cassowary'
+import {Expression, Equation, Strength} from 'cassowary'
 import {CassVar, Variable} from './Variable'
-import {partMap, copy, extendMap, mapValues, fold} from '../util/Util'
+import {partMap, copy, extendMap, mapValues, fold, union} from '../util/Util'
 
 // linear expression class with a conversion function to cassowary expressions
 
@@ -12,6 +12,7 @@ export class Expr {
     this.constant = 0
     this.terms = new Map<CassVar, number>()
   }
+
 
   public static fromConst(n: number) {
     let ret = new Expr()
@@ -41,7 +42,7 @@ export class Expr {
     return this.times(1/val)
   }
 
-  public plus(rhs: number | Expr) {
+  public plus(rhs: number | Expr | CassVar) {
     let ret = new Expr()
     if (rhs instanceof Expr) {
       ret.constant = this.constant + rhs.constant
@@ -50,6 +51,8 @@ export class Expr {
       for (let [variable] of shared) {
         ret.terms.set(variable, rhs.terms.get(variable) + this.terms.get(variable))
       }
+    } else if (rhs instanceof CassVar) {
+      ret = this.plus(Expr.fromVar(rhs))
     } else {
       ret.constant = this.constant + rhs
     }
@@ -58,11 +61,13 @@ export class Expr {
   }
 
 
-  public minus(rhs: number | Expr) {
+  public minus(rhs: number | Expr | CassVar) {
     let ret = new Expr()
 
     if (rhs instanceof Expr) {
       ret = this.plus(rhs.neg())
+    } else if (rhs instanceof CassVar) {
+      ret = this.minus(Expr.fromVar(rhs))
     } else {
       ret.constant = this.constant - rhs
       ret.terms = copy(this.terms)
@@ -103,4 +108,20 @@ export class Expr {
 
   }
 
+}
+
+// Equations over linear expressions with a conversion to cassowary equations
+export class Eq {
+  constructor(public l: Expr, public r: Expr) {}
+
+  public toCass(s: Strength): Equation {
+    return new Equation(this.l.toCass(), this.r.toCass(), s)
+  }
+
+  public vars(): Set<Variable> {
+    return union(this.l.vars(), this.r.vars())
+  }
+  public toString(){
+    return this.l.toString() + " = " + this.r.toString()
+  }
 }

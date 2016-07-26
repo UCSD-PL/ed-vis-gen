@@ -33,7 +33,7 @@ export function Default([p, s]: Tup<Program, Store>) {
   let weights = new Set<Tup<number, ProgRanker>>()
   weights.add([0, FreeVars])
          .add([1, ShapeMotion])
-        //  .add([1, ShapeHeuristics])
+         .add([1, ShapeHeuristics])
          .add([1, ShapeCoordination])
          .add([1, PointMotion])
   let ranker = WeightedSum(weights)
@@ -171,6 +171,12 @@ export function ShapeCoordination([p, s]: Tup<Program, Store>) {
          .add([2, MixedMotives])
   let ranker = WeightedSum(weights)
   return ranker([p, s])
+}
+
+export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
+  let ret = 0
+
+  return ret
 }
 
 
