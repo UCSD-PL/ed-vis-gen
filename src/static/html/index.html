@@ -40,6 +40,9 @@
     margin: 0;
     font-family: 'Lato', sans-serif;
   }
+  .canvas-container{
+    margin: 0 auto;
+  }
   .overlay {
       text-align: center;
       height: 0%;
@@ -119,10 +122,6 @@
         <i class="fa fa-circle"></i></button>
       <button class="btn btn-default" onclick="addRectangle()">
         <i class="fa fa-square"></i></button>
-      <button class="btn btn-default" onclick="selectmode()" id="select">
-      <i class="fa fa-hand-o-up"></i></button>
-      <button class="btn btn-default" onclick="Drawingmode()" id="drawing">
-      <i class="fa fa-paint-brush"></i></button>
 
       <!--delete button-->
       <button class="btn btn-default" onclick="deleteObjects()" id="delete">
@@ -156,13 +155,10 @@
         Arrow
       </button>
 
-      <!--animation-->
-      <button class="btn btn-default" onclick="animation0()" id="animation0">
-        Trigger </button>
 
       <!--overlay-->
       <button class="btn btn-default" type="button" onclick = "open0(); candidatePoints()" id="trigger-overlay">
-        Open Overlay
+        Place Dragpoints
       </button>
 
       </div>

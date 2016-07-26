@@ -3,7 +3,7 @@ physics = new fabric.Canvas('physics'), // right-side panel
 interact = new fabric.CanvasEx('interact'), // overlay-side panel
 sims = new fabric.Canvas('sims'),
 counter = 0,
-snap = 14, // pixels to snap
+snap = 8, // pixels to snap
 state = [],
 mods = 0,
 selectedObj = [],
@@ -44,13 +44,13 @@ window.addEventListener('resize', resizePhysicsPanel(), false);
 function resizeCanvas () {
  canvas.setHeight(window.innerHeight*0.7);
  canvas.setWidth(window.innerWidth*1.55/3);
- canvas.renderAll();
- canvasWidth = document.getElementById('canvas').width;
- canvasHeight = document.getElementById('canvas').height;
  interact.setWidth(canvasWidth);
  interact.setHeight(canvasHeight);
  sims.setWidth(canvasWidth);
  sims.setHeight(canvasHeight);
+ canvas.renderAll();
+ canvasWidth = document.getElementById('canvas').width;
+ canvasHeight = document.getElementById('canvas').height;
 }
 
 function resizePhysicsPanel () {
