@@ -45,7 +45,7 @@ export class Program {
 // we expect to frequently update internal elements of the store
 export class Store {
   private csolver: SimplexSolver
-  private equations: Set<Eq>
+  public equations: Set<Eq>
   private cvars: Set<CassVar>
   private cstays: Map<CassVar, Equation> // I might not need the variable part...
   private prims: Map<Primitive, number>

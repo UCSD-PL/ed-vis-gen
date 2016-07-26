@@ -123,10 +123,6 @@ export function* filter<U>(vals: Iterable<U>, f: (u: U) => boolean): Iterable<U>
   }
 }
 
-export function* map<A, R>(vals: Iterable<A>, f: (a: A) => R): Iterable<R> {
-  for (let v of vals)
-    yield f(v)
-}
 
 export function flatMap<A, R>(vals: Iterable<A>, f: (a: A) => Set<R>) {
   let ret = new Set<R>()
@@ -171,6 +167,11 @@ export function mapValues<K, A, R>(vals: Map<K, A>, f: (a: A) => R): Map<K, R> {
   return ret
 }
 
+// map a function over an iterable
+export function* map<A, R>(vals: Iterable<A>, f: (a: A) => R): Iterable<R> {
+  for (let v of vals)
+    yield f(v)
+}
 // fold a function over an iterable
 export function fold<A, B>(vals: Iterable<A>, f: (old: B, next: A) => B, init: B): B {
   let ret = init
@@ -180,9 +181,15 @@ export function fold<A, B>(vals: Iterable<A>, f: (old: B, next: A) => B, init: B
   return ret
 }
 
+// concat two iterables
+export function* cat<A> (l: Iterable<A>, r: Iterable<A>): Iterable<A> {
+  for (let v of l)
+    yield v
+  for (let v of r)
+    yield v
+}
+
 // test if there exists an element v of vals s.t. f v is true
-// it's implementable using filter, but this version uses less memory and is usually
-// quicker.
 export function exists<U>(vals: Iterable<U>, f: (u: U) => boolean): boolean {
   let ret = find(vals, f)
   if (ret)

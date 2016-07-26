@@ -1,8 +1,9 @@
 import {Program, Store} from './Model'
-import {DragPoint, collectVars, Shape, Spring, Arrow, Rectangle, Image, Circle} from './Shapes'
-import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap} from '../util/Util'
+import {DragPoint, collectVars, Shape, Spring, Arrow, Rectangle, Image, Circle, Line} from './Shapes'
+import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap, exists, filter, cat} from '../util/Util'
 import {Ranker} from '../util/Poset'
 import {Variable} from './Variable'
+import {Eq} from './Expr'
 
 
 // rank by aggregate number of free variables
@@ -33,9 +34,9 @@ export function Default([p, s]: Tup<Program, Store>) {
   let weights = new Set<Tup<number, ProgRanker>>()
   weights.add([0, FreeVars])
          .add([1, ShapeMotion])
-         .add([1, ShapeHeuristics])
+         .add([4, ShapeHeuristics])
          .add([1, ShapeCoordination])
-         .add([1, PointMotion])
+         .add([2, PointMotion])
   let ranker = WeightedSum(weights)
   return ranker([p, s])
 }
@@ -174,87 +175,94 @@ export function ShapeCoordination([p, s]: Tup<Program, Store>) {
 }
 
 export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
-  let ret = 0
+  let store = s.eval()
 
-  return ret
-}
+  let storeEq = (v1: Variable, v2: Variable) => store.get(v1) == store.get(v2)
+  let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
 
+  // helper function: determine if an equation mentions an ipoint and shape
+  let usesMotive = (dp: DragPoint, s: Shape, e: Eq) =>
+    e.contains([dp.x, dp.y]) && e.contains(collectVars(s))
 
-/*
-object ShapeHeuristics extends Ranker {
+  // does dp lie on the corner of s?
+  let cornerEval = (dp: DragPoint, s: Shape): boolean => {
+    if (s instanceof Arrow || s instanceof Spring) {
+      let base = storeEq(s.x, dp.x) && storeEq(s.y, dp.y)
+      let end = (store.get(s.x) + store.get(s.dx) == store.get(dp.x)) &&
+                (store.get(s.y) + store.get(s.dy) == store.get(dp.y))
+      return base || end
+    } else if (s instanceof Rectangle || s instanceof Image) {
+      return !storeEq(s.x, dp.x) && !storeEq(s.y, dp.y) // offcenter in both dimensions
+    } else if (s instanceof Circle || s instanceof DragPoint) {
+      return !storeEq(s.x, dp.x) || !storeEq(s.y, dp.y) // offcenter in one dimension
+    } else {
+      // lines, triangles TODO
+    }
 
+    return false
+  }
 
-  // helper: determine if a particular equation uses both an ipoint and a shape.
-  def usesMotive(ip: IPoint, s: Shape, e: Eq) =
-    e.contains(Set(ip.x, ip.y)) && e.contains(s.toVars)
+  // does dp lie on the center of s?
+  let centerEval = (dp: DragPoint, s: Shape): boolean => {
+    if (s instanceof Arrow || s instanceof Spring) {
+      let base = storeEq(s.x, dp.x) && storeEq(s.y, dp.y)
+      let end = (store.get(s.x) + store.get(s.dx) == store.get(dp.x)) &&
+                (store.get(s.y) + store.get(s.dy) == store.get(dp.y))
+      return !base && !end
+    } else if (s instanceof Rectangle || s instanceof Image || s instanceof Circle || s instanceof DragPoint) {
+      return storeEq(s.x, dp.x) && storeEq(s.y, dp.y) // center in both dimensions
+    } else {
+      // lines, triangles TODO
+    }
+
+    return false
+  }
 
   // helper functions to select corner points, centered points
-  def cornerPoint(c: Configuration, ip: IPoint) = {
-    c.prog.shapes.exists{ shape ⇒ c.prog.equations.exists{e ⇒ usesMotive(ip, shape, e)} && // variable uses shape
-    (shape match {
-      case VecLike(Point(x, y), dx, dy) ⇒
-        (c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)) ||
-        (c.σ(x) + 2*c.σ(dx) == c.σ(ip.x) && c.σ(y) + 2*c.σ(dy) == c.σ(ip.y))
-      case BoxLike(Point(x, y), _, _) ⇒
-        c.σ(x) != c.σ(ip.x) || c.σ(y) != c.σ(ip.y)
-      // TODO: add line segments, triangles
-      case Circle(Point(x, y), _) ⇒
-        c.σ(x) != c.σ(ip.x) || c.σ(y) != c.σ(ip.y)
-      case _ ⇒ false
-    })
-  }}
+  let isCorner = (dp: DragPoint, shape: Shape) =>
+    exists(s.equations, eq => usesMotive(dp, shape, eq) && cornerEval(dp, s))
 
-  def centerPoint(c: Configuration, ip: IPoint) = {
-    c.prog.shapes.exists{ shape ⇒ c.prog.equations.exists{e ⇒ usesMotive(ip, shape, e)} && // variable uses shape
-    (shape match {
-        case VecLike(Point(x, y), dx, dy) ⇒
-          (c.σ(x) + 0.5*c.σ(dx) == c.σ(ip.x) && c.σ(y) + 0.5*c.σ(dy) == c.σ(ip.y))
-        case BoxLike(Point(x, y), _, _) ⇒
-          c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)
-        case Circle(Point(x, y), _) ⇒
-          c.σ(x) == c.σ(ip.x) && c.σ(y) == c.σ(ip.y)
-        // TODO: add line segments, triangles
-        case _ ⇒ false
-    })
-  }}
+
+  let isCenter = (dp: DragPoint, shape: Shape) =>
+    exists(s.equations, eq => usesMotive(dp, shape, eq) && centerEval(dp, s))
+
+
 
   // thesis: IPs in the center of a shape should not stretch a shape, and IPs in
   // the corner of a shape should not translate the shape.
-  def placementPenalty(c: Configuration, ip: IPoint) = {
-    (if (centerPoint(c, ip)) { // if the point is in the center of a shape and manages to stretch it, penalize the point
-      c.prog.shapes.find{ shape ⇒
-        c.prog.equations.exists{e ⇒ usesMotive(ip, shape, e)} && !(ip.links & (shape match {
-          case BoxLike(_, dy, dx) ⇒ Set(dx, dy)
-          case Circle(_, r) ⇒ Set(r)
-          case _ ⇒ Set ()
-        })).isEmpty
-      }.size
-    } else if (cornerPoint(c, ip)) { // ditto, but for corners and translations
-      c.prog.shapes.find{ shape ⇒
-        c.prog.equations.exists{e ⇒ usesMotive(ip, shape, e)} && !(ip.links & (shape match {
-          case BoxLike(Point(x,y), _, _) ⇒ Set(x, y)
-          case Circle(Point(x,y), _) ⇒ Set(x, y)
-          case _ ⇒ Set ()
-        })).isEmpty
-      }.size
-    } else 0) * 4
+
+  let drags = filter(p.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
+  let nonDrags = filter(p.shapes, s => ! (s instanceof DragPoint))
+
+  let ret = 0
+  for (let drag of drags) {
+    let corners = filter(nonDrags, s => isCorner(drag, s))
+    let centers = filter(nonDrags, s => isCenter(drag, s))
+    let frees = p.allFrees.get(drag)
+
+    // map corner penalty onto corners, center penalty onto centers, concat the results
+    // and sum using fold
+    let cornPen = map(corners, s => {
+      if (! (s instanceof Line)) {
+        assert('x' in s && 'y' in s, 'expected x and y to shape: ' + s.toString())
+        return intersect(St((s as any).x, (s as any).y), frees).size
+      } else {
+        return 0
+      }
+    })
+
+    let centPen = map(centers, s => {
+      if (s instanceof Rectangle || s instanceof Image) {
+        return intersect(St(s.dx, s.dy), frees).size
+      } else if (s instanceof Circle) {
+        return frees.has(s.r)? 1 : 0
+      } else {
+        return 0
+      }
+    })
+
+    ret += fold(cat(centPen, cornPen), (sum, nxt) => sum + nxt, 0)
   }
 
-  def eval(c: Configuration) = c.prog.shapes.foldLeft(0){ case (sum, shp) ⇒
-    sum + c.prog.ipoints.foldLeft(0) { case (sum, ip) ⇒
-      sum + placementPenalty(c, ip)
-    }
-  }
+  return ret
 }
-
-object Default extends Ranker {
-  val inner = WeightedSum(Set(
-    (0 → LinkLength),
-    (1 → ShapeMotion),
-    (1 → ShapeHeuristics),
-    (1 → ShapeCoordination),
-    (1 → PointMotion)
-  ))
-
-  def eval(c: Configuration) = inner eval(c)
-} */
