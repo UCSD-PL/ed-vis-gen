@@ -18,6 +18,7 @@ function addTriangle(){
 function addCircle(){
   var name = allocSName();
   var circle0 = new fabric.Circle({ name: name, radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true});
+  circle0.lockUniScaling = true;
   canvas.add(circle0);
   updateLog();
 }
