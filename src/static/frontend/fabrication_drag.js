@@ -47,8 +47,8 @@ function resizeCanvas () {
  canvas.renderAll();
  canvasWidth = document.getElementById('canvas').width;
  canvasHeight = document.getElementById('canvas').height;
- interact.setWidth(canvasWidth);
- interact.setHeight(canvasHeight);
+ interact.setWidth(canvasWidth*0.8);
+ interact.setHeight(canvasHeight*0.8);
  sims.setWidth(canvasWidth);
  sims.setHeight(canvasHeight);
 }
