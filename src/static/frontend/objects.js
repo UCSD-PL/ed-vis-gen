@@ -1,7 +1,7 @@
 //Add line
 function addLine(){
  var name = allocSName();
- var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 2, top:100, left:100});
+ var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100, lockScalingX: true});
  canvas.add(line0);
  updateLog();
 }
@@ -9,7 +9,7 @@ function addLine(){
 //Add triangle
 function addTriangle(){
   var name = allocSName();
-  var triangle0 = new fabric.Triangle({ name: name, width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true});
+  var triangle0 = new fabric.Triangle({ name: name, width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true, strokeWidth:0});
   canvas.add(triangle0);
   updateLog();
 }
@@ -17,7 +17,7 @@ function addTriangle(){
 //Add circle
 function addCircle(){
   var name = allocSName();
-  var circle0 = new fabric.Circle({ name: name, radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true});
+  var circle0 = new fabric.Circle({ name: name, radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
   circle0.lockUniScaling = true;
   canvas.add(circle0);
   updateLog();
@@ -26,7 +26,7 @@ function addCircle(){
 //Add rectangle
 function addRectangle(){
   var name = allocSName();
-  var rectangle0 = new fabric.Rect({ name: name, width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true});
+  var rectangle0 = new fabric.Rect({ name: name, width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, strokeWidth:0});
   canvas.add(rectangle0);
   updateLog();
 }
