@@ -13,6 +13,7 @@ src/model/Shapes.js
 src/model/Synthesis.js
 src/model/Variable.js
 src/model/Import.js
+src/model/Physics.js
 src/util/Util.js
 src/view/Shapes.js
 src/view/View.js

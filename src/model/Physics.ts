@@ -1,5 +1,6 @@
 import {PhysExpr, evalPhysicsExpr, VarExpr} from './PhysicsExpr'
 import {Variable} from './Variable'
+import {DragPoint} from './Shapes'
 import {Tup, mapValues, extendMap, union} from '../util/Util'
 
 export class Integrator {
@@ -33,12 +34,14 @@ export class Integrator {
 export interface PhysicsGroup {
   instantiate(): Integrator
   frees(): Set<Variable>
+  addDrag(dp: DragPoint): void
 }
 
 
 export class Pendulum implements PhysicsGroup {
 
 
+  private dragVars: Set<Variable>
   public constructor(
     public Omega: Variable, // angular acceleration
     public Theta: Variable,  // angular displacement
@@ -50,7 +53,9 @@ export class Pendulum implements PhysicsGroup {
     public Y_PIVOT: Variable, // y coordinate of pendulum base
     public G: Variable, // force of gravity)
     public rodVars: Set<Variable> // additional variables used by the rod -- assumed to connect the bob and pivot by something else
-  ) {}
+  ) {
+    this.dragVars = new Set<Variable>()
+  }
 
   public validate() {
     let setVar =
@@ -105,11 +110,15 @@ export class Pendulum implements PhysicsGroup {
 
     return ret
   }
+
+  // only add the dragpoint if necessary...
+  public addDrag(dp: DragPoint) {
+    this.dragVars.add(dp.x).add(dp.y)
+  }
   // free variables for updates
   public frees(): Set<Variable> {
     return union((new Set<Variable>())
             .add(this.Omega).add(this.Theta).add(this.L)
-            .add(this.X_BOB).add(this.Y_BOB), this.rodVars)
-
+            .add(this.X_BOB).add(this.Y_BOB), union(this.rodVars, this.dragVars))
   }
 }

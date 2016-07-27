@@ -181,8 +181,6 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
 
   // helper function: determine if an equation mentions an ipoint and shape
-  let usesMotive = (dp: DragPoint, s: Shape, e: Eq) =>
-    e.contains([dp.x, dp.y]) && e.contains(collectVars(s))
 
   // does dp lie on the corner of s?
   let cornerEval = (dp: DragPoint, s: Shape): boolean => {
@@ -220,11 +218,11 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 
   // helper functions to select corner points, centered points
   let isCorner = (dp: DragPoint, shape: Shape) =>
-    exists(s.equations, eq => usesMotive(dp, shape, eq) && cornerEval(dp, s))
+    exists(s.equations, eq => eq.usesMotive(dp, shape) && cornerEval(dp, s))
 
 
   let isCenter = (dp: DragPoint, shape: Shape) =>
-    exists(s.equations, eq => usesMotive(dp, shape, eq) && centerEval(dp, s))
+    exists(s.equations, eq => eq.usesMotive(dp, shape) && centerEval(dp, s))
 
 
 

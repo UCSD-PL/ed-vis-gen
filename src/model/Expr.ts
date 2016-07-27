@@ -1,6 +1,7 @@
 import {Expression, Equation, Strength} from 'cassowary'
 import {CassVar, Variable} from './Variable'
 import {partMap, copy, extendMap, mapValues, fold, union, exists} from '../util/Util'
+import {Shape, DragPoint, collectVars} from './Shapes'
 
 // linear expression class with a conversion function to cassowary expressions
 
@@ -128,5 +129,9 @@ export class Eq {
   public contains(vars: Iterable<Variable>): boolean {
     let myVars = this.vars()
     return exists(vars, v => myVars.has(v))
+  }
+
+  public usesMotive (dp: DragPoint, s: Shape) {
+    return this.contains([dp.x, dp.y]) && this.contains(collectVars(s))
   }
 }

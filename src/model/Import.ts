@@ -1,6 +1,6 @@
 import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip} from '../util/Util'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint, pp} from './Shapes'
 
 import {PhysicsGroup, Pendulum} from './Physics'
@@ -251,6 +251,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   })
 
   // console.log(model.physicsGroups)
+  let newPhysicsGroups = new Set<PhysicsGroup>()
   model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
@@ -268,7 +269,8 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     }
 
     newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false))
-    retStore.addPhysGroup(newGroup, renderer)
+    newPhysicsGroups.add(newGroup)
+    //retStore.addPhysGroup(newGroup, renderer)
   })
 
   // console.log('before synthesis:')
@@ -281,7 +283,6 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   let buildFVs = (seeds: Set<CassVar>) => InteractionSynthesis.validFreeVariables(seeds, eqs)
 
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
-
 
   retStore.prog = fold(retStore.prog.allFrees, (accProg, [dp]) => {
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
@@ -313,6 +314,22 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
     return accProg.addFrees(dp, selFrees)
   }, retStore.prog)
+
+
+  // finally, add dragpoint free variables as needed
+  let drags = filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
+  let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
+  for (let grp of newPhysicsGroups) {
+    for (let dp of drags) {
+      let grpVars = grp.frees()
+      let e = find(retStore.store.equations, e =>
+       (e.vars().has(dp.x) || e.vars().has(dp.y)) && intersect(e.vars(), grpVars).size > 0)
+      if (e) {
+        grp.addDrag(dp)
+     }
+    }
+    retStore.addPhysGroup(grp, renderer)
+  }
 
   let ret = new Model(retStore, possibleFrees)
   // console.log('model:')
