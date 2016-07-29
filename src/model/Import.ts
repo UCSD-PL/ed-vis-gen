@@ -117,8 +117,8 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     // black magic...i'm not sure why this works
     newS.height *= -1
     // shift top/left to base
-    newS.left -= newS.width + s.width * s.scaleX * Math.sin(2*Math.PI/360 * newS.angle)
-    newS.top -= newS.height + s.width * s.scaleX * Math.cos(2*Math.PI/360 * newS.angle)
+    newS.left -= newS.width - s.width/2 * s.scaleX * Math.cos(2*Math.PI/360 * newS.angle)
+    newS.top -= newS.height - s.width/2 * s.scaleX * Math.sin(2*Math.PI/360 * newS.angle)
     ret = newS
   } else if (s.type == 'line') {
     // console.log(s)
@@ -228,7 +228,7 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
   let [dy, dx] = [bobY - pivY, bobX - pivX]
 
   // L = sqrt(dx^2 + dy^2)
-  // theta = atan2(dy, dx)
+  // theta = atan2(dx, dy)
   let [omega, theta, l] = map3Tup(
     [['omega', 0], ['theta', Math.atan2(dx, dy)], ['L', Math.sqrt(dx*dx + dy*dy)]] as Tup3<Tup<string, number>>,
     pBuilder

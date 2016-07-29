@@ -230,7 +230,8 @@ export class Store {
 export class PhysicsEngine {
   private runner: Timer
   private initValues: Map<Variable, number>
-  constructor(public decls: Integrator, public freeVars: Set<Variable>,
+  constructor(public timestepDecls: Integrator, public freeVars: Set<Variable>,
+    public initialDecls: Integrator,
     public values: Store, public renderer: () => void) {
     // public freq:number,
     // public work: (n: number) => void,
@@ -239,7 +240,7 @@ export class PhysicsEngine {
     let freq = 20
 
     let work = (n: number) => {
-      let newVals = this.decls.eval(this.values.eval())
+      let newVals = this.timestepDecls.eval(this.values.eval())
       this.values.suggestEdits(newVals, this.freeVars)
       renderer()
     }
@@ -250,6 +251,13 @@ export class PhysicsEngine {
     }
 
     this.runner = new Timer(freq, work, done)
+  }
+
+  // run initialDecls to regenerate physical values
+  public reconfigure() {
+    let newVals = this.initialDecls.eval(this.values.eval())
+    this.values.suggestEdits(newVals, this.initialDecls.vars())
+    // this.renderer()
   }
 
   public start() {
@@ -266,14 +274,15 @@ export class PhysicsEngine {
   // this is pretty key -- PhysicsEngine.empty's values and renderer don't extend
   // properly.
   public extend(rhs: PhysicsEngine) {
-    let newDecls = this.decls.union(rhs.decls)
+    let newTSDecls = this.timestepDecls.union(rhs.timestepDecls)
     let newFrees = union(this.freeVars, rhs.freeVars)
+    let newInitDecls = this.initialDecls.union(rhs.initialDecls)
     let [newStore, newRenderer] = [rhs.values, rhs.renderer]
-    return new PhysicsEngine(newDecls, newFrees, newStore, newRenderer)
+    return new PhysicsEngine(newTSDecls, newFrees, newInitDecls, newStore, newRenderer)
   }
 
   public static empty() {
-    return new PhysicsEngine(Integrator.empty(), new Set<Variable>(), new Store(), () => {})
+    return new PhysicsEngine(Integrator.empty(), new Set<Variable>(), Integrator.empty(), new Store(), () => {})
   }
 }
 
@@ -283,11 +292,11 @@ export class State {
   // TODO: convert dragged to option
   constructor(public prog: Program, public store: Store,
               public dragging: boolean, public draggedPoint: DragPoint,
-              public physicsEngine: PhysicsEngine
+              public physicsEngine: PhysicsEngine, public physicsRunning: boolean
   ){}
 
   public static empty(): State {
-    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty())
+    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty(), false)
   }
 
   // delegate to member instances
@@ -408,26 +417,28 @@ export class State {
 
 
 
-    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine)
+    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
   public addFrees(p: DragPoint, fvs: Set<Variable>): State {
-    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine)
+    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
 
-  public addPhysDecls(decls: Integrator, freeVals: Set<Variable>, renderer: () => void) {
-    let newEngine = new PhysicsEngine(decls, freeVals, this.store, renderer)
+  public addPhysDecls(integrationDecls: Integrator, freeVals: Set<Variable>, initialDecls: Integrator, renderer: () => void) {
+    let newEngine = new PhysicsEngine(integrationDecls, freeVals, initialDecls, this.store, renderer)
     this.physicsEngine = this.physicsEngine.extend(newEngine)
     return this
   }
 
   public addPhysGroup(group: PhysicsGroup, renderer: () => void) {
-    return this.addPhysDecls(group.instantiate(), group.frees(), renderer)
+    return this.addPhysDecls(group.generateIntegrator(), group.frees(), group.generateInitials(), renderer)
   }
 
   public start() {
+    this.physicsRunning = true
     this.physicsEngine.start()
   }
   public stop() {
+    this.physicsRunning = false
     this.physicsEngine.stop()
   }
   public reset() {
