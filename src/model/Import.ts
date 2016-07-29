@@ -109,6 +109,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
   } else if (s.type == 'arrow') {
     let newS = Object.assign({}, s) as fabricArrow
     // height == hypotenuse, angle = theta = degree of rotation
+    // TODO: move point to center of base (currently at bottom left)
 
     newS.height *= newS.scaleY
     newS.width = newS.height * Math.sin(2*Math.PI/360 * newS.angle)
@@ -116,8 +117,8 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     // black magic...i'm not sure why this works
     newS.height *= -1
     // shift top/left to base
-    newS.left -= newS.width
-    newS.top -= newS.height
+    newS.left -= newS.width + s.width * s.scaleX * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.top -= newS.height + s.width * s.scaleX * Math.cos(2*Math.PI/360 * newS.angle)
     ret = newS
   } else if (s.type == 'line') {
     // console.log(s)
