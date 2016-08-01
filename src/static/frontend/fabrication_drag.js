@@ -324,7 +324,7 @@ function updateModifications(savehistory) {
         myjson = JSON.stringify(canvas);
         state.push(myjson);
         fabricJSON = transfer();
-        current += 1;
+        mods = 0;
     }
 }
 
@@ -345,7 +345,7 @@ redo = function redo() {
     if (mods > 0) {
         canvas.clear().renderAll();
         current = state.length - mods - 1;
-        canvas.loadFromJSON(state[current]);
+        canvas.loadFromJSON(state[current + 1]);
         canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
         mods -= 1;
