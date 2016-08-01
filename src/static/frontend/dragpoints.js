@@ -111,6 +111,7 @@
     originX: 'center',
     originY: 'center',
     fill: 'black',
+    selectable: true,
     lockMovementX: true,
     lockMovementY: true,
     lockScalingX: true,
@@ -175,43 +176,82 @@
       return this;
     },
 
+    startDragPoint: function(shape, canvas) {
+        var dragPoint = this;
+        dragPoint.updateDragPoint(shape, canvas);
+        dragPoint.followShape(shape, canvas);
+      // on right click, opens up the edit simulation panel
+      /*
+      dragPoint.on('mousedown', function (options) {
+        if (options.e.which === 3) {
+            console.log('BETTER BE RIGHT CLICKING');
+            if (dragPoint.fill == 'black' && dragPoint.onCanvas != true) {
+                select(dragPoint);
+            }
+            open1();
+            onLoadSims(dragPoint);
+        } } );
+      }*/
+    },
+
     /**
-    * updates the coordinates of the drag point
-    * @return
-    */
-    updateCoords: function(canvas) {
+    * makes a dragpoint follow given shape
+    * @return */
+    followShape: function(shape, canvas) {
+      var dragPoint = this;
+      var thisShape = shape;
+      shape.on("added", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.on("modified", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.on("moving", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.on("scaling", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.on("rotating", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.on("removed", function() {
+        canvas.remove(dragPoint);
+      });
+    },
+
+    /**
+    * updates the coordinates of a specific drag point
+    * @return */
+    updateDragPoint: function(shape, canvas) {
       var drag = this;
-      canvas.forEachObject( function(ctx) {
-        if (ctx === drag) return;
-        if (ctx == drag.shape || ctx.name === drag.shapeName) {
-          drag.set({
-            shape: ctx
-          });
-          drag.set({
-            X: ctx.getLeft(),
-            Y: ctx.getTop(),
-            left: ctx.getLeft() + ctx.getWidth()*drag.get('DX'),
-            top: ctx.getTop() + ctx.getHeight()*drag.get('DY')
-          });
-        if (ctx.angle != 0) {
-          var center = ctx.getCenterPoint();
-          var fromCenterX = drag.get('DX') - 0.5;
-          var fromCenterY = drag.get('DY') - 0.5;
-          var pos = fabric.util.rotatePoint(
-                new fabric.Point( center.x + fromCenterX*ctx.getWidth(), center.y + fromCenterY*ctx.getHeight() ), center,
-                fabric.util.degreesToRadians(ctx.angle)
-              );
-          drag.set({
-            left: pos.x,
-            top: pos.y,
-            angle: ctx.angle
-          });
+      drag.set({
+        shape: shape,
+        shapeName: shape.name,
+        X: shape.getLeft(),
+        Y: shape.getTop(),
+        left: shape.getLeft() + shape.getWidth()*drag.get('DX'),
+        top: shape.getTop() + shape.getHeight()*drag.get('DY')
+      });
+      if (shape.angle != 0) {
+        var center = shape.getCenterPoint();
+        var fromCenterX = drag.DX - 0.5;
+        var fromCenterY = drag.DY - 0.5;
+        var pos = fabric.util.rotatePoint(
+              new fabric.Point( center.x + fromCenterX*shape.getWidth(), center.y + fromCenterY*shape.getHeight() ), center,
+              fabric.util.degreesToRadians(shape.angle)
+            );
+        drag.set({
+          left: pos.x,
+          top: pos.y,
+          angle: shape.angle
+        });
+      }
+        if (canvas != null) {
+          canvas.renderAll();
         }
-        drag.setCoords(canvas);
-     }});
-      canvas.renderAll();
-      return;
-   },
+        return this;
+    },
 
     /**
      * Returns object representation of an instance

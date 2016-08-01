@@ -19,7 +19,7 @@ selectedSim = 0,
 numOfChoices = 8, // # of "choices" for the drag point edit panel, right now a random #
 currentDragPoint,
 isNew = false,
-snapColor = "red",
+//snapColor = "red",
 fabricJSON,
 objectlist = [],
 snapping = "on",
@@ -28,6 +28,8 @@ current = 0;
 
 var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
+
+canvas.fireEventForObjectInsideGroup = true;
 
 canvas.selectable = true;
 // physics.selectable = true;
@@ -128,23 +130,13 @@ function candidatePoints() {
     var drag = new fabric.DragPoint({
         name: allocSName(),
         shape: obj,
+        shapeName: obj.get('name'),
         DX: dx,
         DY: dy,
         radius: 7
       });
-      drag.updateCoords(interact);
+      drag.startDragPoint(obj, interact);
       interact.add(drag);
-
-      drag.on('mousedown', function (options) {
-        // on right click, opens up the edit simulation panel
-        if (options.e.which === 3) {
-            if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
-                select(this);
-            }
-            open1();
-            onLoadSims(drag);
-            //console.log('BETTER BE RIGHT CLICKING');
-        } } );
 
       drag.on('selected', function() {
         //if a drag point hasn't been clicked before, upon being clicked,
@@ -156,8 +148,19 @@ function candidatePoints() {
         else if (this.get('onCanvas') === true) {}
         // undos selection of a drag point if you click it again
         else {
-          undoSelect(drag);
+          undoSelect(this);
         }});
+
+      // on right click, opens up the edit simulation panel
+      drag.on('mousedown', function (options) {
+        if (options.e.which === 3) {
+            console.log('BETTER BE RIGHT CLICKING');
+            if (drag.fill == 'black' && drag.onCanvas != true) {
+                select(drag);
+            }
+            open1();
+            onLoadSims(drag);
+        } } );
       }
     }
 
@@ -252,12 +255,20 @@ function onLoadSims(dragPoint) {
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
 
-function onOverlayClosed(){
+function onOverlayClosed() {
   // console.log(dragPointList);
-  // removes old dragPoints.
+  // removes old dragPoints
+  var obj;
   for (var i = 0; i < oldDragPointList.length; i++) {
     canvas.remove(oldDragPointList[i]);
   }
+
+  // makes objects selectable again
+  canvas.forEachObject( function (obj) {
+    obj.set ({
+      selectable: true
+    });
+  });
 
   // adds drag points to the canvas and attaches them to shapes
   for (var i = 0; i < dragPointList.length; i++) {
@@ -266,33 +277,32 @@ function onOverlayClosed(){
         fill: 'black',
         onCanvas: true
       });
+
       canvas.add(dragPointList[i]);
+      obj = dragPointList[i].get('shape');
+      dragPointList[i].startDragPoint(obj);
     }
-  for (var i=0; i < objectlist.length; i++) {
-    objectlist[i].set({
-      selectable: true
-    });
-  }
+
   canvas.renderAll();
 }
 
 // keeps drag points moving when object is modified
-function keepDragPointsMoving() {
+function updateAllDragPoints() {
+  var obj;
   for (var i = 0; i < dragPointList.length; i++) {
       //console.log("the drag point should have been moved!");
-      dragPointList[i].updateCoords(canvas);
+      obj = dragPointList[i].get('shape');
+      dragPointList[i].updateDragPoint(obj, canvas);
   }
 }
 
 
 canvas.on(
     'object:modified', function () {
-    keepDragPointsMoving();
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:moving', function () {
-    keepDragPointsMoving();
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
@@ -416,20 +426,20 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 
 			// Snap target BR to object BL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 		}
 
@@ -439,20 +449,20 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 
 			// Snap target TR to object TL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 		}
 
@@ -464,20 +474,20 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 
 			// Snap target BR to object TR
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 		}
 
@@ -487,20 +497,20 @@ canvas.on('object:moving', function (options) {
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 
 			// Snap target BL to object TL
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
-        options.target.set({
+        /*options.target.set({
           strokeWidth: 2,
           stroke: snapColor
-        });
+        });*/
 			}
 		}
 	});
@@ -595,7 +605,7 @@ canvas.on('object:moving', function (options) {
 		}
 	});
 });
-
+/*
 canvas.on('object:modified', function (options) {
   if (options.target.fill != 'white' && options.target.fill != '#fff') {
      options.target.set({
@@ -607,4 +617,4 @@ canvas.on('object:modified', function (options) {
       stroke: 'black'
     });
   }
-})
+})*/
