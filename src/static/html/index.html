@@ -20,13 +20,21 @@
 </head>
 
 <!-- Style -->
+<link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
+<link rel="stylesheet" href="../frontend/mockup/app/components/bootstrap/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
+<link rel="stylesheet" href="../frontend/mockup/app/css/layout.css">
+<link rel="stylesheet" href="../frontend/mockup/app/css/test.min.css">
+
+<script src="../frontend/mockup/app/js/modernizr-2.6.2.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
 <style>
   h1{
-    text-align:center;
+    float: right;
     font-family: monospace;
   }
   .leftbuttons{
@@ -95,51 +103,26 @@
 <body>
 
 
-  <h1>
-    EDDIE PLAYGROUND
-  </h1>
-
-  <!--our canvases-->
-  <div id="draw" style ="float:left;">
-    <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
-  </div>
-  <div style = "float:left;">
-    <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
-  </div>
-
-
     <!-- <script src="fabrication.js"></script>
 
     <script src="objects.js"></script> -->
 
+    <nav id="toolbar" class="navbar navbar-default">
     <div class="leftbuttons">
-
-      <button class="btn btn-default" onclick="addLine()">
-        <i class="fa fa-minus"></i></button>
-      <button class="btn btn-default" onclick="addTriangle()">
-        <i class="fa fa-play"></i></button>
-      <button class="btn btn-default" onclick="addCircle()">
-        <i class="fa fa-circle"></i></button>
-      <button class="btn btn-default" onclick="addRectangle()">
-        <i class="fa fa-square"></i></button>
+      <button class="btn btn-default navbar-btn" onclick="addRectangle()"><span class="fa fa-fw fa-square"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addCircle()"><span class="fa fa-fw fa-circle"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addTriangle()"><span class="fa fa-fw fa-play"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addLine()"><span class="fa fa-fw fa-minus"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button>
 
       <!--delete button-->
-      <button class="btn btn-default" onclick="deleteObjects()" id="delete">
-      <i class="fa fa-trash"></i></button>
+      <button class="btn btn-default navbar-btn" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
 
       <!--undo & redo-->
-      <button class="btn btn-default" value="undo" onclick="undo()" id="undo">
-      <i class="fa fa-mail-reply"></i></button>
-      <button class="btn btn-default" value="redo" onclick="redo()" id="redo">
-      <i class="fa fa-mail-forward"></i></button>
-
-      <!-- upload -->
-      <button class="btn btn-default" onclick="EnterURL()" id="loadfromURL">
-      <i class="fa fa-picture-o"></i></button>
-
-      <!--load json-->
-      <button class="btn btn-default" value="transfer" onclick="transfer()" id="transfer">
-      <i class="fa fa-share-square"></i></button>
+      <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button>
+      <!--add arrow-->
+      <button class="btn btn-default navbar-btn" onclick="addArrow()"><span class="fa fa-fw fa-long-arrow-right"></span></button>
 
       <!--add spring-->
       <button class="btn btn-default" onclick="addSpring()" id="spring">
@@ -150,10 +133,8 @@
       <button class="btn btn-default" onclick="addPendulum()" id="pendulum">
         Pendulum
       </button>
-      <!--add arrow-->
-      <button class="btn btn-default" onclick="addArrow()" id="arrow">
-        Arrow
-      </button>
+
+
 
 
       <!--overlay-->
@@ -163,6 +144,23 @@
 
       </div>
 
+      <h1>
+        EDDIE PLAYGROUND
+      </h1>
+      </nav>
+
+
+
+
+      <!--our canvases-->
+      <div id="draw" style ="float:left;">
+        <canvas id="canvas" width="600" height="600" style="border:5px solid #000000"></canvas>
+      </div>
+      <div style = "float:left;">
+        <canvas id="physics" width="600" height="600" style="border:5px solid #000000"></canvas>
+      </div>
+
+
 
 
       <div class="rightbuttons">
@@ -170,7 +168,6 @@
         <button class="btn btn-default" onclick="BACKEND.stopPhysics()">Stop</button>
         <button class="btn btn-default" onclick="BACKEND.resetPhysics()">Reset</button>
       </div>
-
       <!-- open/close -->
       <div id="myCav" class="overlay">
         <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
@@ -178,7 +175,6 @@
          <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
         </div>
       </div>
-
 
 
       <!--the second overlay-->
