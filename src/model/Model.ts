@@ -7,6 +7,8 @@ import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
 import {Poset} from '../util/Poset'
 
+import {Eq, Expr} from './Expr'
+
 // immutable program
 // we expect to rarely add/remove shapes and other program elements
 export class Program {
@@ -43,7 +45,7 @@ export class Program {
 // we expect to frequently update internal elements of the store
 export class Store {
   private csolver: SimplexSolver
-  private equations: Set<Equation>
+  public equations: Set<Eq>
   private cvars: Set<CassVar>
   private cstays: Map<CassVar, Equation> // I might not need the variable part...
   private prims: Map<Primitive, number>
@@ -54,7 +56,7 @@ export class Store {
     this.cvars = new Set<CassVar>()
     this.prims = new Map<Primitive, number>()
     this.cstays = new Map<CassVar, Equation>()
-    this.equations = new Set<Equation>()
+    this.equations = new Set<Eq>()
   }
 
   public debug() {
@@ -68,10 +70,10 @@ export class Store {
 
   // helper: create a stay equation for a cassowary variable
   // i.e. v = v.value
-  private static makeStay(v: CassVar): Equation {
-    let l = Expression.fromVariable(v._value)
-    let r = Expression.fromConstant(v._value.value)
-    let stay = new Equation(l, r, Strength.strong)
+  private static makeStay(v: CassVar): Eq {
+    let l = Expr.fromVar(v)
+    let r = Expr.fromConst(v._value.value)
+    let stay = new Eq(l, r)
     // console.log('stay for :')
     // console.log(v)
     // console.log(stay.toString())
@@ -90,7 +92,7 @@ export class Store {
   private addStays(frees: Set<Variable>): void {
     let pinned = filter(this.cvars, i => !frees.has(i))
     for (let varble of pinned) {
-      let newStay = Store.makeStay(varble)
+      let newStay = Store.makeStay(varble).toCass(Strength.strong)
       this.cstays.set(varble, newStay)
       this.csolver.addConstraint(newStay)
     }
@@ -104,11 +106,11 @@ export class Store {
     this.addStays(frees)
   }
 
-  public addEq(e: Equation): void {
+  public addEq(e: Eq, s: Strength): void {
     // console.log('adding constraint:')
     // console.log(e.toString())
     this.equations.add(e)
-    this.csolver.addConstraint(e)
+    this.csolver.addConstraint(e.toCass(s))
 
   }
 
@@ -228,7 +230,8 @@ export class Store {
 export class PhysicsEngine {
   private runner: Timer
   private initValues: Map<Variable, number>
-  constructor(public decls: Integrator, public freeVars: Set<Variable>,
+  constructor(public timestepDecls: Integrator, public freeVars: Set<Variable>,
+    public initialDecls: Integrator,
     public values: Store, public renderer: () => void) {
     // public freq:number,
     // public work: (n: number) => void,
@@ -237,7 +240,7 @@ export class PhysicsEngine {
     let freq = 20
 
     let work = (n: number) => {
-      let newVals = this.decls.eval(this.values.eval())
+      let newVals = this.timestepDecls.eval(this.values.eval())
       this.values.suggestEdits(newVals, this.freeVars)
       renderer()
     }
@@ -248,6 +251,13 @@ export class PhysicsEngine {
     }
 
     this.runner = new Timer(freq, work, done)
+  }
+
+  // run initialDecls to regenerate physical values
+  public reconfigure() {
+    let newVals = this.initialDecls.eval(this.values.eval())
+    this.values.suggestEdits(newVals, this.initialDecls.vars())
+    // this.renderer()
   }
 
   public start() {
@@ -264,14 +274,15 @@ export class PhysicsEngine {
   // this is pretty key -- PhysicsEngine.empty's values and renderer don't extend
   // properly.
   public extend(rhs: PhysicsEngine) {
-    let newDecls = this.decls.union(rhs.decls)
+    let newTSDecls = this.timestepDecls.union(rhs.timestepDecls)
     let newFrees = union(this.freeVars, rhs.freeVars)
+    let newInitDecls = this.initialDecls.union(rhs.initialDecls)
     let [newStore, newRenderer] = [rhs.values, rhs.renderer]
-    return new PhysicsEngine(newDecls, newFrees, newStore, newRenderer)
+    return new PhysicsEngine(newTSDecls, newFrees, newInitDecls, newStore, newRenderer)
   }
 
   public static empty() {
-    return new PhysicsEngine(Integrator.empty(), new Set<Variable>(), new Store(), () => {})
+    return new PhysicsEngine(Integrator.empty(), new Set<Variable>(), Integrator.empty(), new Store(), () => {})
   }
 }
 
@@ -281,11 +292,11 @@ export class State {
   // TODO: convert dragged to option
   constructor(public prog: Program, public store: Store,
               public dragging: boolean, public draggedPoint: DragPoint,
-              public physicsEngine: PhysicsEngine
+              public physicsEngine: PhysicsEngine, public physicsRunning: boolean
   ){}
 
   public static empty(): State {
-    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty())
+    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty(), false)
   }
 
   // delegate to member instances
@@ -314,11 +325,12 @@ export class State {
 
   // given an expression, allocate a new variable, add to the store, and
   // return an equation for var = expr.
-  public makeEquation(e: Expression, v: number): [CassVar, Equation] {
-    let varValue = -e.constant
+  public makeEquation(e: Expr, v: number): [CassVar, Eq] {
+    let str = this.eval()
+    let varValue = -e.eval(str)
   //  console.log(e)
     let retVar = this.allocVar(v)
-    let eq = new Equation(retVar.toCExpr(), e, Strength.strong)
+    let eq = new Eq(Expr.fromVar(retVar), e)
     return [retVar, eq]
   }
 
@@ -330,7 +342,7 @@ export class State {
 
     if (withEditPoints) {
       let editPoints = new Map<DragPoint, Set<Variable>>()
-      let editEqs = new Set<Equation>()
+      let editEqs = new Set<Eq>()
       let vals = this.eval()
 
       // assumes each shape has CassVar variables, which is not realistic... TODO
@@ -349,12 +361,8 @@ export class State {
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
-        let endXExpr = (s.x as CassVar).toCExpr().plus(
-          (s.dx as CassVar).toCExpr()
-        ) // TODO
-        let endYExpr = (s.y as CassVar).toCExpr().plus(
-          (s.dy as CassVar).toCExpr()
-        ) // TODO
+        let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.dx as CassVar)
+        let endYExpr = Expr.fromVar(s.y as CassVar).plus(s.dy as CassVar)
 
         let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx))
         let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) + vals.get(s.dy))
@@ -370,9 +378,7 @@ export class State {
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
-        let endXExpr = (s.x as CassVar).toCExpr().plus(
-          (s.r as CassVar).toCExpr()
-        ) // TODO
+        let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.r as CassVar)
 
         let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.r))
         let baseFrees = (new Set<Variable>()).add(s.x).add(s.y).add(endX)
@@ -385,12 +391,8 @@ export class State {
         let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
-        let endXExpr = (s.x as CassVar).toCExpr().plus(
-          (s.dx as CassVar).toCExpr()
-        ) // TODO
-        let endYExpr = (s.y as CassVar).toCExpr().minus(
-          (s.dy as CassVar).toCExpr()
-        ) // TODO
+        let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.dx as CassVar)
+        let endYExpr = Expr.fromVar(s.y as CassVar).minus(s.dx as CassVar)
 
         let [endX, endXEq] = this.makeEquation(endXExpr, vals.get(s.x) + vals.get(s.dx))
         let [endY, endYEq] = this.makeEquation(endYExpr, vals.get(s.y) - vals.get(s.dy))
@@ -409,32 +411,34 @@ export class State {
         newProg = newProg.addFrees(dp, frees)
       }
       for (let editEq of editEqs)
-      this.store.addEq(editEq)
+        this.store.addEq(editEq, Strength.strong)
     }
     newProg = newProg.addShape(name, s)
 
 
 
-    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine)
+    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
   public addFrees(p: DragPoint, fvs: Set<Variable>): State {
-    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine)
+    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
 
-  public addPhysDecls(decls: Integrator, freeVals: Set<Variable>, renderer: () => void) {
-    let newEngine = new PhysicsEngine(decls, freeVals, this.store, renderer)
+  public addPhysDecls(integrationDecls: Integrator, freeVals: Set<Variable>, initialDecls: Integrator, renderer: () => void) {
+    let newEngine = new PhysicsEngine(integrationDecls, freeVals, initialDecls, this.store, renderer)
     this.physicsEngine = this.physicsEngine.extend(newEngine)
     return this
   }
 
   public addPhysGroup(group: PhysicsGroup, renderer: () => void) {
-    return this.addPhysDecls(group.instantiate(), group.frees(), renderer)
+    return this.addPhysDecls(group.generateIntegrator(), group.frees(), group.generateInitials(), renderer)
   }
 
   public start() {
+    this.physicsRunning = true
     this.physicsEngine.start()
   }
   public stop() {
+    this.physicsRunning = false
     this.physicsEngine.stop()
   }
   public reset() {

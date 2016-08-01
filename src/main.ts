@@ -124,24 +124,6 @@ function testISynth() {
   console.log(synthd)
 }
 
-
-function overlayContacts() {
-  let pointGen = new PointGeneration(initModel.main.eval())
-  let r = initModel.main.addVar(VType.Prim, 'arr', 10)
-  let suffix = 0
-  let newS = initModel.main
-  for (let [[xv, xe], [yv, ye]] of pointGen.makePoints(initModel.main.prog)) {
-    initModel.main.store.addCVar(xv)
-    initModel.main.store.addCVar(yv)
-    initModel.main.store.addEq(new Equation(Expression.fromVariable(xv._value), xe.toCass()))
-    initModel.main.store.addEq(new Equation(Expression.fromVariable(yv._value), ye.toCass()))
-    let newPoint = new Circle(xv, yv, r, 'black', 'red')
-    newS = newS.addShape("CP" + (suffix++).toString(), newPoint, false)
-  }
-  initModel = new Model(newS, new Map<DragPoint, Set<Variable>[]>())
-  // refresh()
-}
-
 function testME() {
   let store = initModel.main.eval()
   let dps = filter(initModel.main.prog.shapes, s => s instanceof DragPoint) as Set<DragPoint>
@@ -164,6 +146,5 @@ backendExport.drawToEdit = drawToEdit
 backendExport.startPhysics = () => initModel.main.start()
 backendExport.stopPhysics = () => initModel.main.stop()
 backendExport.resetPhysics = () => initModel.main.reset()
-backendExport.contacts = overlayContacts
 backendExport.testME = testME
 backendExport.finishEditChoice = finishEditChoice

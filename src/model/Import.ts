@@ -1,7 +1,7 @@
 import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip} from '../util/Util'
-import {Circle, Rectangle, Shape, Line, DragPoint, pp} from './Shapes'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
+import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow} from './Shapes'
 
 import {PhysicsGroup, Pendulum} from './Physics'
 import {VType, Variable, CassVar} from './Variable'
@@ -64,11 +64,15 @@ type fabricDrag = {
   choice: number
 } & fabricCircle
 
+type fabricArrow = {
+  angle: number
+} & fabricCommon
+
 type fabricTriangle = {
   // something something triangle
 } & fabricCommon
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle | fabricSpring
+export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle | fabricSpring | fabricArrow
 type fabricPhysicsCommon = {
   type: string
 }
@@ -78,10 +82,6 @@ type pendulumGroup = {
   bob: fabricCircle
 } & fabricPhysicsCommon
 
-type arrowGroup = {
-  line: fabricLine,
-  head: fabricTriangle
-} & fabricPhysicsCommon
 
 export type fabricPhysicsGroup = pendulumGroup
 
@@ -106,35 +106,54 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     newS.height *= newS.scaleY/2
     newS.top += newS.height
     ret = newS
+  } else if (s.type == 'arrow') {
+    let newS = Object.assign({}, s) as fabricArrow
+    // height == hypotenuse, angle = theta = degree of rotation
+    // TODO: move point to center of base (currently at bottom left)
+
+    newS.height *= newS.scaleY
+    newS.width = newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
+    // black magic...i'm not sure why this works
+    newS.height *= -1
+    // shift top/left to base
+    newS.left -= newS.width - s.width/2 * s.scaleX * Math.cos(2*Math.PI/360 * newS.angle)
+    newS.top -= newS.height - s.width/2 * s.scaleX * Math.sin(2*Math.PI/360 * newS.angle)
+    ret = newS
   } else if (s.type == 'line') {
-    // TODO?
     // console.log(s)
     let newS = Object.assign({}, s) as fabricLine
 
     // x, y coordinates are relative to origin, change to absolute system
-    newS.x1 = newS.left + newS.width/2*newS.scaleX + newS.x1
-    newS.x2 = newS.left + newS.width/2*newS.scaleX + newS.x2
+    newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
+    newS.x2 = newS.left + (newS.width/2 + newS.x2)*newS.scaleX
 
-    newS.y1 = newS.top + newS.height/2*newS.scaleY + newS.y1
-    newS.y2 = newS.top + newS.height/2*newS.scaleY + newS.y2
+    newS.y1 = newS.top + (newS.height/2 + newS.y1)*newS.scaleY
+    newS.y2 = newS.top + (newS.height/2 + newS.y2)*newS.scaleY
 
     ret = newS
 
   } else if (s.type == 'spring') {
-    // TODO?
-    // console.log(s)
     let newS = Object.assign({}, s) as fabricSpring
+    // console.log(s)
 
     // x, y coordinates are relative to origin, change to absolute system
-    newS.x1 = newS.left + newS.width/2*newS.scaleX + newS.x1
-    newS.x2 = newS.left + newS.width/2*newS.scaleX + newS.x2
+    newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
+    newS.x2 = newS.left + (newS.width/2 + newS.x2)*newS.scaleX
 
-    newS.y1 = newS.top + newS.height/2*newS.scaleY + newS.y1
-    newS.y2 = newS.top + newS.height/2*newS.scaleY + newS.y2
+    newS.y1 = newS.top + (newS.height/2 + newS.y1)*newS.scaleY
+    newS.y2 = newS.top + (newS.height/2 + newS.y2)*newS.scaleY
+
+    // console.log(newS)
+
+    newS.top = newS.y1
+    newS.left = newS.x1
+    newS.width = newS.x2 - newS.x1
+    newS.height = newS.y2 - newS.y1
+
+    // console.log(newS)
 
     ret = newS
-
-    //Just copy-paste the code for 'line'
 
   } else if (s.type == 'dragPoint') {
     // TODO: left and top don't reflect the underlying object in the import...
@@ -172,17 +191,19 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     let newS = s as fabricRect
     let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
     shape = new Rectangle(x, y, dx, dy, 'black')
+  } else if (s.type == 'arrow') {
+    let newS = s as fabricArrow
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
+    shape = new Arrow(x, y, dx, dy, 'black')
   } else if (s.type == 'line') {
     let newS = s as fabricLine
     let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
     let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
     shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
   } else if (s.type == 'spring') {
-    let newS = s as fabricLine
-    let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
-    let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
-    shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
-    //Just copy-paste the code for 'line'
+    let newS = s as fabricSpring
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
+    shape = new Spring(x, y, dx, dy, newS.fill)
   } else {
     console.log('unrecognized fabric tag:')
     console.log(s)
@@ -207,7 +228,7 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
   let [dy, dx] = [bobY - pivY, bobX - pivX]
 
   // L = sqrt(dx^2 + dy^2)
-  // theta = atan2(dy, dx)
+  // theta = atan2(dx, dy)
   let [omega, theta, l] = map3Tup(
     [['omega', 0], ['theta', Math.atan2(dx, dy)], ['L', Math.sqrt(dx*dx + dy*dy)]] as Tup3<Tup<string, number>>,
     pBuilder
@@ -251,6 +272,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   })
 
   // console.log(model.physicsGroups)
+  let newPhysicsGroups = new Set<PhysicsGroup>()
   model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
@@ -268,7 +290,8 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     }
 
     newShapes.forEach(([name, s]) => retStore = retStore.addShape(name, s, false))
-    retStore.addPhysGroup(newGroup, renderer)
+    newPhysicsGroups.add(newGroup)
+    //retStore.addPhysGroup(newGroup, renderer)
   })
 
   // console.log('before synthesis:')
@@ -281,7 +304,6 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   let buildFVs = (seeds: Set<CassVar>) => InteractionSynthesis.validFreeVariables(seeds, eqs)
 
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
-
 
   retStore.prog = fold(retStore.prog.allFrees, (accProg, [dp]) => {
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
@@ -313,6 +335,22 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
     return accProg.addFrees(dp, selFrees)
   }, retStore.prog)
+
+
+  // finally, add dragpoint free variables as needed
+  let drags = filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
+  let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
+  for (let grp of newPhysicsGroups) {
+    for (let dp of drags) {
+      let grpVars = grp.frees()
+      let e = find(retStore.store.equations, e =>
+       (e.vars().has(dp.x) || e.vars().has(dp.y)) && intersect(e.vars(), grpVars).size > 0)
+      if (e) {
+        grp.addDrag(dp)
+     }
+    }
+    retStore.addPhysGroup(grp, renderer)
+  }
 
   let ret = new Model(retStore, possibleFrees)
   // console.log('model:')

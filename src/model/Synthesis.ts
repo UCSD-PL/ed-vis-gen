@@ -4,7 +4,7 @@ import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLi
 import {uniqify, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
-import {Expr} from './Expr'
+import {Expr, Eq} from './Expr'
 
 // go from Program -> a set of points and their cass expressions. so, we need to:
 // build a bunch of points, a bunch of corresponding cass expressions, and a map
@@ -203,8 +203,8 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
         ret.add(e.vars().add(v)) // v = e
         // console.log('adding eq:')
         // console.log(v.name + " = " + e.toString())
-        let eq = new Equation(Expression.fromVariable(v._value), e.toCass(), Strength.strong)
-        state.store.addEq(eq)
+        let eq = new Eq(Expr.fromVar(v), e)
+        state.store.addEq(eq, Strength.strong)
       })
 
       store = state.eval()
@@ -212,8 +212,8 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
 
       let [[x1v], [y1v]] = point
       let [[x2v], [y2v]] = overlapped
-      let [x1ve, y1ve] = map2Tup([x1v, y1v], v => Expression.fromVariable(v._value))
-      let [x2ve, y2ve] = map2Tup([x2v, y2v], v => Expression.fromVariable(v._value))
+      let [x1ve, y1ve] = map2Tup([x1v, y1v], v => Expr.fromVar(v))
+      let [x2ve, y2ve] = map2Tup([x2v, y2v], v => Expr.fromVar(v))
 
       // console.log('hit: ')
       // console.log([x1v, y1v].map(v => store.get(v)))
@@ -231,8 +231,8 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
       // console.log('adding point equations:')
       // console.log(x1v.name + " = " + x2v.name)
       // console.log(y1v.name + " = " + y2v.name)
-      state.store.addEq(new Equation(x1ve, x2ve, Strength.strong))
-      state.store.addEq(new Equation(y1ve, y2ve, Strength.strong))
+      state.store.addEq(new Eq(x1ve, x2ve), Strength.strong)
+      state.store.addEq(new Eq(y1ve, y2ve), Strength.strong)
 
       // x1 = x2
       // y1 = y2

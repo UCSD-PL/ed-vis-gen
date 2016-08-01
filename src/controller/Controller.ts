@@ -87,7 +87,9 @@ export class DragController {
           this.m.main.draggedPoint = d
           this.m.main.dragging = true
 
+          let wasRunning = this.m.main.physicsRunning
           this.m.main.stop()
+          this.m.main.physicsRunning = wasRunning // stop mutates physicsRunning
           break
         }
       }
@@ -118,7 +120,9 @@ export class DragController {
       this.m.main.draggedPoint = null // TODO: option monad
       this.m.main.dragging = false
 
-      this.m.main.start()
+      this.m.main.physicsEngine.reconfigure()
+      if (this.m.main.physicsRunning)
+        this.m.main.start()
     }
   }
 
