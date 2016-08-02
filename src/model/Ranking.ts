@@ -264,3 +264,28 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 
   return ret
 }
+
+// heuristic for spring simulation -- every motive that *isn't* a translation is a penalty
+// export function TranslationFavored([p, s]: Tup<Program, Store>): number {
+//   let emp = new Set<Variable>()
+//   let makeVars = (s: Shape) => {
+//     if (! (s instanceof Line)) {
+//       assert('x' in s && 'y' in s, 'expected x and y in shape: ' + s.toString())
+//       return new Set<Variable>().add((s as any).x).add((s as any).y)
+//     } else {
+//       return emp
+//     }
+//   }
+//
+//   let [drags, shapes] = partSet(p.shapes, shp => shp instanceof DragPoint)
+//
+//   let posVars = uniqify(new Set<Set<Variable>>(map(shapes, makeVars)))
+//
+//   let ret = 0
+//   for (let dp of drags) {
+//     let dpFrees = p.allFrees.get(dp as DragPoint)
+//     ret += fold(posVars, (sum, vars) => sum + (subset(vars, dpFrees) ? 1:0), 0)
+//   }
+//
+//
+// }

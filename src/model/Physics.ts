@@ -1,7 +1,7 @@
 import {PhysExpr, evalPhysicsExpr, VarExpr, ConstExpr} from './PhysicsExpr'
 import {Variable} from './Variable'
 import {DragPoint} from './Shapes'
-import {Tup, mapValues, extendMap, union} from '../util/Util'
+import {Tup, mapValues, extendMap, union, Point} from '../util/Util'
 
 export class Integrator {
   private vals: Map<Variable, PhysExpr>
@@ -13,6 +13,7 @@ export class Integrator {
 
   public add([val, e]: Tup<Variable, PhysExpr>) {
     this.vals.set(val, e)
+    return this
   }
   public delete(val: Variable) {
     return this.vals.delete(val)
@@ -35,11 +36,29 @@ export class Integrator {
   }
 }
 
+// given l and r, return l + r
+function addVars(l: Variable, r: Variable) {
+  return new VarExpr(l).plus(new VarExpr(r))
+}
+
+// given variables for acceleration, velocity, and position, return:
+// V <- V + F
+// P <- P + V
+function eulerIntegrator(acc: Variable, vel: Variable, pos: Variable) {
+  let ret = Integrator.empty()
+  ret.add([vel, addVars(vel, acc)]).add([pos, addVars(vel, pos)])
+  return ret
+}
+
+function fv(v: Variable) {
+  return new VarExpr(v)
+}
+
 export interface PhysicsGroup {
-  generateIntegrator(): Integrator
-  generateInitials(): Integrator
-  frees(): Set<Variable>
-  addDrag(dp: DragPoint): void
+  generateIntegrator(): Integrator // small-step physics engine decls
+  generateInitials(): Integrator // initialization of physics constants e.g. spring rest length
+  frees(): Set<Variable> // free variables for small-step physics engine
+  addDrag(dp: DragPoint): void // add a drag-point's variables to the free-var set
 }
 
 
@@ -121,7 +140,7 @@ export class Pendulum implements PhysicsGroup {
 
     ret.add([this.Omega, omegaE])
 
-    let thetaE = fv(this.Theta).plus(fv(this.Omega))
+    let thetaE = addVars(this.Theta, this.Omega)
     ret.add([this.Theta, thetaE])
 
 
@@ -144,5 +163,101 @@ export class Pendulum implements PhysicsGroup {
     return union((new Set<Variable>())
             .add(this.Omega).add(this.Theta).add(this.L)
             .add(this.X_BOB).add(this.Y_BOB), union(this.rodVars, this.dragVars))
+  }
+}
+
+export class SpringGroup implements PhysicsGroup {
+
+  public constructor (
+    public DX: Variable, // X, Y stretch
+    public DY: Variable,
+    public initRL: Point,  // initial rest length in (X, Y)
+    public initTheta: number, // initial amount of rotation
+    public F_X: Variable, // F, V, and rest length in x dimension
+    public V_X: Variable,
+    public RL_X: Variable,
+    public X_Objs: Variable[], // attached objects in x dimension
+    public F_Y: Variable,
+    public V_Y: Variable,   // ditto for Y dimension
+    public RL_Y: Variable,
+    public Y_Objs: Variable[],
+    public coeffFriction: Variable, // coefficient of moving friction
+    public mass: Variable,          // mass
+    public springConstant: Variable, // spring constant k
+    public gravConstant: Variable   // gravitational constant g
+  ) {
+  }
+
+
+  // for each dimension:
+  // F <- (-K * (Delta + RL) - (C * Va)) / M,
+  // V <- V + F,
+  // Delta <- Delta + V
+  public generateIntegrator(): Integrator {
+    let ret = Integrator.empty()
+
+
+    // F <- (-K * (Delta + RL) - (C * Va)) / M... ugh
+    let fxExpr = fv(this.springConstant).neg().times(fv(this.DX).minus(fv(this.RL_X))) // -k * (delta + rl)
+                 .minus(fv(this.coeffFriction).times(fv(this.V_X))) // ( C * V)
+                 .div(fv(this.mass))
+
+    ret.add([this.F_X, fxExpr])
+
+    // V <- V + F,
+    // Delta <- Delta + V
+    ret = ret.union(eulerIntegrator(this.F_X, this.V_X, this.DX))
+
+    // copy-pasta for y dimension. maybe refactor?
+    let fyExpr = fv(this.springConstant).neg().times(fv(this.DY).minus(fv(this.RL_Y))) // -k * (delta - rl)
+                 .minus(fv(this.coeffFriction).times(fv(this.V_Y))) // ( C * V)
+                 .div(fv(this.mass))
+
+    ret.add([this.F_Y, fyExpr])
+
+    // V <- V + F,
+    // Delta <- Delta + V
+    ret = ret.union(eulerIntegrator(this.F_Y, this.V_Y, this.DY))
+
+    // finally, for each x and y attached object, translate by delta
+    for (let dxv of this.X_Objs) {
+      ret.add([dxv, addVars(dxv, this.DX)])
+    }
+    for (let dyv of this.Y_Objs) {
+      ret.add([dyv, addVars(dyv, this.DX)])
+    }
+
+    return ret
+  }
+
+  // RL <- InitRL - M * G / K,
+  public generateInitials(): Integrator {
+    let ret = Integrator.empty()
+    let {x, y} = this.initRL
+    let rlxExpr = new ConstExpr(x).minus(
+      fv(this.mass).times(fv(this.gravConstant)).div(fv(this.springConstant))
+      .times(PhysExpr.InvokeMath(Math.cos, [new ConstExpr(this.initTheta)])) // project force vector to x-dimension
+    )
+    let rlyExpr = new ConstExpr(y).minus(
+      fv(this.mass).times(fv(this.gravConstant)).div(fv(this.springConstant))
+      .times(PhysExpr.InvokeMath(Math.sin, [new ConstExpr(this.initTheta)])) // project force vector to y-dimension
+    )
+
+    // ret.add([this.RL_X, rlxExpr]).add([this.RL_Y, rlyExpr])
+
+    return ret
+  }
+
+  public frees(): Set<Variable> {
+    let xFrees = new Set<Variable>(this.X_Objs).add(this.F_X).add(this.V_X).add(this.DX)
+    let yFrees = new Set<Variable>(this.Y_Objs).add(this.F_Y).add(this.V_Y).add(this.DY)
+    return union(xFrees, yFrees)
+  }
+
+
+  public addDrag(dp: DragPoint) {
+    // AHA! by a clever trick, we instead just calculate the delta directly -- see generateIntegrator
+    this.X_Objs.push(dp.x)
+    this.Y_Objs.push(dp.y)
   }
 }
