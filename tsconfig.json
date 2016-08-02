@@ -27,6 +27,7 @@
     "src/model/Export.ts",
     "src/model/Expr.ts",
     "src/model/Import.ts",
+    "src/model/import/Spring.ts",
     "src/model/Model.ts",
     "src/model/Physics.ts",
     "src/model/PhysicsExpr.ts",

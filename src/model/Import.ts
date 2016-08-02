@@ -3,13 +3,14 @@ import {Model, State, Program, Store} from './Model'
 import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow} from './Shapes'
 
-import {PhysicsGroup, Pendulum} from './Physics'
+import {PhysicsGroup, Pendulum, SpringGroup} from './Physics'
 import {VType, Variable, CassVar} from './Variable'
 import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
 
 import {Poset} from '../util/Poset'
 import {Default} from './Ranking'
 import {ICanvas} from 'fabric'
+import {buildSpringGroup} from './import/Spring'
 
 type fabricCommon = {
   type: string,
@@ -273,6 +274,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   // console.log(model.physicsGroups)
   let newPhysicsGroups = new Set<PhysicsGroup>()
+  // add in pendulum groups
   model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
@@ -293,6 +295,14 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     newPhysicsGroups.add(newGroup)
     //retStore.addPhysGroup(newGroup, renderer)
   })
+
+  // add in spring groups
+
+  retStore.prog.shapes.forEach(s => {
+    if (s instanceof Spring) {
+      newPhysicsGroups.add(buildSpringGroup(s, retStore))
+    }
+  });
 
   // console.log('before synthesis:')
   // console.log(retStore)
