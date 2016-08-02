@@ -27,6 +27,12 @@
 <link rel="stylesheet" href="../frontend/mockup/app/css/layout.css">
 <link rel="stylesheet" href="../frontend/mockup/app/css/test.min.css">
 
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 <script src="../frontend/mockup/app/js/modernizr-2.6.2.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
@@ -43,6 +49,7 @@
 
   .rightbuttons{
     float: right;
+
   }
   body {
     margin: 0;
@@ -109,10 +116,10 @@
 
     <nav id="toolbar" class="navbar navbar-default">
     <div class="leftbuttons">
-      <button class="btn btn-default navbar-btn" onclick="addRectangle()"><span class="fa fa-fw fa-square"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="addCircle()"><span class="fa fa-fw fa-circle"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="addTriangle()"><span class="fa fa-fw fa-play"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="addLine()"><span class="fa fa-fw fa-minus"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addRectangle()" style="color:royalblue"><span class="fa fa-fw fa-square"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addCircle()" style="color:royalblue"><span class="fa fa-fw fa-circle"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addTriangle()" style="color:royalblue"><span class="fa fa-fw fa-play"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="addLine()" style="color:royalblue"><span class="fa fa-fw fa-minus"></span></button>
       <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button>
 
       <!--delete button-->
@@ -121,24 +128,24 @@
       <!--undo & redo-->
       <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
       <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button>
-      <!--add arrow-->
-      <button class="btn btn-default navbar-btn" onclick="addArrow()"><span class="fa fa-fw fa-long-arrow-right"></span></button>
 
-      <!--add spring-->
-      <button class="btn btn-default" onclick="addSpring()" id="spring">
-        Spring
-      </button>
-
-      <!--add pendulum-->
-      <button class="btn btn-default" onclick="addPendulum()" id="pendulum">
-        Pendulum
-      </button>
+      <div class="btn-group">
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
+          Physics <span class="caret"></span></button>
+          <ul class="dropdown-menu" role="menu">
+            <li onclick="addArrow()"><a href="#">Arrow</a></li>
+            <li onclick="addSpring()"><a href="#">Spring</a></li>
+            <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
+          </ul>
+        </div>
+      </div>
 
 
 
 
       <!--overlay-->
-      <button class="btn btn-default" type="button" onclick = "open0(); candidatePoints()" id="trigger-overlay">
+      <button class="btn btn-primary" style="background-color:royalblue" type="button" onclick = "open0(); candidatePoints()" id="trigger-overlay">
         Place Dragpoints
       </button>
 
@@ -160,11 +167,12 @@
 
 
 
-      
+
+
       <div class="rightbuttons">
-        <button class="btn btn-default" onclick="BACKEND.startPhysics()">Start</button>
-        <button class="btn btn-default" onclick="BACKEND.stopPhysics()">Stop</button>
-        <button class="btn btn-default" onclick="BACKEND.resetPhysics()">Reset</button>
+        <button class="btn btn-primary" onclick="BACKEND.startPhysics()" style="background-color:royalblue">Start</button>
+        <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button>
+        <button class="btn btn-primary" onclick="BACKEND.resetPhysics()" style="background-color:royalblue">Reset</button>
       </div>
       <!-- open/close -->
       <div id="myCav" class="overlay">
