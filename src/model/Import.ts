@@ -296,13 +296,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     //retStore.addPhysGroup(newGroup, renderer)
   })
 
-  // add in spring groups
 
-  retStore.prog.shapes.forEach(s => {
-    if (s instanceof Spring) {
-      newPhysicsGroups.add(buildSpringGroup(s, retStore))
-    }
-  });
 
   // console.log('before synthesis:')
   // console.log(retStore)
@@ -350,6 +344,13 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // finally, add dragpoint free variables as needed
   let drags = filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
+  
+  retStore.prog.shapes.forEach(s => {
+    if (s instanceof Spring) {
+      newPhysicsGroups.add(buildSpringGroup(s, retStore))
+    }
+  });
+
   for (let grp of newPhysicsGroups) {
     for (let dp of drags) {
       let grpVars = grp.frees()
@@ -361,6 +362,9 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     }
     retStore.addPhysGroup(grp, renderer)
   }
+
+  // add in spring groups
+
 
   let ret = new Model(retStore, possibleFrees)
   // console.log('model:')

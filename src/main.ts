@@ -138,6 +138,10 @@ function testME() {
   }
 }
 
+function printMain() {
+  initModel.main.debug()
+}
+
 // backend exports
 (window as any).BACKEND = {}
 export var backendExport: any = (window as any).BACKEND
@@ -147,4 +151,5 @@ backendExport.startPhysics = () => initModel.main.start()
 backendExport.stopPhysics = () => initModel.main.stop()
 backendExport.resetPhysics = () => initModel.main.reset()
 backendExport.testME = testME
+backendExport.printMain = printMain
 backendExport.finishEditChoice = finishEditChoice

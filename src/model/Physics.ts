@@ -1,4 +1,4 @@
-import {PhysExpr, evalPhysicsExpr, VarExpr, ConstExpr} from './PhysicsExpr'
+import {PhysExpr, evalPhysicsExpr, VarExpr, ConstExpr, pp} from './PhysicsExpr'
 import {Variable} from './Variable'
 import {DragPoint} from './Shapes'
 import {Tup, mapValues, extendMap, union, Point} from '../util/Util'
@@ -33,6 +33,15 @@ export class Integrator {
 
   public static empty() {
     return new Integrator([])
+  }
+
+  public pp(): string {
+    let ret = 'Integrator: {\n'
+    for (let [k, v] of this.vals) {
+      ret += k.name + ' <- ' + pp(v) + '\n'
+    }
+    ret += '}'
+    return ret
   }
 }
 
@@ -221,10 +230,10 @@ export class SpringGroup implements PhysicsGroup {
 
     // finally, for each x and y attached object, translate by delta
     for (let dxv of this.X_Objs) {
-      ret.add([dxv, addVars(dxv, this.DX)])
+      ret.add([dxv, addVars(dxv, this.V_X)])
     }
     for (let dyv of this.Y_Objs) {
-      ret.add([dyv, addVars(dyv, this.DX)])
+      ret.add([dyv, addVars(dyv, this.V_Y)])
     }
 
     return ret
