@@ -9,7 +9,7 @@ function addShape(shape) {
 
 //Add line
 function addLine(){
- var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100, lockScalingX: true});
+ var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100});
  addShape(line0);
 }
 
