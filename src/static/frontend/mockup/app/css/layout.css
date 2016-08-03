@@ -1,0 +1,44 @@
+html, body, #editor, #preview {
+  height: 90vh;
+}
+
+body {
+  font-family: 'Helvetica Neue', 'Helvetica', 'Arial';
+}
+
+h1 {
+    font-weight: 100 !important;
+    text-transform: uppercase;
+    font-size: 60px;
+}
+h2 {
+    font-size: 40px;
+    font-weight: 100 !important;
+}
+
+
+
+#editor-canvas, #preview-canvas {
+  border: 2px solid darkslategray;
+}
+
+#toolbar {
+  padding: 0px 10px;
+}
+
+#toolbar .fa {
+  font-size: x-large;
+}
+
+#toolbar-shapes .fa {
+  color: cornflowerblue;
+}
+
+#toolbar-modes, #toolbar-states {
+  margin-left: 15px;
+}
+
+#toolbar-modes .fa, #toolbar-states .fa {
+  color: slategray;
+}
+
