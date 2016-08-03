@@ -156,7 +156,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 
     newS.top = newS.y1
     newS.left = newS.x1
-    newS.width = newS.x2 - newS.x1
+    newS.width *= 0
     newS.height = newS.y2 - newS.y1
 
     // console.log(newS)
