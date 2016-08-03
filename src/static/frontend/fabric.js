@@ -6616,6 +6616,8 @@ fabric.Pattern = fabric.util.createClass(/** @lends fabric.Pattern.prototype */ 
       obj._set('canvas', this);
       obj.setCoords();
       this.fire('object:added', { target: obj });
+      // console.log('added: ')
+      // console.log(obj)
       obj.fire('added');
     },
 
