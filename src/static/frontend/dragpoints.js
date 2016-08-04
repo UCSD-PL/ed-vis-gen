@@ -110,7 +110,7 @@
     */
     originX: 'center',
     originY: 'center',
-    fill: 'black',
+    fill: 'grey',
     selectable: true,
     lockMovementX: true,
     lockMovementY: true,
@@ -181,8 +181,7 @@
         dragPoint.updateDragPoint(shape, canvas);
         dragPoint.followShape(shape, canvas);
       // on right click, opens up the edit simulation panel
-      /*
-      dragPoint.on('mousedown', function (options) {
+      /*dragPoint.on('mousedown', function (options) {
         if (options.e.which === 3) {
             console.log('BETTER BE RIGHT CLICKING');
             if (dragPoint.fill == 'black' && dragPoint.onCanvas != true) {
@@ -190,8 +189,37 @@
             }
             open1();
             onLoadSims(dragPoint);
-        } } );
-      }*/
+        } } );}*/
+    },
+
+    /**
+    * makes a dragpoint follow given shape
+    * @return */
+    unfollowShape: function(shape, canvas) {
+      var dragPoint = this;
+      var thisShape = shape;
+      dragPoint.set({
+        shape: null,
+        shapeName: ''
+      });
+      shape.off("added", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.off("modified", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.off("moving", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.off("scaling", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.off("rotating", function() {
+        dragPoint.updateDragPoint(thisShape, canvas);
+      });
+      shape.off("removed", function() {
+        canvas.remove(dragPoint);
+      });
     },
 
     /**

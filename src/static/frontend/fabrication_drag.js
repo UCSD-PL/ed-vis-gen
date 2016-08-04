@@ -6,8 +6,13 @@ counter = 0,
 snap = 8, // pixels to snap
 state = [],
 mods = 0,
-selectedObj = [],
+dragPointedObjects = [],
 whereDP = 0,
+arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
+arrayCirc = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
+arrayLine = [[0,0],[0,0.5],[0,1]],
+arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
+//arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]];
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
@@ -69,6 +74,86 @@ function updateLog() {
   canvas.counter++;
 }
 
+
+function addDragPoints(obj, dx, dy) {
+  var drag = new fabric.DragPoint({
+      name: allocSName(),
+      shape: obj,
+      shapeName: obj.get('name'),
+      DX: dx,
+      DY: dy,
+      radius: 7
+    });
+    drag.startDragPoint(obj, interact);
+    interact.add(drag);
+    obj.addDragPointToArray(drag);
+
+    drag.on('selected', function() {
+      //if a drag point hasn't been clicked before, upon being clicked,
+      //a drag point is selected and added to dragPointList
+      if (this.get('fill') == 'grey' && this.get('onCanvas') != true) {
+        select(this);
+      }
+      // if it's just on the canvas, do nothing
+      else if (this.get('onCanvas') === true) {}
+      // undos selection of a drag point if you click it again
+      else {
+        undoSelect(this);
+      }});
+
+    // on right click, opens up the edit simulation panel
+    drag.on('mousedown', function (options) {
+      if (options.e.which === 3) {
+          console.log('BETTER BE RIGHT CLICKING');
+          if (drag.get('fill') == 'grey' && drag.get('onCanvas') != true) {
+              select(drag);
+          }
+          open1();
+          onLoadSims(drag);
+      } } );
+  }
+
+function addAllDP(array, obj) {
+    var dplist = obj.get('dragPoints');
+    if (dplist.length === 0 ) {
+      for (var i = 0; i < array.length; i++) {
+        addDragPoints(obj, array[i][0], array[i][1]);
+      }}
+    else {
+      for (var i = 0; i < array.length; i++) {
+        for (var j = 0; j < dplist.length; j++) {
+          if (!checkDragPointLocation(dplist[j], array[i][0], array[i][1])) {
+              addDragPoints(obj, array[i][0], array[i][1]);
+    }}} }
+}
+
+// checks if a drag point is located in a specific part of the shape
+function checkDragPointLocation(dp, dx, dy) {
+  if (dx === dp.get('DX') && dy === dp.get('DY')) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+// checks if a particular drag point is already located on shape
+function checkForDragPoints(obj, type) {
+
+  if (type === 'rect') {
+    addAllDP(arrayRect, obj);
+  }
+  if (type === 'circle') {
+    addAllDP(arrayCirc, obj);
+  }
+  if (type === 'line') {
+    addAllDP(arrayLine, obj);
+  }
+  /*if (type === 'arrow') {
+    addAllDP(arrayArr, obj);
+  }*/
+}
+
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
@@ -76,93 +161,14 @@ function candidatePoints() {
   dragPointList = [];
   canvasList = [];
   canvas.forEachObject( function (obj) {
-    if (obj != null && obj instanceof fabric.Rect) {
-      var thing = obj;
-      objectlist.push(obj);
-      interact.add(obj);
-      obj.set({
-        selectable: false
-      });
-      //console.log("it's a rectangle!");
-      addDragPoints(obj, 0.5, 0.5);
-      addDragPoints(obj, 0, 0);
-      addDragPoints(obj, 1, 1);
-      addDragPoints(obj, 0, 0.5);
-      addDragPoints(obj, 0.5, 0);
-      addDragPoints(obj, 0, 1);
-      addDragPoints(obj, 1, 0.5);
-      addDragPoints(obj, 1, 0);
-      addDragPoints(obj, 0.5, 1);
-      interact.renderAll();
-    }
-    if (obj != null && obj instanceof fabric.Circle) {
-      objectlist.push(obj);
-      obj.set({
-        selectable: false
-      });
-      interact.add(obj);
-      //console.log("it's a circle!");
-      addDragPoints(obj, 0.5, 0.5);
-      addDragPoints(obj, 0.15, 0.15);
-      addDragPoints(obj, 0.85, 0.85);
-      addDragPoints(obj, 0, 0.5);
-      addDragPoints(obj, 0.5, 0);
-      addDragPoints(obj, 0.15, 0.85);
-      addDragPoints(obj, 1, 0.5);
-      addDragPoints(obj, 0.85, 0.15);
-      addDragPoints(obj, 0.5, 1);
-      interact.renderAll();
-    }
-    if (obj != null && obj instanceof fabric.Line) {
-      objectlist.push (obj);
-      obj.set({
-        selectable: false
-      });
-      interact.add(obj);
-      addDragPoints(obj, 0, 0);
-      addDragPoints(obj, 0, 0.5);
-      addDragPoints(obj, 0, 1);
-      interact.renderAll();
-    }
+    interact.add(obj);
+    obj.set({
+      selectable: false
+    });
+    checkForDragPoints(obj, obj.get('type'));
+    interact.renderAll();
   });
-
-  function addDragPoints(obj, dx, dy) {
-    var drag = new fabric.DragPoint({
-        name: allocSName(),
-        shape: obj,
-        shapeName: obj.get('name'),
-        DX: dx,
-        DY: dy,
-        radius: 7
-      });
-      drag.startDragPoint(obj, interact);
-      interact.add(drag);
-
-      drag.on('selected', function() {
-        //if a drag point hasn't been clicked before, upon being clicked,
-        //a drag point is selected and added to dragPointList
-        if (this.get('fill') == 'black' && this.get('onCanvas') != true) {
-          select(this);
-        }
-        // if it's just on the canvas, do nothing
-        else if (this.get('onCanvas') === true) {}
-        // undos selection of a drag point if you click it again
-        else {
-          undoSelect(this);
-        }});
-
-      // on right click, opens up the edit simulation panel
-      drag.on('mousedown', function (options) {
-        if (options.e.which === 3) {
-            console.log('BETTER BE RIGHT CLICKING');
-            if (drag.fill == 'black' && drag.onCanvas != true) {
-                select(drag);
-            }
-            open1();
-            onLoadSims(drag);
-        } } );
-      }
-    }
+}
 
 // selects drag point and adds it to the drag point list
 function select(dragPoint) {
@@ -175,7 +181,7 @@ function select(dragPoint) {
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
-    fill: 'black',
+    fill: 'grey',
     choice: 0
   });
 
@@ -190,6 +196,9 @@ function undoSelect(dragPoint) {
   currentDragPoint.set({
     choice: 0
   });
+
+  //TODO: add in a helper function that removes drag points from their corresponding
+  //shapes drag point list
 
   window.BACKEND.finishEditChoice();
 }
@@ -246,11 +255,13 @@ function onACCEPT() {
 function onLoadSims(dragPoint) {
   // sets up JSON files the simsArray list and loads the current JSON
   sims.clear();
-  currentDragPoint = dragPoint;
+  currentDragPoint = dragPoint.clone();  //.clone();
   currentSim = 0;
   numOfChoices = 8;
   currentDragPoint.set({
-    choice: selectedSim
+    choice: selectedSim,
+    shape: null,
+    shapeName: ''
   });
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
 }
@@ -274,7 +285,7 @@ function onOverlayClosed() {
   for (var i = 0; i < dragPointList.length; i++) {
       // console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'black',
+        fill: 'grey',
         onCanvas: true
       });
 
@@ -282,6 +293,31 @@ function onOverlayClosed() {
       obj = dragPointList[i].get('shape');
       dragPointList[i].startDragPoint(obj);
     }
+  console.log(state[current]);
+
+  canvas.renderAll();
+}
+
+function onUndoRedo() {
+  var obj;
+  var newList;
+  oldDragPointList = dragPointList;
+  for (var i = 0; i < oldDragPointList.length; i++) {
+    canvas.remove(oldDragPointList[i]);
+  }
+
+  // adds drag points to the canvas and attaches them to shapes
+  for (var i = 0; i < dragPointList.length; i++) {
+      // console.log("the drag point should have been added!");
+      dragPointList[i].set({
+        fill: 'grey',
+        onCanvas: true
+      });
+      obj = dragPointList[i].get('shape');
+      dragPointList[i].unfollowShape(obj);
+      dragPointList[i].startDragPoint(obj);
+      canvas.add(dragPointList[i]);
+  }
 
   canvas.renderAll();
 }
@@ -292,10 +328,9 @@ function updateAllDragPoints() {
   for (var i = 0; i < dragPointList.length; i++) {
       //console.log("the drag point should have been moved!");
       obj = dragPointList[i].get('shape');
-      dragPointList[i].updateDragPoint(obj, canvas);
+      dragPointList[i].updateDPbyName();
   }
 }
-
 
 canvas.on(
     'object:modified', function () {
@@ -316,8 +351,7 @@ canvas.on(
     'mouse:out', function() {
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
-}
-);
+});
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
@@ -325,6 +359,7 @@ function updateModifications(savehistory) {
         state.push(myjson);
         fabricJSON = transfer();
         mods = 0;
+        current = state.length - 1;
     }
 }
 
@@ -333,11 +368,11 @@ undo = function undo() {
         canvas.clear().renderAll();
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current - 1]);
-        canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods-1));
         //console.log("state " + state.length);
         mods += 1;
         //console.log("mods " + mods);
+        //onUndoRedo();
     }
 }
 
@@ -346,11 +381,11 @@ redo = function redo() {
         canvas.clear().renderAll();
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current + 1]);
-        canvas.renderAll();
         //console.log("geladen " + (state.length-1-mods+1));
         mods -= 1;
         //console.log("state " + state.length);
         //console.log("mods " + mods);
+        //onUndoRedo();
     }
 }
 
@@ -419,7 +454,7 @@ canvas.on('object:moving', function (options) {
 		// Snap objects to each other horizontally
 
 		// If bottom points are on same Y axis
-		if(Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
+		if (Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
 
 			// Snap target BL to object BR

@@ -11368,6 +11368,13 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     height:                   0,
 
     /**
+     * Array of drag points associated with the shape
+     * @type Array
+     * @default
+     */
+    dragPoints:                   [],
+
+    /**
      * Object scale factor (horizontal)
      * @type Number
      * @default
@@ -11784,7 +11791,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
      * @type Array
      */
     stateProperties:  (
-      'top left width height scaleX scaleY flipX flipY originX originY transformMatrix ' +
+      'top left width height dragPoints scaleX scaleY flipX flipY originX originY transformMatrix ' +
       'stroke strokeWidth strokeDashArray strokeLineCap strokeLineJoin strokeMiterLimit ' +
       'angle opacity fill fillRule globalCompositeOperation shadow clipTo visible backgroundColor ' +
       'alignX alignY meetOrSlice skewX skewY'
@@ -11855,6 +11862,16 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
+     * Adds a drag point to the object's list of drag points
+     * @param dragPoint
+     */
+    addDragPointToArray: function(drag) {
+      if (this.dragPoints.indexOf(drag) == -1) {
+        this.dragPoints.push(drag);
+      }
+    },
+
+    /**
      * Transforms context when rendering an object
      * @param {CanvasRenderingContext2D} ctx Context
      * @param {Boolean} fromLeft When true, context is transformed to object's top/left corner. This is used when rendering text on Node
@@ -11891,6 +11908,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
             top:                      toFixed(this.top, NUM_FRACTION_DIGITS),
             width:                    toFixed(this.width, NUM_FRACTION_DIGITS),
             height:                   toFixed(this.height, NUM_FRACTION_DIGITS),
+            dragPoints:               this.dragPoints,
             fill:                     (this.fill && this.fill.toObject) ? this.fill.toObject() : this.fill,
             stroke:                   (this.stroke && this.stroke.toObject) ? this.stroke.toObject() : this.stroke,
             strokeWidth:              toFixed(this.strokeWidth, NUM_FRACTION_DIGITS),
