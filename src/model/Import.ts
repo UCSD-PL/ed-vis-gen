@@ -144,7 +144,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 
   } else if (s.type == 'spring') {
     let newS = Object.assign({}, s) as fabricSpring
-    console.log(s)
+    // console.log(s)
 
     // x, y coordinates are relative to origin, change to absolute system
     newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX

@@ -108,6 +108,22 @@ export function changeDPChoice(dpName: string, dpChoice: number): DragPoint {
 
 }
 
+function getNumChoices(dpName: string): number {
+  let dp = initModel.main.prog.names.get(dpName)
+  if (!dp) {
+    console.log('WARNING: dragpoint not found:')
+    console.log(dpName)
+    console.log('store:')
+    initModel.main.prog.printShapes()
+    return null
+  }
+  assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  // console.log('frees:')
+  // console.log(initModel.candidateFrees)
+  // console.log('choices:')
+  return initModel.candidateFrees.get(dp as DragPoint).length
+}
+
 // console.log(finalModel.eval())
 // console.log(circ instanceof SModel.Line)
 
@@ -153,3 +169,4 @@ backendExport.resetPhysics = () => initModel.main.reset()
 backendExport.testME = testME
 backendExport.printMain = printMain
 backendExport.finishEditChoice = finishEditChoice
+backendExport.getNumChoices = getNumChoices

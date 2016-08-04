@@ -306,7 +306,7 @@ canvas.on(
     // window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
-      console.log('added');
+      // console.log('added');
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
