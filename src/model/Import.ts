@@ -42,7 +42,8 @@ type fabricSpring = {
   x1: number,
   y1: number,
   x2: number,
-  y2: number
+  y2: number,
+  angle: number
 } & fabricCommon
 
 type fabricLine = {
@@ -156,8 +157,8 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 
     newS.top = newS.y1
     newS.left = newS.x1
-    newS.width *= 0
-    newS.height = newS.y2 - newS.y1
+    newS.width = -newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.height *= newS.scaleY*Math.cos(2*Math.PI/360 * newS.angle)
 
     // console.log(newS)
 
