@@ -42,14 +42,16 @@ type fabricSpring = {
   x1: number,
   y1: number,
   x2: number,
-  y2: number
+  y2: number,
+  angle: number
 } & fabricCommon
 
 type fabricLine = {
   x1: number,
   y1: number,
   x2: number,
-  y2: number
+  y2: number,
+  angle: number
   // left: number,
   // top: number, // x and y equivalent of PointJSON for start (for LineJSON)
   // width: number,
@@ -125,18 +127,24 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     // console.log(s)
     let newS = Object.assign({}, s) as fabricLine
 
-    // x, y coordinates are relative to origin, change to absolute system
-    newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
-    newS.x2 = newS.left + (newS.width/2 + newS.x2)*newS.scaleX
+    newS.height *= newS.scaleY
+    newS.width = newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
+    // black magic...i'm still not sure??? geometry is hard
+    newS.width *= -1
 
-    newS.y1 = newS.top + (newS.height/2 + newS.y1)*newS.scaleY
-    newS.y2 = newS.top + (newS.height/2 + newS.y2)*newS.scaleY
+    // x, y coordinates are relative to origin, change to absolute system
+    newS.x1 = newS.left //+ (newS.width/2 + newS.x1)*newS.scaleX
+    newS.x2 = newS.left + newS.width // + (newS.width/2 + newS.x2)*newS.scaleX
+
+    newS.y1 = newS.top //+ (newS.height/2 + newS.y1)*newS.scaleY
+    newS.y2 = newS.top + newS.height//(newS.height/2 + newS.y2)*newS.scaleY
 
     ret = newS
 
   } else if (s.type == 'spring') {
     let newS = Object.assign({}, s) as fabricSpring
-    // console.log(s)
+    console.log(s)
 
     // x, y coordinates are relative to origin, change to absolute system
     newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
@@ -149,8 +157,9 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
 
     newS.top = newS.y1
     newS.left = newS.x1
-    newS.width = newS.x2 - newS.x1
-    newS.height = newS.y2 - newS.y1
+    newS.height *= newS.scaleY
+    newS.width = -newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
 
     // console.log(newS)
 
@@ -296,13 +305,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     //retStore.addPhysGroup(newGroup, renderer)
   })
 
-  // add in spring groups
 
-  retStore.prog.shapes.forEach(s => {
-    if (s instanceof Spring) {
-      newPhysicsGroups.add(buildSpringGroup(s, retStore))
-    }
-  });
 
   // console.log('before synthesis:')
   // console.log(retStore)
@@ -350,6 +353,13 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // finally, add dragpoint free variables as needed
   let drags = filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
+
+  retStore.prog.shapes.forEach(s => {
+    if (s instanceof Spring) {
+      newPhysicsGroups.add(buildSpringGroup(s, retStore))
+    }
+  });
+
   for (let grp of newPhysicsGroups) {
     for (let dp of drags) {
       let grpVars = grp.frees()
@@ -361,6 +371,9 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     }
     retStore.addPhysGroup(grp, renderer)
   }
+
+  // add in spring groups
+
 
   let ret = new Model(retStore, possibleFrees)
   // console.log('model:')

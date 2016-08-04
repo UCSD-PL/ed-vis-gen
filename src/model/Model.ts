@@ -1,6 +1,6 @@
 import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
 import {Timer} from '../util/Timer'
@@ -60,12 +60,14 @@ export class Store {
   }
 
   public debug() {
-    console.log('pvars:')
-    console.log(this.prims)
+    // console.log('pvars:')
+    // console.log(this.prims)
     console.log('cvars:')
     console.log(this.cvars)
-    console.log('stays:')
-    console.log(this.cstays)
+    // console.log('stays:')
+    // console.log(this.cstays)
+    console.log('equations:')
+    console.log([... map(this.equations, (e => e.toString()))].join('\n'))
   }
 
   // helper: create a stay equation for a cassowary variable
@@ -297,6 +299,17 @@ export class State {
 
   public static empty(): State {
     return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty(), false)
+  }
+
+  public debug() {
+    console.log('program:')
+    this.prog.printShapes()
+    console.log('store:')
+    this.store.debug()
+    console.log('physics:')
+    console.log(this.physicsEngine.timestepDecls.pp())
+    console.log('with free:')
+    console.log([... map(this.physicsEngine.freeVars, v => v.name)].join(','))
   }
 
   // delegate to member instances

@@ -108,3 +108,51 @@ export function evalPhysicsExpr(store: Map<Variable, number>, e: PhysExpr): numb
 
   return ret
 }
+
+export function pp(e: PhysExpr): string {
+  let ret: string
+  if (e instanceof ConstExpr) {
+      ret = e.val.toString()
+    } else if (e instanceof VarExpr) {
+      ret = e.val.name
+    } else if (e instanceof BinOpExpr) {
+      let [l, r] = [pp(e.lhs), pp(e.rhs)]
+      let op: string
+      if (e.op == BOP.Plus) {
+        op = '+'
+      } else if (e.op == BOP.Minus) {
+        op = '-'
+      } else if (e.op == BOP.Times) {
+        op = '*'
+      } else if (e.op == BOP.Div) {
+        op = '/'
+      } else if (e.op == BOP.Mod) {
+        op = '%'
+      } else {
+        console.log('unhandled bop:')
+        console.log(e)
+        assert(false)
+      }
+      ret = l + ' ' + op + ' ' + r
+    } else if (e instanceof UnOpExpr) {
+      let inner = pp(e.inner)
+
+      if (e.op == UOP.Neg) {
+        ret = '-1 * ' + inner
+      } else if (e.op == UOP.Paren) {
+        ret = '(' + inner + ')'
+      } else {
+        console.log('unhandled uop:')
+        console.log(e)
+        assert(false)
+      }
+    } else if (e instanceof FunAppExpr) {
+
+      ret = e.funcName + '(' + e.args.map(e => pp(e)).join(',') + ')'
+    } else {
+      console.log('unhandled physics expr:')
+      console.log(e)
+      assert(false)
+    }
+    return ret
+}

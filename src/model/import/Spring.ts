@@ -1,8 +1,11 @@
 import {SpringGroup} from '../Physics'
-import {Spring} from '../Shapes'
-import {Variable} from '../Variable'
-import {map2Tup, map3Tup, Tup} from '../../util/Util'
-import {State} from '../Model'
+import {Spring, Line} from '../Shapes'
+import {Variable, CassVar} from '../Variable'
+import {map2Tup, map3Tup, Tup, map, uniqify, assert, exists, filter, partSet} from '../../util/Util'
+import {State, Program, Store} from '../Model'
+import {InteractionSynthesis} from '../Synthesis'
+import {Poset} from '../../util/Poset'
+import {TranslationFavored} from '../Ranking'
 
 
 export function buildSpringGroup (s: Spring, state: State): SpringGroup {
@@ -26,8 +29,6 @@ export function buildSpringGroup (s: Spring, state: State): SpringGroup {
     ([name, val]) => state.allocVar(val, name)
   )
 
-  let connectedX: Variable[] = []
-  let connectedY: Variable[] = []
 
   // public coeffFriction: Variable, // coefficient of moving friction
   // public mass: Variable,          // mass
@@ -43,7 +44,30 @@ export function buildSpringGroup (s: Spring, state: State): SpringGroup {
     ([name, val]) => state.allocVar(val, name)
   )
 
+  let eqs = uniqify(new Set(map(state.store.equations, e => e.vars() as Set<CassVar>)))
+  assert(s.dx instanceof CassVar && s.dy instanceof CassVar, 'expected cassowary variables for spring dimensions')
+  assert(s.x instanceof CassVar && s.y instanceof CassVar, 'expected cassowary variables for spring dimensions')
+  let xSeed = new Set<CassVar>().add(s.dx as CassVar) //.add(s.dy as CassVar)
+  let ySeed = new Set<CassVar>().add(s.dy as CassVar)
+  let candXFrees = filter(InteractionSynthesis.validFreeVariables(xSeed, eqs), vs => !vs.has(s.x as CassVar))
+  let candYFrees = filter(InteractionSynthesis.validFreeVariables(ySeed, eqs), vs => !vs.has(s.y as CassVar))
 
+
+  // console.log('candidates for spring:')
+  // console.log(candXFrees)
+  // console.log(candYFrees)
+  // rank the results
+
+  let rankedX = new Poset(map(candXFrees, frees => [frees, state.prog, state.store]), TranslationFavored,
+[new Set<Variable>(), state.prog, state.store])
+  let rankedY = new Poset(map(candYFrees, frees => [frees, state.prog, state.store]), TranslationFavored,
+[new Set<Variable>(), state.prog, state.store])
+
+  let [xs] = rankedX.toArr()[0] as [Set<Variable>, Program, Store]
+  let [ys] = rankedY.toArr()[0] as [Set<Variable>, Program, Store]
+
+  let connectedX: Variable[] = [... xs]
+  let connectedY: Variable[] = [... ys]
 
   return new SpringGroup(
     s.dx, s.dy, {x: ix, y: iy}, initTheta,

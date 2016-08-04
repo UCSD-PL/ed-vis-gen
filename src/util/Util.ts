@@ -181,6 +181,10 @@ export function fold<A, B>(vals: Iterable<A>, f: (old: B, next: A) => B, init: B
   return ret
 }
 
+export function sum(vals: Iterable<number>) {
+  return fold(vals, (sum, nxt) => sum + nxt, 0)
+}
+
 // concat two iterables
 export function* cat<A> (l: Iterable<A>, r: Iterable<A>): Iterable<A> {
   for (let v of l)

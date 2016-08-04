@@ -1,44 +1,43 @@
+function addShape(shape) {
+  var name = allocSName();
+  shape.set('name', name);
+  canvas.add(shape);
+  // object:added isn't firing, so we manually fire an object:modified event
+  canvas.fire('object:modified', {target: shape});
+  updateLog();
+}
+
 //Add line
 function addLine(){
- var name = allocSName();
- var line0 = new fabric.Line([50,100,50,300], {name: name, stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100, lockScalingX: true});
- canvas.add(line0);
- updateLog();
+ var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100});
+ addShape(line0);
 }
 
 //Add triangle
 function addTriangle(){
-  var name = allocSName();
-  var triangle0 = new fabric.Triangle({ name: name, width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true, strokeWidth:0});
-  canvas.add(triangle0);
-  updateLog();
+  var triangle0 = new fabric.Triangle({width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true, strokeWidth:0});
+  addShape(triangle0);
 }
 
 //Add circle
 function addCircle(){
-  var name = allocSName();
-  var circle0 = new fabric.Circle({ name: name, radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
+  var circle0 = new fabric.Circle({radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
   circle0.lockUniScaling = true;
-  canvas.add(circle0);
-  updateLog();
+  addShape(circle0);
 }
 
 //Add rectangle
 function addRectangle(){
-  var name = allocSName();
-  var rectangle0 = new fabric.Rect({ name: name, width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, strokeWidth:0});
-  canvas.add(rectangle0);
-  updateLog();
+  var rectangle0 = new fabric.Rect({width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, strokeWidth:0});
+  addShape(rectangle0);
 }
 
 //Add arrow
 function addArrow(){
-  var name = allocSName();
-  var lineArrow = new fabric.Line([50,160,50,320], { name: name, stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
-  var triangleArrow = new fabric.Triangle({ name: name, width: 30, height:30, fill: 'black', top: 60, left: 100});
-  var arrowGroup = new fabric.Group([lineArrow, triangleArrow], {name: name, type: 'arrow'});
-  canvas.add(arrowGroup);
-  updateLog();
+  var lineArrow = new fabric.Line([50,160,50,320], {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
+  var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 60, left: 100});
+  var arrowGroup = new fabric.Group([lineArrow, triangleArrow], {type: 'arrow'});
+  addShape(arrowGroup);
 }
 
 // toggle snapping on and off
@@ -53,10 +52,8 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var name = allocSName();
-  var spring = new fabric.Spring([50,50,50,250],{name: name, stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
-  canvas.add(spring);
-  updateLog();
+  var spring = new fabric.Spring([50,50,0,250],{stroke:'black',top: 100, left:100, lockSkewingX:true,'physics':'spring'});
+  addShape(spring);
 }
 
 //Add pendulum
@@ -68,14 +65,13 @@ function addPendulum(){
     name: rodname,
     stroke:'cornflowerblue',
     strokeWidth: 2,
-    selectable: true,
+    selectable: false,
     hasControls: false,
     hasBorders: false,
     centeredRotation: false,
     centeredScaling: false,
     selection:true,
     snap: false,
-    name:'rod',
     'physics':'pendulum',
     'item':'rod',
     //originX: 'center',
@@ -91,7 +87,6 @@ function addPendulum(){
     top: 42,
     hasControls: false,
     hasBorders: false,
-    name: 'pivot',
     'physics':'pendulum',
     'item':'pivot',
   });
@@ -105,7 +100,6 @@ function addPendulum(){
     top: 250,
     hasControls: false,
     hasBorders: false,
-    name: 'bob',
     'physics':'pendulum',
     'item':'bob',
 
@@ -113,28 +107,25 @@ function addPendulum(){
 
 
 
+  // TODO: refactor
   canvas.on('object:moving', function (options) {
 
-    var objType = options.target.get('type');
     var p = options.target;
 
-    if (objType == 'rod') {
-        pivot.set({ x1: rod.x1, y1: rod.y1 });
-        bob.set({ left: rod.x2, top: rod.y2 });
+    // if (p === rod ) {
+    //     pivot.set({ x1: rod.x1, y1: rod.y1 });
+    //     bob.set({ left: rod.x2, top: rod.y2 });
+    // }
+    if (p === pivot) {
+      rod.set({
+              x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y
+        });
+    } else if (p === bob) {
+      rod.set({
+          x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y
+      });
     }
-    if (objType == 'circle') {
-        if (p.name == 'pivot') {
-            rod.set({
-                x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y, selectable: true
-            });
-        } else {
-            if (p.name == 'bob') {
-                rod.set({
-                    x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y, selectable: true
-                });
-            }
-        }
-    }
+
     rod.setCoords();
     pivot.setCoords();
     bob.setCoords();
@@ -145,7 +136,10 @@ function addPendulum(){
   canvas.add(rod);
   canvas.add(pivot);
   canvas.add(bob);
+  canvas.fire('object:modified', {target: bob});
+  updateLog();
   canvas.renderAll();
+
 }
 
 
@@ -270,6 +264,7 @@ function EnterURL(){
   if (URL != null){
     fabric.Image.fromURL(URL, function(img){
       canvas.add(img);
+      // TODO
   });}}
 
 // allocator for names

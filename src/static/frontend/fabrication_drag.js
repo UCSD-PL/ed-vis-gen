@@ -338,9 +338,10 @@ canvas.on(
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:moving', function () {
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
+    // window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
+      console.log('added');
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },

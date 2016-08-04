@@ -1,6 +1,6 @@
 import {Program, Store} from './Model'
 import {DragPoint, collectVars, Shape, Spring, Arrow, Rectangle, Image, Circle, Line} from './Shapes'
-import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap, exists, filter, cat} from '../util/Util'
+import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap, exists, filter, cat, assert} from '../util/Util'
 import {Ranker} from '../util/Poset'
 import {Variable} from './Variable'
 import {Eq} from './Expr'
@@ -18,7 +18,7 @@ export function FreeVars([p, s]: Tup<Program, Store>): number {
   }).reduce((sum, next) => sum + next)
 }
 
-export function Invert(rs: ProgRanker): ProgRanker {
+export function Invert<A>(rs: (a:A) => number): (a:A) => number {
   return (a) => -1 * rs(a)
 }
 
@@ -266,26 +266,24 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 }
 
 // heuristic for spring simulation -- every motive that *isn't* a translation is a penalty
-// export function TranslationFavored([p, s]: Tup<Program, Store>): number {
-//   let emp = new Set<Variable>()
-//   let makeVars = (s: Shape) => {
-//     if (! (s instanceof Line)) {
-//       assert('x' in s && 'y' in s, 'expected x and y in shape: ' + s.toString())
-//       return new Set<Variable>().add((s as any).x).add((s as any).y)
-//     } else {
-//       return emp
-//     }
-//   }
-//
-//   let [drags, shapes] = partSet(p.shapes, shp => shp instanceof DragPoint)
-//
-//   let posVars = uniqify(new Set<Set<Variable>>(map(shapes, makeVars)))
-//
-//   let ret = 0
-//   for (let dp of drags) {
-//     let dpFrees = p.allFrees.get(dp as DragPoint)
-//     ret += fold(posVars, (sum, vars) => sum + (subset(vars, dpFrees) ? 1:0), 0)
-//   }
-//
-//
-// }
+export function TranslationPenalty([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
+  let emp = new Set<Variable>()
+  let makeVars = (s: Shape) => {
+    if (! (s instanceof Line)) {
+      assert('x' in s && 'y' in s, 'expected x and y in shape: ' + s.toString())
+      return new Set<Variable>().add((s as any).x).add((s as any).y)
+    } else {
+      return emp
+    }
+  }
+
+  // let [drags, shapes] = partSet(p.shapes, shp => shp instanceof DragPoint)
+
+  let translationFrees = uniqify(new Set<Set<Variable>>(map(map(p.shapes, makeVars), vars => intersect(vars, freeVars))))
+
+  return fold(map(translationFrees, s => s.size), (sum, nxt) => sum + nxt, 0)
+}
+
+export function TranslationFavored([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
+  return Invert(TranslationPenalty)([freeVars, p, s])
+}
