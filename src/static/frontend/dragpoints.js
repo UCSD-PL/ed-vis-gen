@@ -255,7 +255,7 @@
       var drag = this;
       drag.set({
         shape: shape,
-        shapeName: shape.name,
+        shapeName: shape.get('name'),
         X: shape.getLeft(),
         Y: shape.getTop(),
         left: shape.getLeft() + shape.getWidth()*drag.get('DX'),
@@ -272,7 +272,7 @@
         drag.set({
           left: pos.x,
           top: pos.y,
-          angle: shape.angle
+          angle: shape.get('angle')
         });
       }
         if (canvas != null) {

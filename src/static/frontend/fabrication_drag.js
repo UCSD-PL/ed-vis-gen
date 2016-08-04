@@ -12,7 +12,8 @@ arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
 arrayCirc = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
 arrayLine = [[0,0],[0,0.5],[0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
-//arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]];
+arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
+arraySpring = [[0,0],[0,0.5],[0,1]],
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
@@ -21,8 +22,10 @@ simArray = [], // adds a canvas for separate simulations
 lastSim = 0, // last canvas for the drag point selection panel
 currentSim = 0, // current canvas for the drag point selection panel
 selectedSim = 0,
+formerChoice = 0,
 numOfChoices = 8, // # of "choices" for the drag point edit panel, right now a random #
 currentDragPoint,
+originalDragPoint,
 isNew = false,
 //snapColor = "red",
 fabricJSON,
@@ -38,8 +41,8 @@ canvas.fireEventForObjectInsideGroup = true;
 
 canvas.selectable = true;
 // physics.selectable = true;
-physics.selectable = false;
-physics.selection = false;
+//physics.selectable = false;
+//physics.selection = false;
 physics.isDrawingMode = false;
 canvas.counter = 0;
 physics.counter = 0;
@@ -86,7 +89,6 @@ function addDragPoints(obj, dx, dy) {
     });
     drag.startDragPoint(obj, interact);
     interact.add(drag);
-    obj.addDragPointToArray(drag);
 
     drag.on('selected', function() {
       //if a drag point hasn't been clicked before, upon being clicked,
@@ -95,7 +97,7 @@ function addDragPoints(obj, dx, dy) {
         select(this);
       }
       // if it's just on the canvas, do nothing
-      else if (this.get('onCanvas') === true) {}
+      else if (this.get('fill') == 'grey' && this.get('onCanvas') === true) {}
       // undos selection of a drag point if you click it again
       else {
         undoSelect(this);
@@ -114,22 +116,28 @@ function addDragPoints(obj, dx, dy) {
   }
 
 function addAllDP(array, obj) {
-    var dplist = obj.get('dragPoints');
-    if (dplist.length === 0 ) {
+    if (dragPointList.length === 0 ) {
       for (var i = 0; i < array.length; i++) {
         addDragPoints(obj, array[i][0], array[i][1]);
       }}
     else {
       for (var i = 0; i < array.length; i++) {
-        for (var j = 0; j < dplist.length; j++) {
-          if (!checkDragPointLocation(dplist[j], array[i][0], array[i][1])) {
-              addDragPoints(obj, array[i][0], array[i][1]);
-    }}} }
+        for (var j = 0; j < dragPointList.length; j++) {
+            if (!checkDragPointLocation(dragPointList[j], obj, array[i][0], array[i][1])) {
+                addDragPoints(obj, array[i][0], array[i][1]);
+              }
+            else {
+              interact.add(dragPointList[j]);
+              dragPointList[j].set({
+                fill: 'orange'
+              });
+            }
+  }} }
 }
 
 // checks if a drag point is located in a specific part of the shape
-function checkDragPointLocation(dp, dx, dy) {
-  if (dx === dp.get('DX') && dy === dp.get('DY')) {
+function checkDragPointLocation(dp, obj, dx, dy) {
+  if (dp.get('shapeName') === obj.get('name') && dx === dp.get('DX') && dy === dp.get('DY')) {
     return true;
   }
   else {
@@ -149,6 +157,9 @@ function checkForDragPoints(obj, type) {
   if (type === 'line') {
     addAllDP(arrayLine, obj);
   }
+  if (type === 'spring') {
+    addAllDP(arraySpring, obj);
+  }
   /*if (type === 'arrow') {
     addAllDP(arrayArr, obj);
   }*/
@@ -157,9 +168,8 @@ function checkForDragPoints(obj, type) {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
-  oldDragPointList = dragPointList;
-  dragPointList = [];
-  canvasList = [];
+  //oldDragPointList = dragPointList;
+  //dragPointList = [];
   canvas.forEachObject( function (obj) {
     interact.add(obj);
     obj.set({
@@ -182,7 +192,8 @@ function select(dragPoint) {
 function undoSelect(dragPoint) {
   dragPoint.set({
     fill: 'grey',
-    choice: 0
+    choice: formerChoice,
+    onCanvas: false
   });
 
   function checkDP (dp) {
@@ -193,12 +204,6 @@ function undoSelect(dragPoint) {
 
   dragPointList.splice(whereDP, 1);
 
-  currentDragPoint.set({
-    choice: 0
-  });
-
-  //TODO: add in a helper function that removes drag points from their corresponding
-  //shapes drag point list
 
   window.BACKEND.finishEditChoice();
 }
@@ -255,25 +260,38 @@ function onACCEPT() {
 function onLoadSims(dragPoint) {
   // sets up JSON files the simsArray list and loads the current JSON
   sims.clear();
-  currentDragPoint = dragPoint.clone();  //.clone();
+  currentDragPoint = dragPoint;  //.clone();
   currentSim = 0;
-  numOfChoices = 8;
-  currentDragPoint.set({
-    choice: selectedSim,
-    shape: null,
-    shapeName: ''
-  });
-  window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentDragPoint.get('choice'), sims);
+  formerChoice = currentDragPoint.get('choice');
+  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name"));
+  generateSims(currentDragPoint);
+}
+
+function generateSims(currentDP) {
+  if (currentDP.get('onCanvas') != true) {
+    canvas.add(currentDP);
+    obj = currentDP.get('shape');
+    currentDP.startDragPoint(obj);
+    canvas.renderAll();
+    myjson = JSON.stringify(canvas);
+    fabricJSON = transfer();
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
+  }
+    window.BACKEND.drawToEdit(currentDP.get('name'), currentDP.get('choice'), sims);
+    sims.renderAll();
+if (currentDP.get('onCanvas') != true) {
+    canvas.remove(currentDP);
+    canvas.renderAll();
+  }
 }
 
 function onOverlayClosed() {
   // console.log(dragPointList);
   // removes old dragPoints
   var obj;
-  for (var i = 0; i < oldDragPointList.length; i++) {
-    canvas.remove(oldDragPointList[i]);
-  }
-
+  //for (var i = 0; i < oldDragPointList.length; i++) {
+  //  canvas.remove(oldDragPointList[i]);
+  //}
   // makes objects selectable again
   canvas.forEachObject( function (obj) {
     obj.set ({
@@ -341,7 +359,7 @@ canvas.on(
     // window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
-      console.log('added');
+      // console.log('added');
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
