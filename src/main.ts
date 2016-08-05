@@ -97,6 +97,12 @@ export function changeDPChoice(dpName: string, dpChoice: number): DragPoint {
     return null
   }
   assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  if (!initModel.candidateFrees.has(dp as DragPoint)) {
+    console.log('WARNING: dragpoint present but frees not found:')
+    console.log(dp)
+    console.log('frees:')
+    console.log(initModel.candidateFrees)
+  }
   // console.log('frees:')
   // console.log(initModel.candidateFrees)
   // console.log('choices:')
@@ -118,6 +124,12 @@ function getNumChoices(dpName: string): number {
     return null
   }
   assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  if (!initModel.candidateFrees.has(dp as DragPoint)) {
+    console.log('WARNING: dragpoint present but frees not found:')
+    console.log(dp)
+    console.log('frees:')
+    console.log(initModel.candidateFrees)
+  }
   // console.log('frees:')
   // console.log(initModel.candidateFrees)
   // console.log('choices:')

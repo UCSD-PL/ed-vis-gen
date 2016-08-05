@@ -1,7 +1,7 @@
 import {Variable, CassVar} from './Variable'
 import {Program, State} from './Model'
 import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
-import {uniqify, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
+import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
 import {Expr, Eq} from './Expr'
@@ -137,8 +137,11 @@ export class PointGeneration {
     let mr = this.negate(r)
     let ret = new Set<Tup<PExpr, PExpr>>()
     ret.add([x, y])
-       .add([x, this.from(y, r)]).add([x, this.from(y, mr)])
-       .add([this.from(x, r), y]).add([this.from(x, mr), y])
+
+    if (s instanceof Circle) {
+      ret.add([x, this.from(y, r)]).add([x, this.from(y, mr)])
+         .add([this.from(x, r), y]).add([this.from(x, mr), y])
+    }
 
     return ret
   }
@@ -157,7 +160,10 @@ export class PointGeneration {
   }
   public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
     // console.log(p)
-    return flatMap(p.shapes, e => this.shapePoints(e))
+    // console.log('building points: for ' + p.shapes.size.toString() + ' shapes:')
+    let ret = flatMap(p.shapes, e => this.shapePoints(e))
+    // console.log(ret.size.toString() + ' points')
+    return ret
   }
 
   public eval(): Map<Variable, number> {
@@ -172,6 +178,7 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
   let store = state.eval()
   let pointGen = new PointGeneration(store)
   let points = pointGen.makePoints(state.prog)
+  // console.log('finished with points')
 
   let newStore = extendMap(store, pointGen.eval())
   // foreach contact point, there exists another (nonidentical) point with the same
@@ -245,7 +252,13 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
     }
   }
 
-  return uniqify(ret)
+  // console.log('finished adding eqs, building rett from:' + ret.size.toString())
+  let rett = uniqify(ret)
+  // console.log(rett)
+
+  // console.log('finished rett with: ' + rett.size.toString())
+
+  return rett
 }
 
 // starting from a seed set of source variables:
@@ -305,12 +318,13 @@ export namespace InteractionSynthesis {
     // console.log(initColor)
     candColorings.add(initColor)
 
+    let total = 0
+    let duplicates = 0
+
     while (candColorings.size != 0) {
       let nextSeed: Coloring = candColorings.entries().next().value[0]
       // console.log('candidates:')
       // console.log(candColorings)
-      // console.log('next seed:')
-      // console.log(nextSeed)
       candColorings.delete(nextSeed)
       // console.log('next:')
       // console.log(nextSeed)
@@ -327,9 +341,20 @@ export namespace InteractionSynthesis {
         let nextColorings: Set<Tup<Set<CassVar>, Full>> = new Set<Tup<Set<CassVar>, Full>>()
         for (let [vals, color] of nextSeed) {
           if (color instanceof Half) {
-            let newColors = [... filter(vals, v => v != color.src)].map(v => [vals, new Full(color.src, v)] as Tup<Set<CassVar>, Full>)
-            for (let v of newColors)
-              nextColorings.add(v)
+            // let newColors = map(
+            //   filter(vals, v => v != color.src),
+            //   v => [vals, new Full(color.src, v)] as Tup<Set<CassVar>, Full>
+            // )
+            // for (let v of newColors) {
+            //   // if (nextColorings)
+            //   nextColorings.add(v)
+            // }
+
+            for (let v of vals) {
+              if (v != color.src) {
+                nextColorings.add([vals, new Full(color.src, v)])
+              }
+            }
           }
         }
 
@@ -342,10 +367,13 @@ export namespace InteractionSynthesis {
         //          has one Source + Sink
 
         let newCands = filter(nextColorings, ([eq, color]) => {
-          let otherEqs = partMap(nextSeed, ([e, _]) => e != eq)[0]
+          // let otherEqs = partMap(nextSeed, ([e, _]) => e != eq)[0]
           // console.log('other eqs:')
           // console.log(otherEqs)
-          return forall(otherEqs, ([otherEq, otherColor]) => {
+          return forall(nextSeed, ([otherEq, otherColor]) => {
+            if (otherEq == eq) {
+              return true // restrict filter to other equations
+            }
             if (otherColor === Empty) {
               return true
             } else if (otherColor instanceof Half) {
@@ -365,25 +393,45 @@ export namespace InteractionSynthesis {
             //       ** color the candidate as a Sink in the other equations
 
         for (let [newEq, candColor] of newCands) {
-          let newColoring = partMap(nextSeed, kv => true)[0] // copy the coloring
-          newColoring.set(newEq, candColor)
-          newColoring.forEach((newColor, eqs) => {
-            if (eqs != newEq) {
-              if (newColor === Empty && eqs.has(candColor.snk)){
-                newColoring.set(eqs, new Half(candColor.snk))
+          // let newColoring = partMap(nextSeed, kv => true)[0] // copy the coloring
+          // newColoring.set(newEq, candColor)
+          let newColoring = new Map<Set<CassVar>, Color>()
+          for (let [oldEq, oldColor] of nextSeed) {
+            if (oldEq !== newEq) {
+              if (oldColor === Empty && oldEq.has(candColor.snk)) {
+                newColoring.set(oldEq, new Half(candColor.snk))
               } else {
-                // do nothing
+                newColoring.set(oldEq, oldColor)
               }
+            } else {
+              newColoring.set(newEq, candColor)
             }
-          })
-          // console.log('adding coloring to worklist:')
-          // console.log(newColoring)
-          candColorings.add(newColoring)
+          }
+
+          // newColoring.forEach((newColor, eqs) => {
+          //   if (eqs != newEq) {
+          //     if (newColor === Empty && eqs.has(candColor.snk)){
+          //       newColoring.set(eqs, new Half(candColor.snk))
+          //     } else {
+          //       // do nothing
+          //     }
+          //   }
+          // })
+          // if (! exists(candColorings, v => v == newColoring)) {
+            // console.log('adding coloring to worklist:')
+            // console.log(newColoring)
+            candColorings.add(newColoring)
+          // } else {
+          //   duplicates++
+          // }
+          // total++
         }
 
       }
 
     }
+
+    // console.log('took ' + total.toString() + 'attempts, with ' + duplicates.toString() + ' duplicates.')
 
     let ret = new Set<Set<CassVar>>()
     // console.log('resulting colorings:')

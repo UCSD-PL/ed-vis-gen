@@ -109,6 +109,8 @@ export class Expr {
 
   }
 
+
+
 }
 
 // Equations over linear expressions with a conversion to cassowary equations
@@ -135,3 +137,8 @@ export class Eq {
     return this.contains([dp.x, dp.y]) && this.contains(collectVars(s))
   }
 }
+
+// replace all instances of from in e with to
+// function subst(from: Variable, to: Variable, e: Expr): Expr {
+//
+// }

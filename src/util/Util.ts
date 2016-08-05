@@ -49,6 +49,17 @@ export function uniqify<T>(multi: Set<Set<T>>) : Set<Set<T>> {
   return ret
 }
 
+export function* uniq<T>(elems: Iterable<T>): Iterable<T> {
+  let seen = new Set<T>()
+  for (let e of elems) {
+    if (!(seen.has(e) || exists(seen, v => v == e))) {
+      seen.add(e)
+      yield e
+    }
+  }
+}
+
+
 // intersect two sets together and returns the result
 export function intersect<T>(l: Set<T>, r: Set<T>): Set<T> {
   let ret = new Set<T>()
