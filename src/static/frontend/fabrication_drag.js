@@ -96,6 +96,11 @@ function addDragPoints(obj, dx, dy) {
       if (this.get('fill') == 'grey' && this.get('onCanvas') != true) {
         select(this);
       }
+      // if it's on the canvas, but you're on the dp selection panel, remove it
+      else if (this.get('fill') == 'orange' && this.get('onCanvas') === true) {
+        undoSelect(this);
+        canvas.remove(this);
+      }
       // if it's just on the canvas, do nothing
       else if (this.get('fill') == 'grey' && this.get('onCanvas') === true) {}
       // undos selection of a drag point if you click it again
@@ -107,7 +112,7 @@ function addDragPoints(obj, dx, dy) {
     drag.on('mousedown', function (options) {
       if (options.e.which === 3) {
           console.log('BETTER BE RIGHT CLICKING');
-          if (drag.get('fill') == 'grey' && drag.get('onCanvas') != true) {
+          if (this.get('fill') == 'grey' && this.get('onCanvas') != true) {
               select(drag);
           }
           open1();
@@ -171,13 +176,15 @@ function candidatePoints() {
   //oldDragPointList = dragPointList;
   //dragPointList = [];
   canvas.forEachObject( function (obj) {
-    interact.add(obj);
-    obj.set({
-      selectable: false
-    });
-    checkForDragPoints(obj, obj.get('type'));
-    interact.renderAll();
+    if (obj.get('type') != 'dragPoint') {
+      interact.add(obj);
+      obj.set({
+        selectable: false
+      });
+      checkForDragPoints(obj, obj.get('type'));
+    }
   });
+  interact.renderAll();
 }
 
 // selects drag point and adds it to the drag point list
