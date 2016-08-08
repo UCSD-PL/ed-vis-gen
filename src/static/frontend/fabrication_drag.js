@@ -38,6 +38,7 @@ var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
 canvas.fireEventForObjectInsideGroup = false;
+interact.fireEventForObjectInsideGroup = false;
 
 canvas.selectable = true;
 // physics.selectable = true;
@@ -150,8 +151,21 @@ function checkDragPointLocation(dp, obj, dx, dy) {
   }
 }
 
+// checks if an object is in a group
+function inGroup(obj, canvas) {
+  canvas.forEachObject(function(o) {
+    if (o.get('type') === 'group') {
+      if (o.contains(obj)) {
+        return true;
+      }
+    }
+  });
+  return false;
+}
+
 // checks if a particular drag point is already located on shape
 function checkForDragPoints(obj, type) {
+  if (type === 'group') {}
 
   if (type === 'rect') {
     addAllDP(arrayRect, obj);
@@ -318,6 +332,8 @@ function onOverlayClosed() {
   console.log(state[current]);
 
   canvas.renderAll();
+  updateModifications(true);
+  window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 
 
