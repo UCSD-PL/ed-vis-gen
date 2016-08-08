@@ -1,7 +1,7 @@
 import {Variable, CassVar} from './Variable'
 import {Program, State} from './Model'
 import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
-import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
+import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup, union} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
 import {Expr, Eq} from './Expr'
@@ -201,53 +201,25 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
     // typescript needs if-let -.-
     if (overlapped) {
 
-      // console.log('overlap between:')
-      // console.log(point)
-      // console.log(overlapped)
-      // console.log('adding point variables')
-      point.concat(overlapped).filter(([v, e]) => !e.isEqual(v)).forEach(([v, e]) => {
-        state.store.addCVar(v)
-        ret.add(e.vars().add(v)) // v = e
-        // console.log('adding eq:')
-        // console.log(v.name + " = " + e.toString())
-        let eq = new Eq(Expr.fromVar(v), e)
-        state.store.addEq(eq, Strength.strong)
-      })
+      // TODO: i don't use the LHS variables, rewrite
+      let [[x1v, x1e], [y1v, y1e]] = point
+      let [[x2v, x2e], [y2v, y2e]] = overlapped
 
-      store = state.eval()
+      let ex = new Eq(x1e, x2e)
+      let ey = new Eq(y1e, y2e)
+      state.store.addEq(ex, Strength.strong)
+      state.store.addEq(ey, Strength.strong)
 
+      let newXs = union(x1e.vars(), x2e.vars())
+      let newYs = union(y1e.vars(), y2e.vars())
 
-      let [[x1v], [y1v]] = point
-      let [[x2v], [y2v]] = overlapped
-      let [x1ve, y1ve] = map2Tup([x1v, y1v], v => Expr.fromVar(v))
-      let [x2ve, y2ve] = map2Tup([x2v, y2v], v => Expr.fromVar(v))
+      ret.add(newXs)
+      ret.add(newYs)
 
-      // console.log('hit: ')
-      // console.log([x1v, y1v].map(v => store.get(v)))
-      // console.log([x2v, y2v].map(v => store.get(v)))
-      // console.log([x1v, y1v].map(v => newStore.get(v)))
-      // console.log([x2v, y2v].map(v => newStore.get(v)))
+      for (let newVar of union(newXs, newYs)) {
+        state.store.addCVar(newVar)
+      }
 
-      // console.log('adding contact equations')
-      // console.log(point[0][1].toString())
-      // console.log(' == ')
-      // console.log(overlapped[0][1].toString())
-      // console.log(point[1][1].toString())
-      // console.log(' == ')
-      // console.log(overlapped[1][1].toString())
-      // console.log('adding point equations:')
-      // console.log(x1v.name + " = " + x2v.name)
-      // console.log(y1v.name + " = " + y2v.name)
-      state.store.addEq(new Eq(x1ve, x2ve), Strength.strong)
-      state.store.addEq(new Eq(y1ve, y2ve), Strength.strong)
-
-      // x1 = x2
-      // y1 = y2
-      ret.add((new Set<CassVar>()).add(x1v).add(x2v))
-      ret.add((new Set<CassVar>()).add(y1v).add(y2v))
-
-      // console.log('adding:')
-      // console.log(point)
       added.add(point)
     }
   }
