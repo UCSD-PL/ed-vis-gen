@@ -248,6 +248,16 @@
       });
     },
 
+    updateDragPointByName: function(canvas) {
+      var drag = this,
+      shapeName = drag.shapeName;
+      canvas.forEachObject(function (obj) {
+        if (obj.name == shapeName) {
+          drag.updateDragPoint(obj, canvas);
+          return;
+        }});
+    },
+
     /**
     * updates the coordinates of a specific drag point
     * @return */
