@@ -11316,6 +11316,20 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
      */
      name:                    'name',
 
+     /**
+     * Identifies if an object is part of a physics group
+     * @type String
+     * @default
+     */
+     physics:                 '',
+
+     /**
+     * Identifies the object's own component within a physics group
+     * @type String
+     * @default
+     */
+     item:                    '',
+
     /**
      * Type of an object (rect, circle, path, etc.).
      * Note that this property is meant to be read-only and not meant to be modified.
@@ -11889,6 +11903,8 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
           object = {
             name:                     this.name,
             type:                     this.type,
+            physics:                  this.physics,
+            item:                     this.item,
             originX:                  this.originX,
             originY:                  this.originY,
             left:                     toFixed(this.left, NUM_FRACTION_DIGITS),

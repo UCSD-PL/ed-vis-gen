@@ -72,8 +72,8 @@ function addPendulum(){
     centeredScaling: false,
     selection:true,
     snap: false,
-    'physics':'pendulum',
-    'item':'rod',
+    physics:'pendulum',
+    item:'rod',
     //originX: 'center',
     //originY: 'center'
   });
@@ -87,8 +87,8 @@ function addPendulum(){
     top: 42,
     hasControls: false,
     hasBorders: false,
-    'physics':'pendulum',
-    'item':'pivot',
+    physics:'pendulum',
+    item:'pivot',
   });
 
   var bobname = allocSName();
@@ -100,8 +100,8 @@ function addPendulum(){
     top: 250,
     hasControls: false,
     hasBorders: false,
-    'physics':'pendulum',
-    'item':'bob',
+    physics:'pendulum',
+    item:'bob',
 
   });
 

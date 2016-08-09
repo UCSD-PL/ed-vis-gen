@@ -12,8 +12,11 @@ arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
 arrayCirc = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
 arrayLine = [[0,0],[0,0.5],[0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
-//arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
-//arraySpring = [[0,0],[0,0.5],[0,1]],
+arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
+arraySpring = [[0,0],[0,0.5],[0,1]],
+arrayBob = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
+arrayRod = [[0,0],[0,0.5],[0,1]],
+arrayPiv = [[0.5,0.5]],
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
@@ -27,6 +30,7 @@ numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint,
 originalDragPoint,
 isNew = false,
+dragPointColor = "grey",
 //snapColor = "red",
 fabricJSON,
 objectlist = [],
@@ -37,8 +41,8 @@ current = 0;
 var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
-canvas.fireEventForObjectInsideGroup = false;
-interact.fireEventForObjectInsideGroup = false;
+canvas.fireEventForObjectInsideGroup = true;
+interact.fireEventForObjectInsideGroup = true;
 
 canvas.selectable = true;
 // physics.selectable = true;
@@ -165,7 +169,20 @@ function inGroup(obj, canvas) {
 
 // checks if a particular drag point is already located on shape
 function checkForDragPoints(obj, type) {
-  if (type === 'group') {}
+  if (obj.get('physics') === 'pendulum') {
+    if (obj.get('item') === 'rod') {
+      addAllDP(arrayRod, obj);
+    }
+    if (obj.get('item') === 'bob') {
+      addAllDP(arrayBob, obj);
+    }
+    if (obj.get('item') === 'pivot') {
+      addAllDP(arrayPiv, obj);
+    }
+  }
+
+  if (type === 'arrow') {
+  }
 
   if (type === 'rect') {
     addAllDP(arrayRect, obj);
@@ -184,6 +201,12 @@ function checkForDragPoints(obj, type) {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
+  dragPointList = [];
+  canvas.forEachObject( function (o) {
+    if (o.get('type') == 'dragPoint') {
+      dragPointList.push(o);
+    }
+  });
   //oldDragPointList = dragPointList;
   //dragPointList = [];
   canvas.forEachObject( function (obj) {
@@ -344,12 +367,18 @@ function removeAllDragPoints(canvas) {
 
 //
 function onUndoRedo() {
+  dragPointList = [];
+  canvas.forEachObject( function(o) {
+    if (o.get('type') == 'dragPoint') {
+      dragPointList.push(o);
+    }});
   removeAllDragPoints(canvas);
   // adds drag points back to the canvas
   for (var i = 0; i < dragPointList.length; i++) {
     canvas.add(dragPointList[i]);
     dragPointList[i].startDragPointByName(canvas);
   }
+  canvas.renderAll();
 }
 
 canvas.on(
@@ -387,8 +416,8 @@ undo = function undo() {
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current - 1]);
         mods += 1;
-        onUndoRedo();
         canvas.renderAll();
+        onUndoRedo();
     }
 }
 
@@ -398,8 +427,8 @@ redo = function redo() {
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current + 1]);
         mods -= 1;
-        onUndoRedo();
         canvas.renderAll();
+        onUndoRedo();
     }
 }
 
