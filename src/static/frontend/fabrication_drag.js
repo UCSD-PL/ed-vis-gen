@@ -258,7 +258,6 @@ function onLeft() {
   currentDragPoint.set({
     choice: currentSim
   });
-  //sims.loadFromJSON(simsArray[currentSim]);
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
@@ -329,51 +328,34 @@ function onOverlayClosed() {
       obj = dragPointList[i].get('shape');
       dragPointList[i].startDragPoint(obj);
     }
-  console.log(state[current]);
+  //console.log(state[current]);
 
   canvas.renderAll();
   updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 
+function removeAllDragPoints(canvas) {
+  canvas.forEachObject( function(o) {
+    if (o.get('type') == 'dragPoint') {
+        canvas.remove(o);
+    }});
+  }
 
 //
 function onUndoRedo() {
-  // adds drag points to the canvas and attaches them to shapes
+  removeAllDragPoints(canvas);
+  // adds drag points back to the canvas
   for (var i = 0; i < dragPointList.length; i++) {
-      dragPointList[i].updateDragPointByName(canvas);
-    }
+    canvas.add(dragPointList[i]);
+    dragPointList[i].startDragPointByName(canvas);
+  }
 }
-
-/*
-function onUndoRedo() {
-  var obj;
-  var newList;
-  for (var i = 0; i < dragPointList.length; i++) {
-    canvas.remove(dragPointList[i]);
-  }
-  // adds drag points to the canvas and attaches them to shapes
-  for (var i = 0; i < dragPointList.length; i++) {
-      // console.log("the drag point should have been added!");
-      dragPointList[i].set({
-        fill: 'grey',
-        onCanvas: true
-      });
-      obj = dragPointList[i].get('shape');
-      dragPointList[i].unfollowShape(obj);
-      dragPointList[i].startDragPoint(obj);
-      canvas.add(dragPointList[i]);
-  }
-  canvas.renderAll();
-}*/
 
 canvas.on(
     'object:modified', function () {
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'object:moving', function () {
-    // window.BACKEND.drawToPhysics(fabricJSON, physics);
 },
     'object:added', function () {
       // console.log('added');
@@ -405,7 +387,7 @@ undo = function undo() {
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current - 1]);
         mods += 1;
-        //onUndoRedo();
+        onUndoRedo();
         canvas.renderAll();
     }
 }
@@ -416,7 +398,7 @@ redo = function redo() {
         current = state.length - mods - 1;
         canvas.loadFromJSON(state[current + 1]);
         mods -= 1;
-        //onUndoRedo();
+        onUndoRedo();
         canvas.renderAll();
     }
 }

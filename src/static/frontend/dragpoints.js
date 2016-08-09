@@ -192,6 +192,16 @@
         } } );}*/
     },
 
+    startDragPointByName: function(canvas) {
+      var drag = this,
+      shapeName = drag.shapeName;
+      canvas.forEachObject(function (obj) {
+        if (obj.name == shapeName) {
+          drag.startDragPoint(obj, canvas);
+          return;
+        }});
+    },
+
     /**
     * makes a dragpoint follow given shape
     * @return */
