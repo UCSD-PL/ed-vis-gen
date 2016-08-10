@@ -213,8 +213,8 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
       let imgCache: Map<string, HTMLImageElement> = (window as any).BACKEND.IMAGES
       let newImg: HTMLImageElement
       // if present, use cache's version
-      if (imgCache.has(newS.name)) {
-        newImg = imgCache.get(newS.name)
+      if (imgCache.has(newS.src)) {
+        newImg = imgCache.get(newS.src)
       } else {
         // otherwise, make a new entry and add to cache
         newImg = document.createElement('img')
@@ -222,7 +222,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
         newImg.id = newS.name
         newImg.style.display = 'none'
         document.head.appendChild(newImg)
-        imgCache.set(newS.name, newImg)
+        imgCache.set(newS.src, newImg)
       }
 
       // finally, create an Image for it
