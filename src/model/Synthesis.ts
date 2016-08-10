@@ -161,7 +161,11 @@ export class PointGeneration {
   public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
     // console.log(p)
     // console.log('building points: for ' + p.shapes.size.toString() + ' shapes:')
-    let ret = flatMap(p.shapes, e => this.shapePoints(e))
+    let ret = new Set<Tup<PExpr, PExpr>>()
+    // let ret = flatMap(p.shapes, e => this.shapePoints(e))
+    for (let shape of p.shapes) {
+      ret = union(ret, this.shapePoints(shape))
+    }
     // console.log(ret.size.toString() + ' points')
     return ret
   }
@@ -173,7 +177,7 @@ export class PointGeneration {
 
 // given a state, add in equations enforcing adjacent shapes to the state's store.
 // modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
-export function constrainAdjacent(state: State): Set<Set<CassVar>> {
+export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<CassVar>>] {
 
   let store = state.eval()
   let pointGen = new PointGeneration(store)
@@ -194,7 +198,7 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
 
     return seedX !== testX && seedY !== testY && overlap(lp, rp, 9) && !added.has(test)
   }
-  let ret = new Set<Set<CassVar>>()
+  let [retX, retY] = [new Set<Set<CassVar>>(), new Set<Set<CassVar>>()]
 
   for (let point of points) {
     let overlapped = find(points, finder(point))
@@ -213,8 +217,8 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
       let newXs = union(x1e.vars(), x2e.vars())
       let newYs = union(y1e.vars(), y2e.vars())
 
-      ret.add(newXs)
-      ret.add(newYs)
+      retX.add(newXs)
+      retY.add(newYs)
 
       for (let newVar of union(newXs, newYs)) {
         state.store.addCVar(newVar)
@@ -225,12 +229,12 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
   }
 
   // console.log('finished adding eqs, building rett from:' + ret.size.toString())
-  let rett = uniqify(ret)
+  // let rett = uniqify(ret)
   // console.log(rett)
 
   // console.log('finished rett with: ' + rett.size.toString())
 
-  return rett
+  return [retX, retY]
 }
 
 // starting from a seed set of source variables:
@@ -262,20 +266,12 @@ export namespace InteractionSynthesis {
   // eqVars: sets of constraint variables. each set corresponds to the variables
   //         in a constraint equation: X + Y = 2 * Z => {X, Y, Z}
   // returns: all sets of valid free variables.
-  export function validFreeVariables(inputs: Set<CassVar>, eqVars: Set<Set<CassVar>>): Set<Set<CassVar>> {
 
+  // for optimization purposes, we split the sucker up into a bunch of helper functions.
 
-    // degenerate case? TODO
-    let degenerate = exists(eqVars, e => intersect(inputs, e).size >= 2)
-
-    if (degenerate) {
-      console.log('degenerate input to free vars:')
-      console.log(inputs)
-      console.log(eqVars)
-      assert(false)
-    }
-
-    let initColor: Coloring = toMap([... eqVars].map(e => {
+  // first, build an initial coloring from a set of equations.
+  function buildColoring(inputs: Set<CassVar>, eqs: Set<Set<CassVar>>): Coloring {
+    return toMap([... eqs].map(e => {
       let v = find(inputs, v => e.has(v))
       if (v) {
         return [e, new Half(v)] as [Set<CassVar>, Color]
@@ -283,7 +279,22 @@ export namespace InteractionSynthesis {
         return [e, Empty] as [Set<CassVar>, Color]
       }
     }))
+  }
 
+  export function validFreeVariables(inputs: Set<CassVar>, eqVars: Set<Set<CassVar>>): Set<Set<CassVar>> {
+
+
+    // degenerate case? TODO
+    // let degenerate = exists(eqVars, e => intersect(inputs, e).size >= 2)
+    //
+    // if (degenerate) {
+    //   console.log('degenerate input to free vars:')
+    //   console.log(inputs)
+    //   console.log(eqVars)
+    //   assert(false)
+    // }
+
+    let initColor: Coloring = buildColoring(inputs, eqVars)
     let candColorings = new Set<Coloring>()
     let finishedColorings = new Set<Coloring>()
     // console.log('initial coloring:')
@@ -420,7 +431,7 @@ export namespace InteractionSynthesis {
         } else {
           // oboy
           console.log(finishedColorings)
-          assert(false, 'half coloring in finished colorings')
+          // assert(false, 'half coloring in finished colorings')
         }
       }
 

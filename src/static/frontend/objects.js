@@ -263,8 +263,7 @@ function EnterURL(){
   var URL = prompt("Please enter the URL of image");
   if (URL != null){
     fabric.Image.fromURL(URL, function(img){
-      canvas.add(img);
-      // TODO
+      addShape(img);
   });}}
 
 // allocator for names
