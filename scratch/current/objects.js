@@ -47,7 +47,7 @@ function addPendulum(){
 
 //Add Spring
 function addSpring(){
-  var spring = new fabric.Spring([50,50,0,250],{stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
+  var spring = new fabric.Spring({ width: 30, height: 200, stroke:'black', top:100, left:100, 'physics':'spring'});
   canvas.add(spring);
   updateLog();
 
