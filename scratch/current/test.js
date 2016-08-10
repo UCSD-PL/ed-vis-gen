@@ -4,26 +4,26 @@
 
   var fabric = global.fabric || (global.fabric = { });
 
-  if (fabric.Spring) {
-    fabric.warn('fabric.Spring is already defined');
+  if (fabric.Triangle) {
+    fabric.warn('fabric.Triangle is already defined');
     return;
   }
 
   /**
-   * Spring class
-   * @class fabric.Spring
+   * Triangle class
+   * @class fabric.Triangle
    * @extends fabric.Object
-   * @return {fabric.Spring} thisArg
-   * @see {@link fabric.Spring#initialize} for constructor definition
+   * @return {fabric.Triangle} thisArg
+   * @see {@link fabric.Triangle#initialize} for constructor definition
    */
-  fabric.Spring = fabric.util.createClass(fabric.Object, /** @lends fabric.Spring.prototype */ {
+  fabric.Triangle = fabric.util.createClass(fabric.Object, /** @lends fabric.Triangle.prototype */ {
 
     /**
      * Type of an object
      * @type String
      * @default
      */
-    type: 'spring',
+    type: 'triangle',
 
     /**
      * Constructor
@@ -72,7 +72,7 @@
 
       ctx.strokeStyle = this.stroke || ctx.fillStyle;
       this.stroke && this._renderStroke(ctx);
-
+      
 
     },
 
@@ -117,14 +117,14 @@
   });
 
   /**
-   * Returns fabric.Spring instance from an object representation
+   * Returns fabric.Triangle instance from an object representation
    * @static
-   * @memberOf fabric.Spring
+   * @memberOf fabric.Triangle
    * @param {Object} object Object to create an instance from
-   * @return {Object} instance of Canvas.Spring
+   * @return {Object} instance of Canvas.Triangle
    */
-  fabric.Spring.fromObject = function(object) {
-    return new fabric.Spring(object);
+  fabric.Triangle.fromObject = function(object) {
+    return new fabric.Triangle(object);
   };
 
 })(typeof exports !== 'undefined' ? exports : this);
