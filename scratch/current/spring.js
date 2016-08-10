@@ -1,17 +1,21 @@
+
+
+
+
+
+
+
+
 (function(global) {
-
   'use strict';
-
   var fabric = global.fabric || (global.fabric = { }),
       extend = fabric.util.object.extend,
       coordProps = { x: 1, dx: 1, y: 1, dy: 1 },
       supportsLineDash = fabric.StaticCanvas.supports('setLineDash');
-
   if (fabric.Spring) {
     fabric.warn('fabric.Spring is already defined');
     return;
   }
-
   /**
    * Spring class
    * @class fabric.Spring
@@ -19,42 +23,36 @@
    * @see {@link fabric.Spring#initialize} for constructor definition
    */
   fabric.Spring = fabric.util.createClass(fabric.Object, /** @lends fabric.Spring.prototype */ {
-
     /**
      * Type of an object
      * @type String
      * @default
      */
-    type: 'Spring',
-
+    type: 'spring',
     /**
      * x value or first Spring edge
      * @type Number
      * @default
      */
     x: 0,
-
     /**
      * y value or first Spring edge
      * @type Number
      * @default
      */
     y: 0,
-
     /**
      * x value or second Spring edge
      * @type Number
      * @default
      */
     dx: 0,
-
     /**
      * y value or second Spring edge
      * @type Number
      * @default
      */
     dy: 0,
-
     /**
      * Constructor
      * @param {Array} [points] Array of points
@@ -63,13 +61,10 @@
      */
     initialize: function(points, options) {
       options = options || { };
-
       if (!points) {
         points = [0, 0, 0, 0];
       }
-
       this.callSuper('initialize', options);
-
       this.set('x', points[0]);
       this.set('x1', points[0]);
       this.set('y', points[1]);
@@ -78,21 +73,19 @@
       this.set('dy', points[3]);
       this.set('x2', points[0]+points[2]);
       this.set('y2', points[1]+points[3]);
-
+      this.set('xleft', this.x-10);
+      this.set('xright', this.x+10);
       this._setWidthHeight(options);
     },
-
     /**
      * @private
      * @param {Object} [options] Options
      */
     _setWidthHeight: function(options) {
       options || (options = { });
-
-      this.width = Math.abs(this.x2- this.x1);
+      this.width = Math.abs(20);
       this.height = Math.abs(this.y2- this.y1);
-
-      this.left = 'left' in options
+      this.left = ('left' in options)-10
         ? options.left
         : this._getLeftToOriginX();
 
@@ -100,7 +93,6 @@
         ? options.top
         : this._getTopToOriginY();
     },
-
     /**
      * @private
      * @param {String} key
@@ -113,7 +105,6 @@
       }
       return this;
     },
-
     /**
      * @private
      * @return {Number} leftToOriginX Distance from left edge of canvas to originX of Spring.
@@ -121,8 +112,8 @@
     _getLeftToOriginX: makeEdgeToOriginGetter(
       { // property names
         origin: 'originX',
-        axis1: 'x1',
-        axis2: 'x2',
+        axis1: 'xleft',
+        axis2: 'xright',
         dimension: 'width'
       },
       { // possible values of origin
@@ -131,7 +122,6 @@
         farthest: 'right'
       }
     ),
-
     /**
      * @private
      * @return {Number} topToOriginY Distance from top edge of canvas to originY of Spring.
@@ -149,14 +139,12 @@
         farthest: 'bottom'
       }
     ),
-
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
      */
     _render: function(ctx, noTransform) {
       ctx.beginPath();
-
       if (noTransform) {
         //  Spring coords are distances from left-top of canvas to origin of Spring.
         //  To render Spring in a path-group, we need to translate them to
@@ -167,7 +155,6 @@
           cp.y - this.strokeWidth / 2
         );
       }
-
       if (!this.strokeDashArray || this.strokeDashArray && supportsSpringDash) {
         // move from center (of virtual box) to its left/top corner
         // we can't assume x1, y1 is top left and x2, y2 is bottom right
@@ -189,22 +176,16 @@
         var theta = Math.atan2(dy,dx);
         var dx2 = dist * Math.cos(theta);
         var dy2 = dist * Math.sin(theta);
-
-
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x+dx2, y+dy2);
+        ctx.moveTo(0, (-y1/2));
+        ctx.lineTo(0+dx2, (-y1/2)+dy2);
         for (let i = 100; i < iMAX - 100; ++i){
-          var p1 = x + i * (dx - dx2) / iMAX + A * Math.sin(tau * i + offset);
-          var q1 = y + i * (dy - dy2) / iMAX + A * Math.cos(tau * i + offset);
+          var p1 = 9 + i * (dx - dx2) / iMAX + A * Math.sin(tau * i + offset);
+          var q1 = (-y1/2) + i * (dy - dy2) / iMAX + A * Math.cos(tau * i + offset);
           ctx.lineTo(p1, q1 + deltay);
         }
-
-
-        ctx.lineTo(x+dx, y+dy);
+        ctx.lineTo(0, y1/2);
       }
-
       ctx.lineWidth = this.strokeWidth;
-
       // TODO: test this
       // make sure setting "fill" changes color of a Spring
       // (by copying fillStyle to strokeStyle, since Spring is stroked, not filled)
@@ -213,13 +194,10 @@
       this.stroke && this._renderStroke(ctx);
       ctx.strokeStyle = origStrokeStyle;
     },
-
     /**
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
      */
-
-
     /**
      * Returns object representation of an instance
      * @methd toObject
@@ -229,7 +207,6 @@
     toObject: function(propertiesToInclude) {
       return extend(this.callSuper('toObject', propertiesToInclude), this.calcLinePoints());
     },
-
     /**
      * Recalculates Spring points given width and height
      * @private
@@ -237,7 +214,6 @@
     calcLinePoints: function() {
       var xMult = this.x1 <= (this.x2) ? -1 : 1,
           yMult = this.y1 <= (this.y2) ? -1 : 1,
-
           x1 = (xMult * this.width * 0.5),
           y1 = (yMult * this.height * 0.5),
           x2 = (xMult * this.width * -0.5),
@@ -246,7 +222,6 @@
           y = y1,
           dx = this.dx,
           dy= this.dy;
-
       return {
         x: x,
         y: y,
@@ -258,7 +233,6 @@
         dy: dy
       };
     },
-
     /* _TO_SVG_START_ */
     /**
      * Returns SVG representation of an instance
@@ -268,7 +242,6 @@
     toSVG: function(reviver) {
       var markup = this._createBaseSVGMarkup(),
           p = { x: this.x, y: this.y, dy: this.dx, dy: this.dy, x1:this.x1, x2:this.x2, y1:this.y1, y2:this.y2 };
-
       if (!(this.group && this.group.type === 'path-group')) {
         p = this.calcLinePoints();
       }
@@ -283,11 +256,9 @@
           this.getSvgTransformMatrix(),
         '"/>\n'
       );
-
       return reviver ? reviver(markup.join('')) : markup.join('');
     },
     /* _TO_SVG_END_ */
-
     /**
      * Returns complexity of an instance
      * @return {Number} complexity
@@ -296,7 +267,6 @@
       return 1;
     }
   });
-
   /* _FROM_SVG_START_ */
   /**
    * List of attribute names to account for when parsing SVG element (used by {@link fabric.Spring.fromElement})
@@ -305,7 +275,6 @@
    * @see http://www.w3.org/TR/SVG/shapes.html#SpringElement
    */
   fabric.Spring.ATTRIBUTE_NAMES = fabric.SHARED_ATTRIBUTES.concat('x y dx dy'.split(' '));
-
   /**
    * Returns fabric.Spring instance from an SVG element
    * @static
@@ -325,7 +294,6 @@
     return new fabric.Spring(points, extend(parsedAttributes, options));
   };
   /* _FROM_SVG_END_ */
-
   /**
    * Returns fabric.Spring instance from an object representation
    * @static
@@ -337,7 +305,6 @@
     var points = [object.x, object.y, object.dx, object.dy];
     return new fabric.Spring(points, object);
   };
-
   /**
    * Produces a function that calculates distance from canvas edge to Spring origin.
    */
@@ -349,7 +316,6 @@
         nearest = originValues.nearest,
         center = originValues.center,
         farthest = originValues.farthest;
-
     return function() {
       switch (this.get(origin)) {
       case nearest:
@@ -360,7 +326,5 @@
         return Math.max(this.get(axis1), this.get(axis2));
       }
     };
-
   }
-
 })(typeof exports !== 'undefined' ? exports : this);

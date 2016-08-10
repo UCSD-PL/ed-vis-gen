@@ -7,9 +7,12 @@ function addLine(){
 
 //Add triangle
 function addTriangle(){
-  var triangle0 = new fabric.Triangle({ width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true});
+  var triangle0 = new fabric.Triangle({ width: 30, height: 200, stroke:'black', top:100, left:100, lockRotation: true});
   canvas.add(triangle0);
+  canvas.setActiveObject(triangle0);
+
   updateLog();
+  canvas.renderAll();
 }
 
 //Add circle
@@ -44,7 +47,7 @@ function addPendulum(){
 
 //Add Spring
 function addSpring(){
-  var spring = new fabric.Spring([50,50,50,250],{stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
+  var spring = new fabric.Spring([50,50,0,250],{stroke:'black',top: 100, left:100, lockSkewingX:true, lockRotation: true,'physics':'spring'});
   canvas.add(spring);
   updateLog();
 
