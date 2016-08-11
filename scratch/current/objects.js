@@ -24,7 +24,7 @@ function addCircle(){
 
 //Add rectangle
 function addRectangle(){
-  var rectangle0 = new fabric.Rect({ width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true});
+  var rectangle0 = new fabric.Rect({ width: 30, dy:30, fill:'royalblue', top: 100, left:100, lockRotation: true});
   canvas.add(rectangle0);
   updateLog();
 }
