@@ -14,7 +14,7 @@ arrayLine = [[0,0],[0,0.5],[0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
 arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
 arraySpring = [[0,0],[0,0.5],[0,1]],
-arrayBob = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
+arrayBob = [[0,0.5],[0.5,0],[0.5,0.5],[1,0.5],[0.5,1]],
 arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 selectedX = [], // array with y-coords of drag points on canvas
@@ -171,9 +171,9 @@ function inGroup(obj, canvas) {
 // checks if a particular drag point is already located on shape
 function checkForDragPoints(obj, type) {
   if (obj.get('physics') === 'pendulum') {
-    if (obj.get('item') === 'rod') {
+    /*if (obj.get('item') === 'rod') {
       addAllDP(arrayRod, obj);
-    }
+    }*/
     if (obj.get('item') === 'bob') {
       addAllDP(arrayBob, obj);
     }
@@ -410,11 +410,11 @@ canvas.on('object:scaling', function (object) {
   });
 
 canvas.on('object:removed', function (object) {
-    canvas.trigger('object:modified', { target: object });
+    updatePhysics(true);
   });
 
 canvas.on('object:rotating', function (object) {
-    canvas.trigger('object:modified', { target: object });
+    updatePhysics(true);
   });
 
 canvas.on('object:modified', function () {

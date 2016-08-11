@@ -145,10 +145,10 @@ function updatePendulum(pivot, rod, bob) {
   //rod.on('moving', function() { updateRod(this) });
 
   bob.on('moving', function() { updateRod(this) });
-  bob.on('moving', function() { canvas.trigger('object:modified', { target: rod });});
+  bob.on('moving', function() { canvas.trigger('object:moving', { target: rod });});
 
   pivot.on('moving', function() { updateRod(this) });
-  pivot.on('moving', function() { canvas.trigger('object:modified', { target: rod });});
+  pivot.on('moving', function() { canvas.trigger('object:moving', { target: rod });});
 }
 
 transfer = function transfer() {
