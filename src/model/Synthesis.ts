@@ -1,7 +1,7 @@
 import {Variable, CassVar} from './Variable'
 import {Program, State} from './Model'
 import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
-import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup} from '../util/Util'
+import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup, union} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
 import {Expr, Eq} from './Expr'
@@ -161,7 +161,11 @@ export class PointGeneration {
   public makePoints(p: Program): Set<Tup<PExpr, PExpr>> {
     // console.log(p)
     // console.log('building points: for ' + p.shapes.size.toString() + ' shapes:')
-    let ret = flatMap(p.shapes, e => this.shapePoints(e))
+    let ret = new Set<Tup<PExpr, PExpr>>()
+    // let ret = flatMap(p.shapes, e => this.shapePoints(e))
+    for (let shape of p.shapes) {
+      ret = union(ret, this.shapePoints(shape))
+    }
     // console.log(ret.size.toString() + ' points')
     return ret
   }
@@ -173,7 +177,7 @@ export class PointGeneration {
 
 // given a state, add in equations enforcing adjacent shapes to the state's store.
 // modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
-export function constrainAdjacent(state: State): Set<Set<CassVar>> {
+export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<CassVar>>] {
 
   let store = state.eval()
   let pointGen = new PointGeneration(store)
@@ -194,71 +198,43 @@ export function constrainAdjacent(state: State): Set<Set<CassVar>> {
 
     return seedX !== testX && seedY !== testY && overlap(lp, rp, 9) && !added.has(test)
   }
-  let ret = new Set<Set<CassVar>>()
+  let [retX, retY] = [new Set<Set<CassVar>>(), new Set<Set<CassVar>>()]
 
   for (let point of points) {
     let overlapped = find(points, finder(point))
     // typescript needs if-let -.-
     if (overlapped) {
 
-      // console.log('overlap between:')
-      // console.log(point)
-      // console.log(overlapped)
-      // console.log('adding point variables')
-      point.concat(overlapped).filter(([v, e]) => !e.isEqual(v)).forEach(([v, e]) => {
-        state.store.addCVar(v)
-        ret.add(e.vars().add(v)) // v = e
-        // console.log('adding eq:')
-        // console.log(v.name + " = " + e.toString())
-        let eq = new Eq(Expr.fromVar(v), e)
-        state.store.addEq(eq, Strength.strong)
-      })
+      // TODO: i don't use the LHS variables, rewrite
+      let [[x1v, x1e], [y1v, y1e]] = point
+      let [[x2v, x2e], [y2v, y2e]] = overlapped
 
-      store = state.eval()
+      let ex = new Eq(x1e, x2e)
+      let ey = new Eq(y1e, y2e)
+      state.store.addEq(ex, Strength.strong)
+      state.store.addEq(ey, Strength.strong)
 
+      let newXs = union(x1e.vars(), x2e.vars())
+      let newYs = union(y1e.vars(), y2e.vars())
 
-      let [[x1v], [y1v]] = point
-      let [[x2v], [y2v]] = overlapped
-      let [x1ve, y1ve] = map2Tup([x1v, y1v], v => Expr.fromVar(v))
-      let [x2ve, y2ve] = map2Tup([x2v, y2v], v => Expr.fromVar(v))
+      retX.add(newXs)
+      retY.add(newYs)
 
-      // console.log('hit: ')
-      // console.log([x1v, y1v].map(v => store.get(v)))
-      // console.log([x2v, y2v].map(v => store.get(v)))
-      // console.log([x1v, y1v].map(v => newStore.get(v)))
-      // console.log([x2v, y2v].map(v => newStore.get(v)))
+      for (let newVar of union(newXs, newYs)) {
+        state.store.addCVar(newVar)
+      }
 
-      // console.log('adding contact equations')
-      // console.log(point[0][1].toString())
-      // console.log(' == ')
-      // console.log(overlapped[0][1].toString())
-      // console.log(point[1][1].toString())
-      // console.log(' == ')
-      // console.log(overlapped[1][1].toString())
-      // console.log('adding point equations:')
-      // console.log(x1v.name + " = " + x2v.name)
-      // console.log(y1v.name + " = " + y2v.name)
-      state.store.addEq(new Eq(x1ve, x2ve), Strength.strong)
-      state.store.addEq(new Eq(y1ve, y2ve), Strength.strong)
-
-      // x1 = x2
-      // y1 = y2
-      ret.add((new Set<CassVar>()).add(x1v).add(x2v))
-      ret.add((new Set<CassVar>()).add(y1v).add(y2v))
-
-      // console.log('adding:')
-      // console.log(point)
       added.add(point)
     }
   }
 
   // console.log('finished adding eqs, building rett from:' + ret.size.toString())
-  let rett = uniqify(ret)
+  // let rett = uniqify(ret)
   // console.log(rett)
 
   // console.log('finished rett with: ' + rett.size.toString())
 
-  return rett
+  return [retX, retY]
 }
 
 // starting from a seed set of source variables:
@@ -290,20 +266,12 @@ export namespace InteractionSynthesis {
   // eqVars: sets of constraint variables. each set corresponds to the variables
   //         in a constraint equation: X + Y = 2 * Z => {X, Y, Z}
   // returns: all sets of valid free variables.
-  export function validFreeVariables(inputs: Set<CassVar>, eqVars: Set<Set<CassVar>>): Set<Set<CassVar>> {
 
+  // for optimization purposes, we split the sucker up into a bunch of helper functions.
 
-    // degenerate case? TODO
-    let degenerate = exists(eqVars, e => intersect(inputs, e).size >= 2)
-
-    if (degenerate) {
-      console.log('degenerate input to free vars:')
-      console.log(inputs)
-      console.log(eqVars)
-      assert(false)
-    }
-
-    let initColor: Coloring = toMap([... eqVars].map(e => {
+  // first, build an initial coloring from a set of equations.
+  function buildColoring(inputs: Set<CassVar>, eqs: Set<Set<CassVar>>): Coloring {
+    return toMap([... eqs].map(e => {
       let v = find(inputs, v => e.has(v))
       if (v) {
         return [e, new Half(v)] as [Set<CassVar>, Color]
@@ -311,7 +279,22 @@ export namespace InteractionSynthesis {
         return [e, Empty] as [Set<CassVar>, Color]
       }
     }))
+  }
 
+  export function validFreeVariables(inputs: Set<CassVar>, eqVars: Set<Set<CassVar>>): Set<Set<CassVar>> {
+
+
+    // degenerate case? TODO
+    // let degenerate = exists(eqVars, e => intersect(inputs, e).size >= 2)
+    //
+    // if (degenerate) {
+    //   console.log('degenerate input to free vars:')
+    //   console.log(inputs)
+    //   console.log(eqVars)
+    //   assert(false)
+    // }
+
+    let initColor: Coloring = buildColoring(inputs, eqVars)
     let candColorings = new Set<Coloring>()
     let finishedColorings = new Set<Coloring>()
     // console.log('initial coloring:')
@@ -448,7 +431,7 @@ export namespace InteractionSynthesis {
         } else {
           // oboy
           console.log(finishedColorings)
-          assert(false, 'half coloring in finished colorings')
+          // assert(false, 'half coloring in finished colorings')
         }
       }
 

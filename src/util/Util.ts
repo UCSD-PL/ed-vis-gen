@@ -204,6 +204,8 @@ export function* cat<A> (l: Iterable<A>, r: Iterable<A>): Iterable<A> {
     yield v
 }
 
+
+
 // test if there exists an element v of vals s.t. f v is true
 export function exists<U>(vals: Iterable<U>, f: (u: U) => boolean): boolean {
   let ret = find(vals, f)

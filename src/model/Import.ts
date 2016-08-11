@@ -1,7 +1,7 @@
 import {Model, State, Program, Store} from './Model'
 
 import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
-import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow} from './Shapes'
+import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow, Image} from './Shapes'
 
 import {PhysicsGroup, Pendulum, SpringGroup} from './Physics'
 import {VType, Variable, CassVar} from './Variable'
@@ -37,6 +37,10 @@ type fabricRect = {
   // width: number, // dx
   // height: number
 } & fabricCommon
+
+type fabricImg = {
+  src: string
+} & fabricRect
 
 type fabricSpring = {
   x1: number,
@@ -75,7 +79,8 @@ type fabricTriangle = {
   // something something triangle
 } & fabricCommon
 
-export type fabricObject = fabricCircle | fabricRect | fabricLine | fabricDrag | fabricTriangle | fabricSpring | fabricArrow
+export type fabricObject =
+  fabricCircle | fabricRect | fabricImg | fabricLine | fabricDrag | fabricTriangle | fabricSpring | fabricArrow
 type fabricPhysicsCommon = {
   type: string
 }
@@ -102,7 +107,7 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     newS.left += newS.radius
     newS.top += newS.radius
     ret = newS
-  } else if (s.type == 'rect') {
+  } else if (s.type == 'rect' || s.type == 'image') {
     let newS = Object.assign({}, s) as fabricRect
     newS.width *= newS.scaleX/2 // fabric stores widths in the scale matrix, eddie dx = width/2
     newS.left += newS.width
@@ -197,10 +202,34 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     } else {
       shape = new DragPoint(x, y, r, 'green')
     }
-  } else if (s.type == 'rect') {
-    let newS = s as fabricRect
+  } else if (s.type == 'rect' || s.type == 'image') {
+    let newS = s as fabricImg // careful: accessing newS.src is only safe for images
     let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
-    shape = new Rectangle(x, y, dx, dy, 'black')
+    if (newS.type == 'image') {
+      if (! (window as any).BACKEND.IMAGES) {
+        (window as any).BACKEND.IMAGES = new Map<string, HTMLImageElement>()
+      }
+      // make the image, checking the image cache
+      let imgCache: Map<string, HTMLImageElement> = (window as any).BACKEND.IMAGES
+      let newImg: HTMLImageElement
+      // if present, use cache's version
+      if (imgCache.has(newS.src)) {
+        newImg = imgCache.get(newS.src)
+      } else {
+        // otherwise, make a new entry and add to cache
+        newImg = document.createElement('img')
+        newImg.src = newS.src
+        newImg.id = newS.name
+        newImg.style.display = 'none'
+        document.head.appendChild(newImg)
+        imgCache.set(newS.src, newImg)
+      }
+
+      // finally, create an Image for it
+      shape = new Image(x, y, dx, dy, newS.name, 'black')
+    } else {
+      shape = new Rectangle(x, y, dx, dy, 'black')
+    }
   } else if (s.type == 'arrow') {
     let newS = s as fabricArrow
     let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
@@ -312,20 +341,28 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // console.log('shapes:')
   // console.log([...retStore.prog.shapes].map(s => pp(s)).join())
   // console.log('equations:')
-  let eqs = constrainAdjacent(retStore)
+  let [xEqs, yEqs] = constrainAdjacent(retStore)
   // console.log(eqs)
-  let buildFVs = (seeds: Set<CassVar>) => InteractionSynthesis.validFreeVariables(seeds, eqs)
+  let buildFVs = (seeds: Set<CassVar>) => [InteractionSynthesis.validFreeVariables(seeds, xEqs), InteractionSynthesis.validFreeVariables(seeds, yEqs)]
 
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
 
-  retStore.prog = fold(retStore.prog.allFrees, (accProg, [dp]) => {
+
+  for (let [dp] of retStore.prog.allFrees) {
+
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')
     assert(dp.y instanceof CassVar, 'expected cassvars for dragpoint members')
 
     // get the candidate sets for seeds {{x}, {y}, {x, y}}
-    let [vX, vY, vBoth] = map3Tup(
-      [[dp.x], [dp.y], [dp.x, dp.y]] as Tup3<CassVar[]>,
-      (vars) => buildFVs(new Set(vars)))
+    let vX = InteractionSynthesis.validFreeVariables(new Set<CassVar>().add(dp.x as CassVar), xEqs)
+    let vY = InteractionSynthesis.validFreeVariables(new Set<CassVar>().add(dp.y as CassVar), yEqs)
+    let vBoth = new Set<Set<CassVar>>()
+
+    for (let xs of vX) {
+      for (let ys of vY) {
+        vBoth.add(union(xs, ys))
+      }
+    }
 
     // collect the results and build programs for the ranker
     // IMPORTANT: programs are built w.r.t the original program, i.e. independently
@@ -346,8 +383,9 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     // pluck out its free-variables for the particular drag point, add to the cumulative program
     let selFrees = frees[dragChoices.get(dpName)]
 
-    return accProg.addFrees(dp, selFrees)
-  }, retStore.prog)
+    retStore.prog = retStore.prog.addFrees(dp, selFrees)
+
+  }
 
 
   // finally, add dragpoint free variables as needed
