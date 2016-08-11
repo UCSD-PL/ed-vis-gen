@@ -4,7 +4,7 @@ function addShape(shape) {
   canvas.add(shape);
   // object:added isn't firing, so we manually fire an object:modified event
   canvas.fire('object:modified', {target: shape});
-  updateLog();
+  updateModifications(true);
 }
 
 //Add line

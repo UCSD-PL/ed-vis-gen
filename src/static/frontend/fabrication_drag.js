@@ -1,12 +1,12 @@
 var canvas = new fabric.CanvasEx('canvas'), // left-side panel
 physics = new fabric.Canvas('physics'), // right-side panel
-interact = new fabric.CanvasEx('interact'), // overlay-side panel
-sims = new fabric.Canvas('sims'),
-counter = 0,
-state = [],
-mods = 0,
-dragPointedObjects = [],
+interact = new fabric.CanvasEx('interact'), // drag point editing panel
+sims = new fabric.Canvas('sims'), // interaction editing panel
+
 whereDP = 0, // checks which drag points to delete in the dragPointList
+
+/* These arrays denote the location of the drag points in relation to
+the top-left corner of the associated object multiplied by its dimension. */
 arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
 arrayCirc = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
 arrayLine = [[0,0],[0,0.5],[0,1]],
@@ -16,41 +16,45 @@ arraySpring = [[0.5,0],[0.5,0.5],[0.5,1]],
 arrayBob = [[0,0.5],[0.5,0],[0.5,0.5],[1,0.5],[0.5,1]],
 arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
-selectedX = [], // array with y-coords of drag points on canvas
-selectedY = [], // array with x-coords of drag points on canvas
+
 dragPointList = [], // list of drag points on canvas
-physicsObjectList = [],
-simArray = [], // adds a canvas for separate simulations
-lastSim = 0, // last canvas for the drag point selection panel
-currentSim = 0, // current canvas for the drag point selection panel
-selectedSim = 0,
-formerChoice = 0,
+physicsObjectList = [], // list of objects with physics attributes on canvas
+
+lastSim = 0, // last interaction for the drag point selection panel
+currentSim = 0, // current interaction for the drag point selection panel
+selectedSim = 0, // chosen interaction for the drag point selection panel
+
+formerChoice = 0, /* the last choice selected by the drag point.
+closing the overlay without accepting will cause the drag point to rever to it's "former choice" */
+
 numOfChoices = 4, // # of "choices" for the drag point edit panel
-currentDragPoint,
-dpColor = "red",
-dpSelectedColor = "orange",
-fabricJSON,
-current = 0;
 
+currentDragPoint, // current drag point on the "sims" panel
 
-var canvasWidth = document.getElementById('canvas').width;
-var canvasHeight = document.getElementById('canvas').height;
+dpColor = "red", // color of unselected drag points
+dpSelectedColor = "orange", // color of selected drag points
 
+state = [], // array list of modifications on canvas in JSON
+mods = 0, // numer denotes how far back the user is undoing
+fabricJSON, // JSON file transferred on to the "physics" canvas
+current = 0; // current state on the "canvas" canvas
+
+// if true, events are fired for individual objects on a canvas
 canvas.fireEventForObjectInsideGroup = true;
 interact.fireEventForObjectInsideGroup = true;
 
-canvas.selectable = true;
-// physics.selectable = true;
-//physics.selectable = false;
-//physics.selection = false;
-physics.isDrawingMode = false;
-canvas.counter = 0;
-physics.counter = 0;
+canvas.selection = true; // if true, canvas is in selection mode
+physics.isDrawingMode = false; // if false, canvas is not in drawing mode
+
+// canvasWidth and canvasHeight are resized according to the dimensions of the browser window
+var canvasWidth = document.getElementById('canvas').width;
+var canvasHeight = document.getElementById('canvas').height;
 
 //resize the canvas
 window.addEventListener('resize', resizeCanvas(), false);
 window.addEventListener('resize', resizePhysicsPanel(), false);
 
+// resizes the "canvas" canvas according to the current dimensions of the browser window
 function resizeCanvas () {
  canvas.setHeight(window.innerHeight*0.7);
  canvas.setWidth(window.innerWidth*1.55/3);
@@ -63,6 +67,7 @@ function resizeCanvas () {
  canvasHeight = document.getElementById('canvas').height;
 }
 
+// resizes the "physics" canvas according to the current dimensions of the browser window
 function resizePhysicsPanel () {
  physics.setHeight(window.innerHeight*0.7);
  physics.setWidth(window.innerWidth*(1-1.55/3));
@@ -72,11 +77,7 @@ function resizePhysicsPanel () {
 resizeCanvas();
 resizePhysicsPanel();
 
-function updateLog() {
-  updateModifications(true);
-  //canvas.counter++;
-}
-
+// adds drag points
 function addDragPoints(obj, dx, dy) {
   var drag = new fabric.DragPoint({
       name: allocSName(),
@@ -91,19 +92,20 @@ function addDragPoints(obj, dx, dy) {
     interact.add(drag);
 
     drag.on('selected', function() {
-      //if a drag point hasn't been clicked before, upon being clicked,
-      //a drag point is selected and added to dragPointList
+      /*if a drag point hasn't been clicked before, upon being clicked,
+      a drag point is selected and added to dragPointList*/
       if (this.get('fill') == dpColor && this.get('onCanvas') != true) {
         select(this);
       }
-      // if it's on the canvas, but you're on the dp selection panel, remove it
+      // if it's on the canvas, but has been unselected on the dp selection panel, remove it from the canvas
       else if (this.get('fill') == dpSelectedColor && this.get('onCanvas') === true) {
         undoSelect(this);
         canvas.remove(this);
       }
-      // if it's just on the canvas, do nothing
+      // if it's already on the canvas and reselected, do nothing
       else if (this.get('fill') == dpColor && this.get('onCanvas') === true) {}
-      // undos selection of a drag point if you click it again
+
+      // undos selection of a drag point if you click it again so it won't show up on canvas
       else {
         undoSelect(this);
       }});
@@ -119,7 +121,7 @@ function addDragPoints(obj, dx, dy) {
           onLoadSims(drag);
       } } );
   }
-
+// adds all the drag points on the "interact" canvas
 function addAllDP(array, obj) {
     if (dragPointList.length === 0 ) {
       for (var i = 0; i < array.length; i++) {
@@ -299,8 +301,8 @@ function onLoadSims(dragPoint) {
   currentDragPoint = dragPoint;  //.clone();
   currentSim = 0;
   formerChoice = currentDragPoint.get('choice');
+  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name") - 1);
   generateSims(currentDragPoint);
-  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name")) - 1;
 }
 
 function generateSims(currentDP) {
