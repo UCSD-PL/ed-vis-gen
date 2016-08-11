@@ -9,18 +9,18 @@ mods = 0,
 dragPointedObjects = [],
 whereDP = 0,
 arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
-arrayCirc = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
+arrayCirc = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
 arrayLine = [[0,0],[0,0.5],[0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
 arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
 arraySpring = [[0,0],[0,0.5],[0,1]],
-arrayBob = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
-arrayRod = [[0,0],[0,0.5],[0,1]],
+arrayBob = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
+arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
-oldDragPointList = [], // list of unwanted drag points on canvas :(
+physicsObjectList = [],
 simArray = [], // adds a canvas for separate simulations
 lastSim = 0, // last canvas for the drag point selection panel
 currentSim = 0, // current canvas for the drag point selection panel
@@ -30,7 +30,8 @@ numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint,
 originalDragPoint,
 isNew = false,
-dragPointColor = "grey",
+dpColor = "red",
+dpSelectedColor = "orange",
 //snapColor = "red",
 fabricJSON,
 objectlist = [],
@@ -90,6 +91,7 @@ function addDragPoints(obj, dx, dy) {
       shapeName: obj.get('name'),
       DX: dx,
       DY: dy,
+      fill: dpColor,
       radius: 7
     });
     drag.startDragPoint(obj, interact);
@@ -98,16 +100,16 @@ function addDragPoints(obj, dx, dy) {
     drag.on('selected', function() {
       //if a drag point hasn't been clicked before, upon being clicked,
       //a drag point is selected and added to dragPointList
-      if (this.get('fill') == 'grey' && this.get('onCanvas') != true) {
+      if (this.get('fill') == dpColor && this.get('onCanvas') != true) {
         select(this);
       }
       // if it's on the canvas, but you're on the dp selection panel, remove it
-      else if (this.get('fill') == 'orange' && this.get('onCanvas') === true) {
+      else if (this.get('fill') == dpSelectedColor && this.get('onCanvas') === true) {
         undoSelect(this);
         canvas.remove(this);
       }
       // if it's just on the canvas, do nothing
-      else if (this.get('fill') == 'grey' && this.get('onCanvas') === true) {}
+      else if (this.get('fill') == dpColor && this.get('onCanvas') === true) {}
       // undos selection of a drag point if you click it again
       else {
         undoSelect(this);
@@ -116,7 +118,7 @@ function addDragPoints(obj, dx, dy) {
     // on right click, opens up the edit simulation panel
     drag.on('mousedown', function (options) {
       if (options.e.which === 3) {
-          console.log('BETTER BE RIGHT CLICKING');
+          //console.log('BETTER BE RIGHT CLICKING');
           if (this.get('onCanvas') != true) {
               select(drag);
           }
@@ -139,7 +141,7 @@ function addAllDP(array, obj) {
             else {
               interact.add(dragPointList[j]);
               dragPointList[j].set({
-                fill: 'orange'
+                fill: dpSelectedColor
               });
             }
   }} }
@@ -161,8 +163,7 @@ function inGroup(obj, canvas) {
     if (o.get('type') === 'group') {
       if (o.contains(obj)) {
         return true;
-      }
-    }
+      }}
   });
   return false;
 }
@@ -180,22 +181,25 @@ function checkForDragPoints(obj, type) {
       addAllDP(arrayPiv, obj);
     }
   }
-
-  if (type === 'arrow') {
+  else if (obj.get('physics') === 'spring') {
+      addAllDP(arraySpring, obj);
   }
-
-  if (type === 'rect') {
-    addAllDP(arrayRect, obj);
+  else if (obj.get('physics') === 'none') {
+    if (type === 'arrow') {
+      addAllDP(arrayArr, obj);
+    }
+    else if (type === 'rect') {
+      addAllDP(arrayRect, obj);
+    }
+    else if (type === 'circle') {
+      addAllDP(arrayCirc, obj);
+    }
+    else if (type === 'line') {
+      addAllDP(arrayLine, obj);
+    }
+    else { return; }
   }
-  if (type === 'circle') {
-    addAllDP(arrayCirc, obj);
-  }
-  if (type === 'line') {
-    addAllDP(arrayLine, obj);
-  }
-  if (type === 'spring') {
-    addAllDP(arraySpring, obj);
-  }
+  else { return; }
 }
 
 // adds in the candidate points on the interact canvas
@@ -224,7 +228,7 @@ function candidatePoints() {
 //selects drag point and adds it to the drag point list
 function select(dragPoint) {
     dragPoint.set({
-      fill: 'orange'
+      fill: dpSelectedColor
     });
     dragPointList.push(dragPoint);
   }
@@ -232,7 +236,7 @@ function select(dragPoint) {
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
-    fill: 'grey',
+    fill: dpColor,
     choice: formerChoice,
     onCanvas: false
   });
@@ -244,7 +248,6 @@ function undoSelect(dragPoint) {
   whereDP = dragPointList.findIndex(checkDP);
 
   dragPointList.splice(whereDP, 1);
-
 
   window.BACKEND.finishEditChoice();
 }
@@ -343,7 +346,7 @@ function onOverlayClosed() {
   for (var i = 0; i < dragPointList.length; i++) {
       // console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'grey',
+        fill: dpColor,
         onCanvas: true
       });
 
@@ -358,47 +361,66 @@ function onOverlayClosed() {
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 
-function removeAllDragPoints(canvas) {
+function removeAllWeirdObjects(canvas) {
   canvas.forEachObject( function(o) {
     if (o.get('type') == 'dragPoint') {
+        dragPointList.push(o);
         canvas.remove(o);
-    }});
-  }
+    }
+    /*if (o.get('physics') == 'pendulum') {
+       physicsObjectList.push(o);
+       canvas.remove(o);
+     }*/
+  });}
 
-//
-function onUndoRedo() {
-  dragPointList = [];
-  canvas.forEachObject( function(o) {
-    if (o.get('type') == 'dragPoint') {
-      dragPointList.push(o);
-    }});
-  removeAllDragPoints(canvas);
+function addBackAllWeirdObjects(canvas) {
+  /*var pendulumList = [];
+  for (var i = 0; i < physicsObjectList.length; i++) {
+    if (physicsObjectList[i].get('item') == 'pivot' || physicsObjectList[i].get('item') == 'rod' || physicsObjectList[i].get('item') == 'bob' ) {
+      canvas.add(physicsObjectList[i]);
+      pendulumList.push(physicsObjectList[i]);
+    }
+    if (pendulumList.length === 3) {
+      updatePendulum(physicsObjectList[i], physicsObjectList[i+1], physicsObjectList[i+2]);
+      pendulumList = [];
+    }
+  }*/
   // adds drag points back to the canvas
   for (var i = 0; i < dragPointList.length; i++) {
     canvas.add(dragPointList[i]);
     dragPointList[i].startDragPointByName(canvas);
   }
+}
+
+//
+function onUndoRedo() {
+  dragPointList = [];
+  physicsObjectList = [];
+  removeAllWeirdObjects(canvas);
+  addBackAllWeirdObjects(canvas);
   canvas.renderAll();
 }
 
-canvas.on(
-    'object:modified', function () {
+canvas.on('object:moving', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:scaling', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:removed', function (object) {
+    canvas.trigger('object:modified', { target: object });
+  });
+
+canvas.on('object:rotating', function (object) {
+    canvas.trigger('object:modified', { target: object });
+  });
+
+canvas.on('object:modified', function () {
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'object:added', function () {
-      // console.log('added');
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'object:deselected', function() {
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'mouse:out', function() {
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-});
+  });
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
@@ -410,6 +432,13 @@ function updateModifications(savehistory) {
     }
 }
 
+function updatePhysics(start) {
+  if (start === true) {
+    fabricJSON = transfer();
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
+  }
+}
+
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
@@ -417,6 +446,7 @@ undo = function undo() {
         canvas.loadFromJSON(state[current - 1]);
         mods += 1;
         canvas.renderAll();
+        updatePhysics();
         onUndoRedo();
     }
 }
@@ -428,6 +458,7 @@ redo = function redo() {
         canvas.loadFromJSON(state[current + 1]);
         mods -= 1;
         canvas.renderAll();
+        updatePhysics();
         onUndoRedo();
     }
 }

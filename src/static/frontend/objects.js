@@ -52,7 +52,7 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var spring = new fabric.Spring([50,50,0,250],{stroke:'black',top: 100, left:100, lockSkewingX:true,'physics':'spring'});
+  var spring = new fabric.Spring([50,50,0,250],{stroke:'black',top: 100, left:100, lockSkewingX:true,physics:'spring'});
   addShape(spring);
 }
 
@@ -105,43 +105,51 @@ function addPendulum(){
 
   });
 
+  updatePendulum(pivot, rod, bob);
 
+  canvas.add(pivot);
+  canvas.add(rod);
+  canvas.add(bob);
+  bob.on('moving', function() {
+    canvas.trigger('object:moving', {target: rod});
+  });
+  pivot.on('moving', function() {
+    canvas.trigger('object:moving', {target: rod});
+  });
+  canvas.trigger('object:modified', {target: bob});
+  updateLog();
+  canvas.renderAll();
+}
 
-  // TODO: refactor
-  canvas.on('object:moving', function (options) {
-
-    var p = options.target;
-
+function updatePendulum(pivot, rod, bob) {
+  function updateRod (p) {
     // if (p === rod ) {
     //     pivot.set({ x1: rod.x1, y1: rod.y1 });
     //     bob.set({ left: rod.x2, top: rod.y2 });
     // }
-    if (p === pivot) {
+    if (p.get('item') === 'pivot') {
       rod.set({
-              x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y
+          x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y
         });
-    } else if (p === bob) {
+    } else if (p.get('item') === 'bob') {
       rod.set({
           x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y
-      });
+        });
+      }
+      rod.setCoords();
+      pivot.setCoords();
+      bob.setCoords();
+      canvas.renderAll();
     }
 
-    rod.setCoords();
-    pivot.setCoords();
-    bob.setCoords();
-    canvas.renderAll();
+  //rod.on('moving', function() { updateRod(this) });
 
-});
+  bob.on('moving', function() { updateRod(this) });
+  bob.on('moving', function() { canvas.trigger('object:modified', { target: rod });});
 
-  canvas.add(rod);
-  canvas.add(pivot);
-  canvas.add(bob);
-  canvas.fire('object:modified', {target: bob});
-  updateLog();
-  canvas.renderAll();
-
+  pivot.on('moving', function() { updateRod(this) });
+  pivot.on('moving', function() { canvas.trigger('object:modified', { target: rod });});
 }
-
 
 transfer = function transfer() {
     // physics.clear().renderAll();
@@ -189,7 +197,7 @@ transfer = function transfer() {
 
         }
 
-        else{
+        else {
           pendulumObj['bob'] = obj;
 
         }
@@ -197,7 +205,7 @@ transfer = function transfer() {
         //pendulumobj = {type:'pendulum', pivot: groupObjects[0], rod: groupObjects[1], bob:groupObjects[2]};
         //physicsGroup.push(pendulumobj);
       }
-      else{
+      else {
         shapes.push(obj);
       };
 
@@ -206,7 +214,6 @@ transfer = function transfer() {
       pendulumObj[name] = pendulumname;
       physicsGroup.push(pendulumObj);
       pendulumObj = {'type':'pendulum'};
-
       }
     });
     exported['physicsGroups']=physicsGroup;

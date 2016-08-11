@@ -11321,7 +11321,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
      * @type String
      * @default
      */
-     physics:                 '',
+     physics:                 'none',
 
      /**
      * Identifies the object's own component within a physics group

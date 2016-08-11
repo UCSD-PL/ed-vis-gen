@@ -110,7 +110,7 @@
     */
     originX: 'center',
     originY: 'center',
-    fill: 'grey',
+    fill: 'red',
     selectable: true,
     lockMovementX: true,
     lockMovementY: true,
@@ -281,6 +281,13 @@
         left: shape.getLeft() + shape.getWidth()*drag.get('DX'),
         top: shape.getTop() + shape.getHeight()*drag.get('DY')
       });
+      if (shape.item == "rod") {
+        var center = shape.getCenterPoint();
+        drag.set({
+          left: center.x,
+          top: center.y
+        });
+      }
       if (shape.angle != 0) {
         var center = shape.getCenterPoint();
         var fromCenterX = drag.DX - 0.5;
@@ -292,7 +299,7 @@
         drag.set({
           left: pos.x,
           top: pos.y,
-          angle: shape.get('angle')
+          angle: shape.angle
         });
       }
         if (canvas != null) {
