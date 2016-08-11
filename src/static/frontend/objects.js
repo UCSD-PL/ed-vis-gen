@@ -85,6 +85,8 @@ function addPendulum(){
     fill: 'dogerblue',
     left: 47,
     top: 42,
+    lockScalingX: true,
+    lockScalingY: true,
     hasControls: false,
     hasBorders: false,
     physics:'pendulum',
@@ -104,9 +106,9 @@ function addPendulum(){
     item:'bob',
 
   });
-
-  updatePendulum(pivot, rod, bob);
-
+  var pendulumList = [pivot, rod, bob];
+  updatePendulum(pendulumList);
+  pendulumList = [];
   canvas.add(pivot);
   canvas.add(rod);
   canvas.add(bob);
@@ -121,34 +123,42 @@ function addPendulum(){
   canvas.renderAll();
 }
 
-function updatePendulum(pivot, rod, bob) {
+function updatePendulum(object) {
+  var pLoc = 0;
+  var rLoc = 0;
+  var bLoc = 0;
+
+  for (var i = 0; i < 3; i++) {
+    if (object[i].get('item') === 'pivot') {
+      pLoc = i;
+    }
+    if (object[i].get('item') === 'rod') {
+      rLoc = i;
+    }
+    if (object[i].get('item') === 'bob') {
+      bLoc = i;
+    }
+  }
+
   function updateRod (p) {
-    // if (p === rod ) {
-    //     pivot.set({ x1: rod.x1, y1: rod.y1 });
-    //     bob.set({ left: rod.x2, top: rod.y2 });
-    // }
     if (p.get('item') === 'pivot') {
-      rod.set({
-          x1: pivot.getCenterPoint().x, y1: pivot.getCenterPoint().y
+      object[rLoc].set({
+          x1: object[pLoc].getCenterPoint().x, y1: object[pLoc].getCenterPoint().y
         });
-    } else if (p.get('item') === 'bob') {
-      rod.set({
-          x2: bob.getCenterPoint().x, y2: bob.getCenterPoint().y
+    } if (p.get('item') === 'bob') {
+      object[rLoc].set({
+          x2: object[bLoc].getCenterPoint().x, y2: object[bLoc].getCenterPoint().y
         });
       }
-      rod.setCoords();
-      pivot.setCoords();
-      bob.setCoords();
+      object[pLoc].setCoords();
+      object[rLoc].setCoords();
+      object[bLoc].setCoords();
       canvas.renderAll();
     }
-
-  //rod.on('moving', function() { updateRod(this) });
-
-  bob.on('moving', function() { updateRod(this) });
-  bob.on('moving', function() { canvas.trigger('object:moving', { target: rod });});
-
-  pivot.on('moving', function() { updateRod(this) });
-  pivot.on('moving', function() { canvas.trigger('object:moving', { target: rod });});
+  updateRod(object[pLoc]);
+  updateRod(object[bLoc]);
+  object[pLoc].on('moving', function() { updateRod(this) });
+  object[bLoc].on('moving', function() { updateRod(this) });
 }
 
 transfer = function transfer() {

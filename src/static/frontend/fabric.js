@@ -11933,7 +11933,9 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
             transformMatrix:          this.transformMatrix ? this.transformMatrix.concat() : this.transformMatrix,
             skewX:                    toFixed(this.skewX, NUM_FRACTION_DIGITS),
             skewY:                    toFixed(this.skewY, NUM_FRACTION_DIGITS),
-            snap:                     true
+            snap:                     this.snap,
+            lockScalingX:             this.lockScalingX,
+            lockScalingY:             this.lockScalingY
           };
 
       if (!this.includeDefaultValues) {
