@@ -3,24 +3,23 @@ physics = new fabric.Canvas('physics'), // right-side panel
 interact = new fabric.CanvasEx('interact'), // overlay-side panel
 sims = new fabric.Canvas('sims'),
 counter = 0,
-snap = 8, // pixels to snap
 state = [],
 mods = 0,
 dragPointedObjects = [],
-whereDP = 0,
+whereDP = 0, // checks which drag points to delete in the dragPointList
 arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
-arrayCirc = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
+arrayCirc = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
 arrayLine = [[0,0],[0,0.5],[0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
 arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
-arraySpring = [[0,0],[0,0.5],[0,1]],
-arrayBob = [[0,0],[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5]],
-arrayRod = [[0,0],[0,0.5],[0,1]],
+arraySpring = [[0.5,0],[0.05,0.5],[0.5,1]],
+arrayBob = [[0,0.5],[0.5,0],[0.5,0.5],[1,0.5],[0.5,1]],
+arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 selectedX = [], // array with y-coords of drag points on canvas
 selectedY = [], // array with x-coords of drag points on canvas
 dragPointList = [], // list of drag points on canvas
-oldDragPointList = [], // list of unwanted drag points on canvas :(
+physicsObjectList = [],
 simArray = [], // adds a canvas for separate simulations
 lastSim = 0, // last canvas for the drag point selection panel
 currentSim = 0, // current canvas for the drag point selection panel
@@ -28,13 +27,9 @@ selectedSim = 0,
 formerChoice = 0,
 numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint,
-originalDragPoint,
-isNew = false,
-dragPointColor = "grey",
-//snapColor = "red",
+dpColor = "red",
+dpSelectedColor = "orange",
 fabricJSON,
-objectlist = [],
-snapping = "on",
 current = 0;
 
 
@@ -79,9 +74,8 @@ resizePhysicsPanel();
 
 function updateLog() {
   updateModifications(true);
-  canvas.counter++;
+  //canvas.counter++;
 }
-
 
 function addDragPoints(obj, dx, dy) {
   var drag = new fabric.DragPoint({
@@ -90,6 +84,7 @@ function addDragPoints(obj, dx, dy) {
       shapeName: obj.get('name'),
       DX: dx,
       DY: dy,
+      fill: dpColor,
       radius: 7
     });
     drag.startDragPoint(obj, interact);
@@ -98,16 +93,16 @@ function addDragPoints(obj, dx, dy) {
     drag.on('selected', function() {
       //if a drag point hasn't been clicked before, upon being clicked,
       //a drag point is selected and added to dragPointList
-      if (this.get('fill') == 'grey' && this.get('onCanvas') != true) {
+      if (this.get('fill') == dpColor && this.get('onCanvas') != true) {
         select(this);
       }
       // if it's on the canvas, but you're on the dp selection panel, remove it
-      else if (this.get('fill') == 'orange' && this.get('onCanvas') === true) {
+      else if (this.get('fill') == dpSelectedColor && this.get('onCanvas') === true) {
         undoSelect(this);
         canvas.remove(this);
       }
       // if it's just on the canvas, do nothing
-      else if (this.get('fill') == 'grey' && this.get('onCanvas') === true) {}
+      else if (this.get('fill') == dpColor && this.get('onCanvas') === true) {}
       // undos selection of a drag point if you click it again
       else {
         undoSelect(this);
@@ -116,7 +111,7 @@ function addDragPoints(obj, dx, dy) {
     // on right click, opens up the edit simulation panel
     drag.on('mousedown', function (options) {
       if (options.e.which === 3) {
-          console.log('BETTER BE RIGHT CLICKING');
+          //console.log('BETTER BE RIGHT CLICKING');
           if (this.get('onCanvas') != true) {
               select(drag);
           }
@@ -139,7 +134,7 @@ function addAllDP(array, obj) {
             else {
               interact.add(dragPointList[j]);
               dragPointList[j].set({
-                fill: 'orange'
+                fill: dpSelectedColor
               });
             }
   }} }
@@ -161,8 +156,7 @@ function inGroup(obj, canvas) {
     if (o.get('type') === 'group') {
       if (o.contains(obj)) {
         return true;
-      }
-    }
+      }}
   });
   return false;
 }
@@ -170,9 +164,9 @@ function inGroup(obj, canvas) {
 // checks if a particular drag point is already located on shape
 function checkForDragPoints(obj, type) {
   if (obj.get('physics') === 'pendulum') {
-    if (obj.get('item') === 'rod') {
+    /*if (obj.get('item') === 'rod') {
       addAllDP(arrayRod, obj);
-    }
+    }*/
     if (obj.get('item') === 'bob') {
       addAllDP(arrayBob, obj);
     }
@@ -180,22 +174,25 @@ function checkForDragPoints(obj, type) {
       addAllDP(arrayPiv, obj);
     }
   }
-
-  if (type === 'arrow') {
+  else if (obj.get('physics') === 'spring') {
+      addAllDP(arraySpring, obj);
   }
-
-  if (type === 'rect') {
-    addAllDP(arrayRect, obj);
+  else if (obj.get('physics') === 'none') {
+    if (type === 'arrow') {
+      addAllDP(arrayArr, obj);
+    }
+    else if (type === 'rect') {
+      addAllDP(arrayRect, obj);
+    }
+    else if (type === 'circle') {
+      addAllDP(arrayCirc, obj);
+    }
+    else if (type === 'line') {
+      addAllDP(arrayLine, obj);
+    }
+    else { return; }
   }
-  if (type === 'circle') {
-    addAllDP(arrayCirc, obj);
-  }
-  if (type === 'line') {
-    addAllDP(arrayLine, obj);
-  }
-  if (type === 'spring') {
-    addAllDP(arraySpring, obj);
-  }
+  else { return; }
 }
 
 // adds in the candidate points on the interact canvas
@@ -224,7 +221,7 @@ function candidatePoints() {
 //selects drag point and adds it to the drag point list
 function select(dragPoint) {
     dragPoint.set({
-      fill: 'orange'
+      fill: dpSelectedColor
     });
     dragPointList.push(dragPoint);
   }
@@ -232,7 +229,7 @@ function select(dragPoint) {
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
   dragPoint.set({
-    fill: 'grey',
+    fill: dpColor,
     choice: formerChoice,
     onCanvas: false
   });
@@ -244,7 +241,6 @@ function undoSelect(dragPoint) {
   whereDP = dragPointList.findIndex(checkDP);
 
   dragPointList.splice(whereDP, 1);
-
 
   window.BACKEND.finishEditChoice();
 }
@@ -343,7 +339,7 @@ function onOverlayClosed() {
   for (var i = 0; i < dragPointList.length; i++) {
       // console.log("the drag point should have been added!");
       dragPointList[i].set({
-        fill: 'grey',
+        fill: dpColor,
         onCanvas: true
       });
 
@@ -358,47 +354,67 @@ function onOverlayClosed() {
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 
-function removeAllDragPoints(canvas) {
+function removeAllWeirdObjects(canvas) {
   canvas.forEachObject( function(o) {
-    if (o.get('type') == 'dragPoint') {
+    if (o.get('type') === 'dragPoint') {
+        dragPointList.push(o);
         canvas.remove(o);
-    }});
-  }
+    }
+    if (o.get('physics') === 'pendulum') {
+       physicsObjectList.push(o);
+       canvas.remove(o);
+     }
+  });}
 
-//
-function onUndoRedo() {
-  dragPointList = [];
-  canvas.forEachObject( function(o) {
-    if (o.get('type') == 'dragPoint') {
-      dragPointList.push(o);
-    }});
-  removeAllDragPoints(canvas);
+function addBackAllWeirdObjects(canvas) {
+  var pendulumList = [];
+  for (var i = 0; i < physicsObjectList.length; i++) {
+    if (physicsObjectList[i].get('item') == 'pivot' || physicsObjectList[i].get('item') == 'rod' || physicsObjectList[i].get('item') == 'bob' ) {
+      pendulumList.push(physicsObjectList[i]);
+      canvas.add(physicsObjectList[i]);
+    }
+    if (pendulumList.length == 3) {
+      console.log(state[current]);
+      updatePendulum(pendulumList);
+    }
+  }
+  pendulumList = [];
   // adds drag points back to the canvas
   for (var i = 0; i < dragPointList.length; i++) {
     canvas.add(dragPointList[i]);
     dragPointList[i].startDragPointByName(canvas);
   }
+}
+
+//
+function onUndoRedo() {
+  dragPointList = [];
+  physicsObjectList = [];
+  removeAllWeirdObjects(canvas);
+  addBackAllWeirdObjects(canvas);
   canvas.renderAll();
 }
 
-canvas.on(
-    'object:modified', function () {
+canvas.on('object:moving', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:scaling', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:removed', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:rotating', function (object) {
+    updatePhysics(true);
+  });
+
+canvas.on('object:modified', function () {
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'object:added', function () {
-      // console.log('added');
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'object:deselected', function() {
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-},
-    'mouse:out', function() {
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-});
+  });
 
 function updateModifications(savehistory) {
     if (savehistory === true) {
@@ -410,6 +426,13 @@ function updateModifications(savehistory) {
     }
 }
 
+function updatePhysics(start) {
+  if (start === true) {
+    fabricJSON = transfer();
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
+  }
+}
+
 undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
@@ -417,6 +440,7 @@ undo = function undo() {
         canvas.loadFromJSON(state[current - 1]);
         mods += 1;
         canvas.renderAll();
+        updatePhysics();
         onUndoRedo();
     }
 }
@@ -428,271 +452,7 @@ redo = function redo() {
         canvas.loadFromJSON(state[current + 1]);
         mods -= 1;
         canvas.renderAll();
+        updatePhysics();
         onUndoRedo();
     }
 }
-
-function findNewPos(distX, distY, target, obj) {
-	// See whether to focus on X or Y axis
-	if(Math.abs(distX) > Math.abs(distY)) {
-		if (distX > 0) {
-			target.setLeft(obj.getLeft() - target.getWidth());
-		} else {
-			target.setLeft(obj.getLeft() + obj.getWidth());
-		}
-	} else {
-		if (distY > 0) {
-			target.setTop(obj.getTop() - target.getHeight());
-		} else {
-			target.setTop(obj.getTop() + obj.getHeight());
-		}
-	}
-}
-
-canvas.on('object:moving', function (options) {
-
-	// Sets corner position coordinates based on current angle, width and height
-	options.target.setCoords();
-
-	// Don't allow objects off the canvas
-	if (options.target.getLeft() < snap) {
-		options.target.setLeft(0);
-	}
-
-	if (options.target.getTop() < snap) {
-		options.target.setTop(0);
-	}
-
-	if ((options.target.getWidth() + options.target.getLeft()) > (canvasWidth - snap)) {
-		options.target.setLeft(canvasWidth - options.target.getWidth());
-	}
-
-	if ((options.target.getHeight() + options.target.getTop()) > (canvasHeight - snap)) {
-		options.target.setTop(canvasHeight - options.target.getHeight());
-	}
-
-	// Loop through objects
-	canvas.forEachObject(function (obj) {
-    // makes sure drag points don't get in the way
-    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
-
-    // makes sure /some/ points don't get in the way
-    if (obj.snap == false || options.target.snap == false) return;
-
-    // turns snapping off
-    if (snapping === 'off') return;
-
-		if (obj === options.target) return;
-
-		// If objects intersect
-		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
-
-			var distX = ((obj.getLeft() + obj.getWidth()) / 2) - ((options.target.getLeft() + options.target.getWidth()) / 2);
-			var distY = ((obj.getTop() + obj.getHeight()) / 2) - ((options.target.getTop() + options.target.getHeight()) / 2);
-
-			// Set new position
-			findNewPos(distX, distY, options.target, obj);
-		}
-
-		// Snap objects to each other horizontally
-
-		// If bottom points are on same Y axis
-		if (Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
-
-
-			// Snap target BL to object BR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
-				options.target.setLeft(obj.getLeft() + obj.getWidth());
-				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-
-			// Snap target BR to object BL
-			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
-				options.target.setLeft(obj.getLeft() - options.target.getWidth());
-				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-		}
-
-		// If top points are on same Y axis
-		if(Math.abs(options.target.getTop() - obj.getTop()) < snap) {
-			// Snap target TL to object TR
-			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
-				options.target.setLeft(obj.getLeft() + obj.getWidth());
-				options.target.setTop(obj.getTop());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-
-			// Snap target TR to object TL
-			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
-				options.target.setLeft(obj.getLeft() - options.target.getWidth());
-				options.target.setTop(obj.getTop());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-		}
-
-		// Snap objects to each other vertically
-
-		// If right points are on same X axis
-		if(Math.abs((options.target.getLeft() + options.target.getWidth()) - (obj.getLeft() + obj.getWidth())) < snap) {
-			// Snap target TR to object BR
-			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
-				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
-				options.target.setTop(obj.getTop() + obj.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-
-			// Snap target BR to object TR
-			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
-				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
-				options.target.setTop(obj.getTop() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-		}
-
-		// If left points are on same X axis
-		if(Math.abs(options.target.getLeft() - obj.getLeft()) < snap) {
-			// Snap target TL to object BL
-			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
-				options.target.setLeft(obj.getLeft());
-				options.target.setTop(obj.getTop() + obj.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-
-			// Snap target BL to object TL
-			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
-				options.target.setLeft(obj.getLeft());
-				options.target.setTop(obj.getTop() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
-		}
-	});
-	options.target.setCoords();
-
-	// If objects still overlap
-
-	var outerAreaLeft = null,
-	outerAreaTop = null,
-	outerAreaRight = null,
-	outerAreaBottom = null;
-
-	canvas.forEachObject(function (obj) {
-
-    // makes sure drag points don't get in the way
-    if (obj instanceof fabric.DragPoint || options.target instanceof fabric.DragPoint) return;
-
-    // makes sure /some/ points don't get in the way
-    if (obj.snap == false || options.target.snap == false) return;
-
-    // turns snapping off
-    if (snapping === 'off') return;
-
-		if (obj === options.target) return;
-
-		if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
-
-			var intersectLeft = null,
-			intersectTop = null,
-			intersectWidth = null,
-			intersectHeight = null,
-			intersectSize = null,
-			targetLeft = options.target.getLeft(),
-			targetRight = targetLeft + options.target.getWidth(),
-			targetTop = options.target.getTop(),
-			targetBottom = targetTop + options.target.getHeight(),
-			objectLeft = obj.getLeft(),
-			objectRight = objectLeft + obj.getWidth(),
-			objectTop = obj.getTop(),
-			objectBottom = objectTop + obj.getHeight();
-
-			// Find intersect information for X axis
-			if (targetLeft >= objectLeft && targetLeft <= objectRight) {
-				intersectLeft = targetLeft;
-				intersectWidth = obj.getWidth() - (intersectLeft - objectLeft);
-
-			} else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
-				intersectLeft = objectLeft;
-				intersectWidth = options.target.getWidth() - (intersectLeft - targetLeft);
-			}
-
-			// Find intersect information for Y axis
-			if(targetTop >= objectTop && targetTop <= objectBottom) {
-				intersectTop = targetTop;
-				intersectHeight = obj.getHeight() - (intersectTop - objectTop);
-
-			} else if(objectTop >= targetTop && objectTop <= targetBottom) {
-				intersectTop = objectTop;
-				intersectHeight = options.target.getHeight() - (intersectTop - targetTop);
-			}
-
-			// Find intersect size (this will be 0 if objects are touching but not overlapping)
-			if(intersectWidth > 0 && intersectHeight > 0) {
-				intersectSize = intersectWidth * intersectHeight;
-			}
-
-			// Set outer snapping area
-			if(obj.getLeft() < outerAreaLeft || outerAreaLeft == null) {
-				outerAreaLeft = obj.getLeft();
-			}
-
-			if(obj.getTop() < outerAreaTop || outerAreaTop == null) {
-				outerAreaTop = obj.getTop();
-			}
-
-			if((obj.getLeft() + obj.getWidth()) > outerAreaRight || outerAreaRight == null) {
-				outerAreaRight = obj.getLeft() + obj.getWidth();
-			}
-
-			if((obj.getTop() + obj.getHeight()) > outerAreaBottom || outerAreaBottom == null) {
-				outerAreaBottom = obj.getTop() + obj.getHeight();
-			}
-
-			// If objects are intersecting, reposition outside all shapes which touch
-			if(intersectSize) {
-				var distX = (outerAreaRight / 2) - ((options.target.getLeft() + options.target.getWidth()) / 2);
-				var distY = (outerAreaBottom / 2) - ((options.target.getTop() + options.target.getHeight()) / 2);
-
-				// Set new position
-				findNewPos(distX, distY, options.target, obj);
-			}
-		}
-	});
-});
-/*
-canvas.on('object:modified', function (options) {
-  if (options.target.fill != 'white' && options.target.fill != '#fff') {
-     options.target.set({
-      stroke: options.target.fill
-    });
-  }
-  else {
-    options.target.set({
-      stroke: 'black'
-    });
-  }
-})*/

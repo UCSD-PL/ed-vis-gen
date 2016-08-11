@@ -217,12 +217,23 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
   }
 
   // helper functions to select corner points, centered points
-  let isCorner = (dp: DragPoint, shape: Shape) =>
-    exists(s.equations, eq => eq.usesMotive(dp, shape) && cornerEval(dp, s))
+  let isCorner = (dp: DragPoint, shape: Shape) => {
+    for (let eq of s.equations) {
+      if (eq.usesMotive(dp, shape) && cornerEval(dp, s))
+        return true
+    }
+    return false
+  }
+    // exists(s.equations, eq => eq.usesMotive(dp, shape) && cornerEval(dp, s))
 
 
-  let isCenter = (dp: DragPoint, shape: Shape) =>
-    exists(s.equations, eq => eq.usesMotive(dp, shape) && centerEval(dp, s))
+  let isCenter = (dp: DragPoint, shape: Shape) => {
+    for (let eq of s.equations) {
+      if (eq.usesMotive(dp, shape) && centerEval(dp, s))
+        return true
+    }
+    return false
+  }
 
 
 
