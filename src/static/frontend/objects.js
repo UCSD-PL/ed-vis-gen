@@ -7,6 +7,8 @@ function addShape(shape) {
   updateModifications(true);
 }
 
+
+
 //Add line
 function addLine(){
  var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100});
@@ -131,10 +133,12 @@ function addPendulum(){
     canvas.add(pivot);
     canvas.add(bob);
     canvas.fire('object:modified', {target: bob});
-    updateLog();
+    updateModifications(true);
     canvas.renderAll();
 
 }
+
+
 
 //Return two arrays, one for physics objects, one for other shapes
 transfer = function transfer() {
