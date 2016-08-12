@@ -163,7 +163,12 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     // console.log(newS)
 
     // x, y coords are unused; compute x, y based off angle and height
-    newS.left += newS.width * newS.scaleX/2
+    // translate left, top to rotated location
+    newS.left += newS.width * newS.scaleX/2 * Math.cos(2*Math.PI/360 * newS.angle)
+    newS.top += newS.width * newS.scaleX/2 * Math.sin(2*Math.PI/360 * newS.angle)
+
+    // height * scaleY == magnitude of spring vector, angle gives rotation
+    // convert height => dy, width => dx
     newS.height *= newS.scaleY
     newS.width = -newS.height * Math.sin(2*Math.PI/360 * newS.angle)
     newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
