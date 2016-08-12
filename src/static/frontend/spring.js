@@ -36,11 +36,14 @@
       this.callSuper('initialize', options);
 
       this.set('width', options.width || 100)
+      //height is equvalent to dy
           .set('height', options.height || 100)
+     // dx is input as attribute
           .set('dx', options.dx );
     },
 
     /**
+     * Render function of spring object
      * @private
      * @param {CanvasRenderingContext2D} ctx Context to render on
      */
@@ -50,10 +53,14 @@
 
       ctx.beginPath();
 
-      //var dx =0; //could input
+
+      //dx is an input attribute
       var dx = this.dx;
-      //console.log(dx);
+      //height is equvalent to dy
       var dy = this.height;
+
+      // intuition: draw a circle and translate over time.
+      // circle drawing parameters
       var A = 10;
       var tau = Math.PI/50;
       var deltay = -A * Math.cos(0);
@@ -63,16 +70,19 @@
       var theta = Math.atan2(dy,dx);
       var dx2 = dist * Math.cos(theta);
       var dy2 = dist * Math.sin(theta);
-
+      // The top of spring
       ctx.moveTo(0, -heightBy2);
+      // Translate the cirle
       ctx.lineTo(0+dx2, (-heightBy2)+dy2);
+      // i is the amount of translation 
       for (let i = 100; i < iMAX - 100; ++i){
         var p1 = 0 + i * (dx - dx2) / iMAX + A * Math.sin(tau * i + offset);
         var q1 = (-heightBy2) + i * (dy - dy2) / iMAX + A * Math.cos(tau * i + offset);
         ctx.lineTo(p1, q1 + deltay);
       }
+      // The bottom of spring
       ctx.lineTo(0, heightBy2);
-
+      //Render the stroke
       ctx.strokeStyle = this.stroke || ctx.fillStyle;
       this.stroke && this._renderStroke(ctx);
 
