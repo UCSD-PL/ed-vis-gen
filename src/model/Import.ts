@@ -23,7 +23,8 @@ type fabricCommon = {
   left: number,
   top: number,
   flipX: boolean,
-  flipY: boolean
+  flipY: boolean,
+  physics?: string
 }
 type fabricCircle = {
   // left: number, // left + radius = x (basically)
@@ -132,46 +133,40 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
   } else if (s.type == 'line') {
     // console.log(s)
     let newS = Object.assign({}, s) as fabricLine
+    if (newS.physics == 'pendulum') {
+      // x, y coordinates are relative to origin, change to absolute system
+      newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
+      newS.x2 = newS.left + (newS.width/2 + newS.x2)*newS.scaleX
 
-    newS.height *= newS.scaleY
-    newS.width = newS.height * Math.sin(2*Math.PI/360 * newS.angle)
-    newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
-    // black magic...i'm still not sure??? geometry is hard
-    newS.width *= -1
+      newS.y1 = newS.top + (newS.height/2 + newS.y1)*newS.scaleY
+      newS.y2 = newS.top + (newS.height/2 + newS.y2)*newS.scaleY
 
-    // x, y coordinates are relative to origin, change to absolute system
-    newS.x1 = newS.left //+ (newS.width/2 + newS.x1)*newS.scaleX
-    newS.x2 = newS.left + newS.width // + (newS.width/2 + newS.x2)*newS.scaleX
+    } else {
+      // x, y coords are unused; compute x, y based off angle and height
+      newS.height *= newS.scaleY
+      newS.width = newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+      newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
+      // black magic...i'm still not sure??? geometry is hard
+      newS.width *= -1
 
-    newS.y1 = newS.top //+ (newS.height/2 + newS.y1)*newS.scaleY
-    newS.y2 = newS.top + newS.height//(newS.height/2 + newS.y2)*newS.scaleY
+      newS.x1 = newS.left
+      newS.x2 = newS.left + newS.width
+
+      newS.y1 = newS.top
+      newS.y2 = newS.top + newS.height
+    }
 
     ret = newS
 
   } else if (s.type == 'spring') {
     let newS = Object.assign({}, s) as fabricSpring
-    // console.log(s)
-
-    // x, y coordinates are relative to origin, change to absolute system
-    //newS.x1 = newS.left + (newS.width/2 + newS.x1)*newS.scaleX
-    //newS.x2 = newS.left + (newS.width/2 + newS.x2)*newS.scaleX
-
-    //newS.y1 = newS.top + (newS.height/2 + newS.y1)*newS.scaleY
-    //newS.y2 = newS.top + (newS.height/2 + newS.y2)*newS.scaleY
-
     // console.log(newS)
 
-    //newS.top = newS.y1
-    //newS.left = newS.x1
-    //newS.height *= newS.scaleY
-    //newS.width = -newS.height * Math.sin(2*Math.PI/360 * newS.angle)
-    //newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
-
-    // console.log(newS)
-
-    newS.width *= newS.scaleX/2
-    newS.left += newS.width
-    newS.dx = 0 //could add input dx feature later
+    // x, y coords are unused; compute x, y based off angle and height
+    newS.left += newS.width * newS.scaleX/2
+    newS.height *= newS.scaleY
+    newS.width = -newS.height * Math.sin(2*Math.PI/360 * newS.angle)
+    newS.height *= Math.cos(2*Math.PI/360 * newS.angle)
 
 
     ret = newS
@@ -247,7 +242,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
   } else if (s.type == 'spring') {
     let newS = s as fabricSpring
-    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.dx, newS.height], v => store.allocVar(v))
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
     shape = new Spring(x, y, dx, dy, newS.fill)
   } else {
     console.log('unrecognized fabric tag:')
