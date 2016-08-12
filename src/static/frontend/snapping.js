@@ -1,5 +1,14 @@
+/////////
+/// snapping
+/// credits to futurist @http://fiddle.jshell.net/futurist/cjLg9kw7/
+/////////
+
 var snapping = true, // true permits snapping on the "canvas" canvas
 snap = 8; // pixels to snap;
+
+function snapToNearestCoordinate(obj, target) {
+	obj.on('moving', function () {})
+}
 
 function findNewPos(distX, distY, target, obj) {
 	// See whether to focus on X or Y axis
