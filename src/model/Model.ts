@@ -2,7 +2,7 @@ import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} fro
 // import U = require('../util/Util')
 import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
-import {Equation, Constraint, SimplexSolver, Expression, Strength} from 'cassowary'
+import {Equation, Constraint, SimplexSolver, Expression, Strength, Inequality, GEQ} from 'cassowary'
 import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
 import {Poset} from '../util/Poset'
@@ -113,7 +113,14 @@ export class Store {
     // console.log(e.toString())
     this.equations.add(e)
     this.csolver.addConstraint(e.toCass(s))
+  }
 
+  public addMinBound(vars: Variable[]) {
+    let cvars = filter(vars, v => v instanceof CassVar) as Iterable<CassVar>
+    for (let v of cvars) {
+      let geq = new Inequality(Expression.fromVariable(v._value), GEQ, Expression.fromConstant(5))
+      this.csolver.addConstraint(geq)
+    }
   }
 
   public suggestEdits(edits: Map<Variable, number>, frees: Set<Variable>): void {
@@ -426,6 +433,16 @@ export class State {
       for (let editEq of editEqs)
         this.store.addEq(editEq, Strength.strong)
     }
+
+    // interactions over rectangles/circles/images only look nice when dimensions
+    // stay positive, so we add inequalities enforcing dx, dy / r >= 0.
+
+    if (s instanceof Rectangle || s instanceof Image) {
+      this.store.addMinBound([s.dx, s.dy])
+    } else if (s instanceof Circle) {
+      this.store.addMinBound([s.r])
+    }
+
     newProg = newProg.addShape(name, s)
 
 

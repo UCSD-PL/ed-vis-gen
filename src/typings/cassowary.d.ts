@@ -23,9 +23,11 @@ declare module "cassowary" {
     public autoSolve: boolean
   }
   export enum Strength {weak, medium, strong, required}
-  export enum BinOp {GEQ, LEQ}
+  // export enum BinOp {GEQ, LEQ}
+  export var GEQ: number
+  export var LEQ: number
   export class Inequality {
-    constructor(l:Expression, o:BinOp, r:Expression)
+    constructor(l:Expression, o:number, r:Expression)
   }
   export class Constraint {
     constructor(e:Expression, s:Strength, w:number)
