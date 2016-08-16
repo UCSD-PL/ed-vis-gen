@@ -1,7 +1,7 @@
 import {Expression, Equation, Strength} from 'cassowary'
 import {CassVar, Variable} from './Variable'
 import {partMap, copy, extendMap, mapValues, fold, union, exists} from '../util/Util'
-import {Shape, DragPoint, collectVars} from './Shapes'
+import {Shape, DragPoint, collectVars, pp} from './Shapes'
 
 // linear expression class with a conversion function to cassowary expressions
 
@@ -134,7 +134,12 @@ export class Eq {
   }
 
   public usesMotive (dp: DragPoint, s: Shape) {
-    return this.contains([dp.x, dp.y]) && this.contains(collectVars(s))
+    let ret = this.contains([dp.x, dp.y]) && this.contains(collectVars(s))
+
+
+    // console.log('usesMotive ' + ret.toString() + ' for: ' + this.toString() + ' ; ' + pp(dp) + ', ' + pp(s))
+
+    return ret
   }
 }
 

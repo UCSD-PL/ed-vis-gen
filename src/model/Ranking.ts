@@ -1,6 +1,6 @@
 import {Program, Store} from './Model'
 import {DragPoint, collectVars, Shape, Spring, Arrow, Rectangle, Image, Circle, Line} from './Shapes'
-import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap, exists, filter, cat, assert} from '../util/Util'
+import {Tup, partSet, intersect, fold, map, subset, uniqify, flatMap, exists, filter, cat, assert, len} from '../util/Util'
 import {Ranker} from '../util/Poset'
 import {Variable} from './Variable'
 import {Eq} from './Expr'
@@ -34,9 +34,9 @@ export function Default([p, s]: Tup<Program, Store>) {
   let weights = new Set<Tup<number, ProgRanker>>()
   weights.add([0, FreeVars])
          .add([1, ShapeMotion])
-         .add([4, ShapeHeuristics])
-         .add([1, ShapeCoordination])
-         .add([2, PointMotion])
+         .add([2, ShapeHeuristics])
+         .add([10, ShapeCoordination])
+         .add([5, PointMotion])
   let ranker = WeightedSum(weights)
   return ranker([p, s])
 }
@@ -53,7 +53,7 @@ export function ShapeMotion([p, s]: Tup<Program, Store>): number {
     for (let ip of drags) {
       let dragFrees = p.allFrees.get(ip as DragPoint)
       let shapeVars = collectVars(s)
-      ret += intersect(dragFrees, shapeVars).size
+      ret += intersect(dragFrees, shapeVars).size > 0 ? 1 : 0
     }
   }
   return ret
@@ -177,6 +177,8 @@ export function ShapeCoordination([p, s]: Tup<Program, Store>) {
 export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
   let store = s.eval()
 
+  let debug = (s: Shape) => console.log(store.get((s as any).x).toString() + ", " + store.get((s as any).y).toString())
+
   let storeEq = (v1: Variable, v2: Variable) => store.get(v1) == store.get(v2)
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
 
@@ -192,12 +194,19 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
     } else if (s instanceof Rectangle || s instanceof Image) {
       return !storeEq(s.x, dp.x) && !storeEq(s.y, dp.y) // offcenter in both dimensions
     } else if (s instanceof Circle || s instanceof DragPoint) {
+      // console.log('s:')
+      // debug(s)
+      // console.log('dp:')
+      // debug(dp)
       return !storeEq(s.x, dp.x) || !storeEq(s.y, dp.y) // offcenter in one dimension
     } else {
       // lines, triangles TODO
+      // console.log('???')
+      // console.log(s)
+      return false
     }
 
-    return false
+
   }
 
   // does dp lie on the center of s?
@@ -219,8 +228,9 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
   // helper functions to select corner points, centered points
   let isCorner = (dp: DragPoint, shape: Shape) => {
     for (let eq of s.equations) {
-      if (eq.usesMotive(dp, shape) && cornerEval(dp, s))
+      if (eq.usesMotive(dp, shape) && cornerEval(dp, shape)) {
         return true
+      }
     }
     return false
   }
@@ -240,15 +250,30 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
   // thesis: IPs in the center of a shape should not stretch a shape, and IPs in
   // the corner of a shape should not translate the shape.
 
-  let drags = filter(p.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
-  let nonDrags = filter(p.shapes, s => ! (s instanceof DragPoint))
+  let [drags, nonDrags] = partSet(p.shapes, s => s instanceof DragPoint) //filter(p.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
+  //let nonDrags = filter(p.shapes, s => ! (s instanceof DragPoint))
 
   let ret = 0
-  for (let drag of drags) {
+  for (let drag of (drags as Set<DragPoint>)) {
     let corners = filter(nonDrags, s => isCorner(drag, s))
     let centers = filter(nonDrags, s => isCenter(drag, s))
     let frees = p.allFrees.get(drag)
 
+    // console.log('corners: ' + len(corners).toString())
+    // console.log('centers: ' + len(centers).toString())
+    // console.log('frees: ' + map(frees, v => v.name).toString())
+
+
+    // let vars = map(corners, s => {
+    //   if (! (s instanceof Line)) {
+    //     assert('x' in s && 'y' in s, 'expected x and y to shape: ' + s.toString())
+    //     return St((s as any).x, (s as any).y)
+    //   } else {
+    //     return new Set<Variable>()
+    //   }
+    // })
+
+    // console.log('corner vars: ' + map(vars, vs => map(vs, v => v.name)).toString())
     // map corner penalty onto corners, center penalty onto centers, concat the results
     // and sum using fold
     let cornPen = map(corners, s => {
@@ -259,6 +284,8 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
         return 0
       }
     })
+
+
 
     let centPen = map(centers, s => {
       if (s instanceof Rectangle || s instanceof Image) {
@@ -272,6 +299,8 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 
     ret += fold(cat(centPen, cornPen), (sum, nxt) => sum + nxt, 0)
   }
+
+  // console.log('shape heuristic: ' + ret.toString())
 
   return ret
 }

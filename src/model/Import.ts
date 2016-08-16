@@ -381,7 +381,15 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     // rank the results
     let ranked = new Poset(zip(candProgs, repeat(retStore.store)), Default, [retStore.prog, retStore.store] as Tup<Program, Store>)
 
-    // console.log(ranked.toArr())
+    // // console.log(ranked.toArr())
+    // let formatter = (progs: Set<[Program, Store]>) => {
+    //   return fold( map(progs, ([p]) => [... p.allFrees.get(dp)]),
+    //     (acc, vars) => acc + ", [" + vars.map(v => v.name).join(',') + ']',
+    //     ""
+    //   )
+    // }
+
+    // ranked.debug(formatter)
 
     let frees = ranked.toArr().map(([p]: [Program, Store]) => p.allFrees.get(dp))
     possibleFrees.set(dp, frees)

@@ -1,6 +1,8 @@
 // super simple partially ordered set collection. supports adding elements,
 // removing elements, and for...of iteration.
 
+import {map} from './Util'
+
 export type Ranker<A> = (i: A) => number
 export class Poset<A> implements Iterable<A>{
   private vals: Map<number, Set<A>>
@@ -34,6 +36,16 @@ export class Poset<A> implements Iterable<A>{
 
   public toArr(): A[] {
     return [... this]
+  }
+
+
+  //
+  public debug<B>(f: (a: Set<A>) => B) {
+    console.log("[")
+    for (let [k, v] of this.vals) {
+      console.log(k.toString() + " -> " + f(v).toString() + ",")
+    }
+    console.log(']')
   }
 
 

@@ -25,3 +25,4 @@ typings.json
 Expr.js
 Events.js
 Simulation.js
+src/util/Poset.js
