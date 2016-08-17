@@ -239,7 +239,7 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 
   let isCenter = (dp: DragPoint, shape: Shape) => {
     for (let eq of s.equations) {
-      if (eq.usesMotive(dp, shape) && centerEval(dp, s))
+      if (eq.usesMotive(dp, shape) && centerEval(dp, shape))
         return true
     }
     return false
