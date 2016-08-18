@@ -42,8 +42,8 @@ canvas.fireEventForObjectInsideGroup = true;
 interact.fireEventForObjectInsideGroup = true;
 
 canvas.selection = true; // if true, canvas is in selection mode
-physics.isDrawingMode = false; // if false, canvas is not in drawing mode
 physics.selection = false;
+physics.isDrawingMode = false; // if false, canvas is not in drawing mode
 
 // canvasWidth and canvasHeight are resized according to the dimensions of the browser window
 var canvasWidth = document.getElementById('canvas').width;

@@ -202,7 +202,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
   let shape: Shape
   if (s.type == 'circle' || s.type == 'dragPoint') {
     let newS = s as fabricCircle
-    let [x, y, r] = map3Tup([newS.left, newS.top, newS.radius], v => store.allocVar(v))
+    let [x, y, r] = map3Tup([newS.left, newS.top, newS.radius], v => store.allocCassVar(v))
     if (s.type == 'circle') {
       shape = new Circle(x, y, r, "black", newS.fill)
     } else {
@@ -210,7 +210,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     }
   } else if (s.type == 'rect' || s.type == 'image') {
     let newS = s as fabricImg // careful: accessing newS.src is only safe for images
-    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocCassVar(v))
     if (newS.type == 'image') {
       if (! (window as any).BACKEND.IMAGES) {
         (window as any).BACKEND.IMAGES = new Map<string, HTMLImageElement>()
@@ -238,16 +238,16 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     }
   } else if (s.type == 'arrow') {
     let newS = s as fabricArrow
-    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocCassVar(v))
     shape = new Arrow(x, y, dx, dy, 'black')
   } else if (s.type == 'line') {
     let newS = s as fabricLine
-    let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocVar(v))
-    let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocVar(v))
+    let [x1, y1] = map2Tup([newS.x1, newS.y1], v => store.allocCassVar(v))
+    let [x2, y2] = map2Tup([newS.x2, newS.y2], v => store.allocCassVar(v))
     shape = new Line([[x1, y1], [x2, y2]], newS.fill, false)
   } else if (s.type == 'spring') {
     let newS = s as fabricSpring
-    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocVar(v))
+    let [x, y, dx, dy] = map4Tup([newS.left, newS.top, newS.width, newS.height], v => store.allocCassVar(v))
     shape = new Spring(x, y, dx, dy, newS.fill)
   } else {
     console.log('unrecognized fabric tag:')

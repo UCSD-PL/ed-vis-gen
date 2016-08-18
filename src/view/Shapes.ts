@@ -99,6 +99,32 @@ function _drawCircle(ctx: Context, x: number, y: number, r: number, stroke: stri
   ctx.restore()
 }
 
+export function _drawArrow(ctx: Context, x: number, y: number, dx: number, dy: number, stroke: string) {
+  _drawLine(ctx, [[x,y], [x+dx,y+dy]], false, stroke)
+
+  // arrows are hard, adapted from here:
+  // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
+  // x1 = x, y1 = y, x2 = x+dx, y2 = y+dy
+  let angle = Math.PI/8 // angle arrowhead makes with line
+  let d = 20 // length of arrowhead hypotenuses
+
+  // calculate the angle of the line
+  let theta=Math.atan2(dy,dx)
+  // h is the line length of a side of the arrow head
+  let h=Math.abs(d/Math.cos(angle))
+  // angle of top hypotenuse with +X axis
+  let angle1=theta+Math.PI+angle
+  // x, y coordinates of top corner
+  let topx=x+dx+Math.cos(angle1)*h
+  let topy=y+dy+Math.sin(angle1)*h
+  // same calculations, but for bottom hypotenuse and corner
+  let angle2=theta+Math.PI-angle
+  let botx=x+dx+Math.cos(angle2)*h
+  let boty=y+dy+Math.sin(angle2)*h
+
+  _drawTriangle(ctx, [[x+dx, y+dy], [topx, topy], [botx, boty]], stroke, stroke)
+}
+
 // draw a (shape) line
 function drawLine(ctx: Context, line: S.Line, store: Env) {
   // we need to give an explicit typing to the map function to get the types to work out...
@@ -133,29 +159,7 @@ function drawRectangle(ctx: Context, r: S.Rectangle, store: Env) {
 function drawArrow(ctx: Context, arr:S.Arrow, store: Env) {
 
   let [x, y, dx, dy] = U.map4Tup([arr.x, arr.y, arr.dx, arr.dy], i => store.get(i))
-  _drawLine(ctx, [[x,y], [x+dx,y+dy]], false, arr.stroke)
-
-  // arrows are hard, adapted from here:
-  // http://www.dbp-consulting.com/tutorials/canvas/CanvasArrow.html
-  // x1 = x, y1 = y, x2 = x+dx, y2 = y+dy
-  let angle = Math.PI/8 // angle arrowhead makes with line
-  let d = 20 // length of arrowhead hypotenuses
-
-  // calculate the angle of the line
-  let theta=Math.atan2(dy,dx)
-  // h is the line length of a side of the arrow head
-  let h=Math.abs(d/Math.cos(angle))
-  // angle of top hypotenuse with +X axis
-  let angle1=theta+Math.PI+angle
-  // x, y coordinates of top corner
-  let topx=x+dx+Math.cos(angle1)*h
-  let topy=y+dy+Math.sin(angle1)*h
-  // same calculations, but for bottom hypotenuse and corner
-  let angle2=theta+Math.PI-angle
-  let botx=x+dx+Math.cos(angle2)*h
-  let boty=y+dy+Math.sin(angle2)*h
-
-  _drawTriangle(ctx, [[x+dx, y+dy], [topx, topy], [botx, boty]], arr.stroke, arr.stroke)
+  _drawArrow(ctx, x, y, dx, dy, arr.stroke)
 }
 
 
