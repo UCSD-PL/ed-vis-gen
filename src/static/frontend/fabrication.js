@@ -76,6 +76,20 @@ function resizePhysicsPanel () {
 resizeCanvas();
 resizePhysicsPanel();
 
+
+// snapping states enum
+let SnapStates = {
+  OFF: 0,
+  UNSELECTED: 1,
+  SELECTED: 2
+}
+// global state for snapping mode
+let SnapGlobals = {
+  STATE: SnapStates.OFF, // one of SnapStates
+  MOVER: null, // original snappoint, whose parent object will translate
+  POINTS: [] // list of all snappoints
+}
+
 // adds drag points
 function addDragPoints(obj, dx, dy) {
   var drag = new fabric.DragPoint({
@@ -119,6 +133,9 @@ function addDragPoints(obj, dx, dy) {
           onLoadSims(drag);
       } } );
   }
+
+
+
 // adds all the drag points on the "interact" canvas
 function addAllDP(array, obj) {
     if (dragPointList.length === 0 ) {
@@ -140,6 +157,126 @@ function addAllDP(array, obj) {
   }} }
 }
 
+// add snappoints to 'canvas'
+function addSnapPoints() {
+  canvas.forEachObject((obj) => {
+    let dragLocs; // [number, number][]
+    switch (obj.get('physics')) {
+      case 'pendulum':
+        switch (obj.get('item')) {
+          case 'bob':
+            dragLocs = arrayBob;
+            break;
+          case 'pivot':
+            dragLocs = arrayPiv;
+            break;
+          default:
+            console.log('unhandled object in snappoints:');
+            console.log(obj);
+            return;
+        }
+
+        break;
+      case 'spring':
+        dragLocs = arraySpring;
+        break;
+      case 'none':
+        switch (obj.get('type')) {
+          case 'arrow':
+            dragLocs = arrayArr;
+            break;
+          case 'rect':
+          case 'image':
+            dragLocs = arrayRect;
+            break;
+          case 'circle':
+            dragLocs = arrayCirc;
+            break;
+          case 'line':
+            dragLocs = arrayLine;
+            break;
+          default:
+            console.log('unhandled object in snappoints:');
+            console.log(obj);
+            return;
+        }
+        break;
+      default:
+        console.log('unhandled physics type in snappoints');
+        console.log(obj);
+        console.log(obj.get('physics'))
+        return;
+    }
+    addSnapDrags(dragLocs, obj);
+  });
+
+}
+
+// translate parent obj of mover to location specified by movee s.t. mover has
+// has the same coordinates as movee. mover and movee are instances of DragPoint.
+function translateParent(mover, movee) {
+  // all dragpoints have the same radius, so it suffices to calculate dx, dy
+  // with respect to top and left
+  // assumes mover and movee are both oriented wrt to the canvas
+  let [dx, dy] =
+    [movee.get('left') - mover.get('left'), movee.get('top') - mover.get('top')];
+  // console.log([dx, dy]);
+  let parent = mover.get('shape');
+
+  parent.setLeft(parent.get('left') + dx);
+  parent.setTop(parent.get('top') + dy);
+  parent.setCoords();
+
+  canvas.fire('object:modified', {target: parent});
+  updateModifications(true);
+  canvas.renderAll();
+}
+
+// foreach part of receiver specified by locations, add a "dragpoint" to the
+// main canvas and register a snapping callback.
+function addSnapDrags(locations, receiver) {
+  // initialize state
+  SnapGlobals.STATE = SnapStates.UNSELECTED;
+  for (let [dx, dy] of locations) {
+    let drag = new fabric.DragPoint({
+      name: allocSName(),
+      shape: receiver,
+      shapeName: receiver.get('name'),
+      DX: dx,
+      DY: dy,
+      fill: dpColor,
+      radius: 7,
+      type: 'snap'
+    });
+    drag.startDragPoint(receiver, canvas);
+    canvas.add(drag);
+
+    // register callback(s)
+    drag.on('selected', () => {
+      let me = drag; // ugh
+      console.log(me);
+      // once selected, if the state is:
+      switch (SnapGlobals.STATE) {
+        // unselected, track the selected object + receiver and
+        // transition to selected
+        case SnapStates.UNSELECTED:
+          SnapGlobals.MOVER = drag;
+          SnapGlobals.STATE = SnapStates.SELECTED;
+          break;
+        // selected, translate the mover's parent object and transition to unselected
+        case SnapStates.SELECTED:
+          translateParent(SnapGlobals.MOVER, me);
+          SnapGlobals.STATE = SnapStates.UNSELECTED;
+          break;
+        case SnapGlobals.OFF:
+        default:
+          console.log('unhandled state in snappoint callback:');
+          console.log(SnapGlobals);
+          console.log(me);
+      }
+    });
+  }
+}
 // checks if a drag point is located in a specific part of the shape
 function checkDragPointLocation(dp, obj, dx, dy) {
   if (dp.get('shapeName') === obj.get('name') && dx === dp.get('DX') && dy === dp.get('DY')) {
@@ -178,7 +315,8 @@ function checkForDragPoints(obj, type) {
     if (type === 'arrow') {
       addAllDP(arrayArr, obj);
     }
-    else if (type === 'rect') {
+    else if (type === 'rect' || type === 'image') {
+      // console.log('adding dp to img')
       addAllDP(arrayRect, obj);
     }
     else if (type === 'circle') {
