@@ -166,7 +166,10 @@ transfer = function transfer() {
           pendulumObj['bob'] = obj;
         }
       }
-      else{
+      else {
+        if (obj.get('type') === 'snap') {
+          return;
+        }
         shapes.push(obj);
       };
     //return pendulum as a physics group
