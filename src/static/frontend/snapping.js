@@ -8,19 +8,56 @@ newArray = [],
 snap = 8; // pixels to snap;
 
 function alignContactPoints(obj, target, array) {
-	if (array.length != 0) {
-		var dx = array[0],
-		dy = array[1];
-
+	var dx = array[0],
+	dy = array[1];
+	if (array.length == 0) {}
+	else if (array[0] >= 0 && array[1] >= 0) {
 		obj.set({
 			left: target.getLeft() + target.getWidth()*dx,
 			top: target.getTop() + target.getHeight()*dy
 		});
-}}
+		console.log('setting');
+	}
+	else if (array[0] < 0 && array[1] >= 0) {
+		obj.set({
+			left: target.getLeft() + obj.getWidth()*dx,
+			top: target.getTop() + target.getHeight()*dy
+		});
+		console.log('setting');
+	}
+	else if (array[0] >= 0 && array[1] < 0) {
+		obj.set({
+			left: target.getLeft() + target.getWidth()*dx,
+			top: target.getTop() + obj.getHeight()*dy
+		});
+		console.log('setting');
+	}
+	else if (array[0] < 0 && array[1] < 0) {
+		obj.set({
+			left: target.getLeft() + obj.getWidth()*dx,
+			top: target.getTop() + obj.getHeight()*dy
+		});
+		console.log('setting');
+	}
+	else {}
+
+	if (array[0] == 0.5 || array[1] == 0.5) {
+		if (array[0] == 0.5) {
+			obj.set({
+				left: target.getLeft() + target.getWidth()*dx - obj.getHeight()*0.5
+			});
+		}
+		if (array[1] == 0.5) {
+			obj.set({
+				top: target.getTop() + target.getHeight()*dy - obj.getHeight()*0.5
+			});
+		}
+	}
+}
 
 function findCP(array, dx, dy) {
 	for (var i = 0; i < array.length; i++) {
-		if (dx == array[i][0] && dy == array[i][1]) {
+		if (Math.abs(dx) == array[i][0] && Math.abs(dy) == array[i][1]) {
 			return array[i];
 		}
 	}
@@ -30,33 +67,33 @@ function findCP(array, dx, dy) {
 function checkForContactPoints(obj, target, dx, dy) {
 	if (obj.get('physics') === 'pendulum') {
     if (obj.get('item') === 'bob') {
-			newArray = findCP(arrayBob, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
     if (obj.get('item') === 'pivot') {
-			newArray = findCP(arrayPiv, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
   }
   else if (obj.get('physics') === 'spring') {
-			newArray = findCP(arraySpring, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
   }
   else if (obj.get('physics') === 'none') {
     if (obj.get('type') === 'arrow') {
-			newArray = findCP(arrayArr, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
     else if (obj.get('type') === 'rect') {
-			newArray = findCP(arrayRect, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
     else if (obj.get('type') === 'circle') {
-			newArray = findCP(arrayCirc, dx, dy);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
     else if (obj.get('type') === 'line') {
-			newArray = findCP(arrayLine);
+			newArray = [dx, dy];
       alignContactPoints(obj, target, newArray);
     }
     else { return; }
@@ -65,36 +102,91 @@ function checkForContactPoints(obj, target, dx, dy) {
 }
 
 function snapToNearestContactPoint(obj, target) {
- 	if (obj.getTop() >= target.getTop() - target.getHeight()*0.2
+	// top-left from top-left
+	if (obj.getTop() < target.getTop() && obj.getLeft() < target.getLeft()) {
+			checkForContactPoints(obj, target, -1, -1);
+			//console.log("top-left");
+		}
+	// top-left from top
+	else if (obj.getLeft() <= target.getLeft()
+		&& obj.getTop() <= target.getTop() + target.getHeight()*0.25) {
+			checkForContactPoints(obj, target, -1, -1);
+			//console.log("top-left");
+		}
+	// top-left from left
+	else if (obj.getTop() < target.getTop()
+		&& obj.getLeft() <= target.getLeft() + target.getWidth()*0.25) {
+			checkForContactPoints(obj, target, -1, -1);
+			//console.log("top-left");
+		}
+	// top
+	else if (obj.getTop() < target.getTop()
+		&& obj.getLeft() >= target.getLeft() + target.getWidth()*0.25) {
+			// top-middle
+			if (obj.getLeft() <= target.getLeft() + target.getWidth()*0.75) {
+				checkForContactPoints(obj, target, 0.5, -1);
+				//console.log("top-middle");
+			}
+			// top-right
+			else if (obj.getLeft() <= target.getLeft() + target.getWidth()*1.1) {
+				checkForContactPoints(obj, target, 1, -1);
+				//console.log("top-right");
+			}
+		}
+	// left
+  else if (obj.getLeft() <= target.getLeft()) {
+		// left-middle
+		if (obj.getTop() <= target.getTop() + target.getHeight()*0.75) {
+			checkForContactPoints(obj, target, -1, 0.5);
+			//console.log("left-middle");
+		}
+		// left-bottom
+		else if (obj.getTop() <= target.getTop() + target.getHeight()*1.1) {
+			checkForContactPoints(obj, target, -1, 1);
+			//console.log("left-bottom");
+		}
+	}
+	// right
+ 	else if (obj.getTop() >= target.getTop() + target.getHeight()*0.2
 	&& obj.getLeft() >= target.getLeft() + target.getWidth()) {
+		// right-top
 		if (target.getTop() + target.getHeight()*0.25 >= obj.getTop()
 				&& obj.getTop() >= target.getTop()) {
-			checkForContactPoints(obj, target, 1, 0);
+			checkForContactPoints(obj, target, 1, -1);
+			//console.log("right-top");
 		}
+		// right-middle
 		else if (target.getTop() + target.getHeight()*0.25 < obj.getTop()
 				&& obj.getTop() <= target.getTop() + target.getHeight()*0.75) {
 			checkForContactPoints(obj, target, 1, 0.5);
+			//console.log("right-middle");
 		}
+		// right-bottom
 		else if (target.getTop() + target.getHeight()*0.25 <= obj.getTop()
-				&& obj.getTop() >= target.getTop() + target.getHeight()) {
+				&& obj.getTop() >= target.getTop() + target.getHeight()*1.1) {
 			checkForContactPoints(obj, target, 1, 1);
+			//console.log("right-bottom");
 		}
-		else { }
 	}
-	else if (obj.getLeft() < target.getLeft() + target.getWidth()) {
-		if (obj.getLeft() > target.getLeft() + target.getWidth()*0.75) {
-			checkForContactPoints(obj, target, 1, 1);
-		}
-		else if (obj.getLeft() > target.getLeft() + target.getWidth()*0.25
+	// bottom
+	else if (obj.getTop() >= target.getTop() + target.getHeight()) {
+		// bottom-middle
+		if (obj.getLeft() >= target.getLeft() + target.getWidth()*0.25
 			&& obj.getLeft() < target.getLeft() + target.getWidth()*0.75) {
 			checkForContactPoints(obj, target, 0.5, 1);
+			//console.log("bottom-middle");
 		}
+		// bottom-right
+		else if (obj.getLeft() > target.getLeft() + target.getWidth()*0.75) {
+			checkForContactPoints(obj, target, 1, 1);
+			//console.log("bottom-right");
+		}
+		// bottom-left
 		else if (obj.getLeft() <= target.getLeft() + target.getWidth()*0.25) {
-			checkForContactPoints(obj, target, 0, 0);
+			checkForContactPoints(obj, target, -1, 1);
+			//console.log("bottom-left");
 		}
-		else { }
 	}
-	else { }
 }
 
 function findNewPos(distX, distY, target, obj) {
@@ -165,97 +257,69 @@ canvas.on('object:moving', function (options) {
 		// If bottom points are on same Y axis
 		if (Math.abs((options.target.getTop() + options.target.getHeight()) - (obj.getTop() + obj.getHeight())) < snap) {
 
-
+			/*
 			// Snap target BL to object BR
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
 			}
 
 			// Snap target BR to object BL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
+			} */
+			snapToNearestContactPoint(options.target, obj);
 		}
 
 		// If top points are on same Y axis
 		if(Math.abs(options.target.getTop() - obj.getTop()) < snap) {
-			// Snap target TL to object TR
+			/*// Snap target TL to object TR
 			if(Math.abs(options.target.getLeft() - (obj.getLeft() + obj.getWidth())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth());
 				options.target.setTop(obj.getTop());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
 			}
 
 			// Snap target TR to object TL
 			if(Math.abs((options.target.getLeft() + options.target.getWidth()) - obj.getLeft()) < snap) {
 				options.target.setLeft(obj.getLeft() - options.target.getWidth());
 				options.target.setTop(obj.getTop());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
+			}*/
+			snapToNearestContactPoint(options.target, obj);
 		}
 
 		// Snap objects to each other vertically
 
 		// If right points are on same X axis
 		if(Math.abs((options.target.getLeft() + options.target.getWidth()) - (obj.getLeft() + obj.getWidth())) < snap) {
-			// Snap target TR to object BR
+			/*// Snap target TR to object BR
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() + obj.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
 			}
 
 			// Snap target BR to object TR
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft() + obj.getWidth() - options.target.getWidth());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
+			}*/
+			snapToNearestContactPoint(options.target, obj);
 		}
 
 		// If left points are on same X axis
 		if(Math.abs(options.target.getLeft() - obj.getLeft()) < snap) {
-			// Snap target TL to object BL
+			/*// Snap target TL to object BL
 			if(Math.abs(options.target.getTop() - (obj.getTop() + obj.getHeight())) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() + obj.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
 			}
 
 			// Snap target BL to object TL
 			if(Math.abs((options.target.getTop() + options.target.getHeight()) - obj.getTop()) < snap) {
 				options.target.setLeft(obj.getLeft());
 				options.target.setTop(obj.getTop() - options.target.getHeight());
-        /*options.target.set({
-          strokeWidth: 2,
-          stroke: snapColor
-        });*/
-			}
+			}*/
+			snapToNearestContactPoint(options.target, obj);
 		}
 	});
 	options.target.setCoords();
