@@ -513,7 +513,9 @@ function onLoadSims(dragPoint) {
   currentDragPoint = dragPoint;  //.clone();
   currentSim = 0;
   formerChoice = currentDragPoint.get('choice');
-  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name") - 1);
+  console.log(currentDragPoint);
+  console.log(currentDragPoint.get('name'));
+  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name")) - 1;
   generateSims(currentDragPoint);
 }
 
