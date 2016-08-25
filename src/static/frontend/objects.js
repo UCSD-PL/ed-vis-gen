@@ -55,6 +55,7 @@ function toggleSnap() {
 //Add spring
 function addSpring(){
   var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:100, left:100, angle:180, 'physics':'spring'});
+  spring.set('physicsGroup', [spring]);
   addShape(spring);
 }
 
@@ -105,6 +106,11 @@ function addPendulum(){
     item:'bob',
 
   });
+
+  let physicsGroup = [rod, pivot, bob];
+  pivot.set('physicsGroup', physicsGroup);
+  rod.set('physicsGroup', physicsGroup);
+  bob.set('physicsGroup', physicsGroup);
 
 
 
@@ -190,11 +196,18 @@ transfer = function transfer() {
 
 //Deletion
 function deleteObjects(){
-	var activeObject = canvas.getActiveObject(),activeGroup = canvas.getActiveGroup();
-  //Delete active object
-	if (activeObject) {canvas.remove(activeObject);}
-  //Delet active group
-	else if (activeGroup) {
+	var activeObject = canvas.getActiveObject(), activeGroup = canvas.getActiveGroup();
+  // console.log(activeGroup);
+  //Delete active object. if the object is in a physics group, delete the other objects.
+	if (activeObject) {
+    // canvas.remove(activeObject);
+    if (activeObject.get('physics') == 'none' ) {
+      // no dependencies
+      canvas.remove(activeObject)
+    } else {
+      activeObject.get('physicsGroup').forEach(o => canvas.remove(o));
+    }
+  } else if (activeGroup) {
 		var objectsInGroup = activeGroup.getObjects();
 		canvas.discardActiveGroup();
 		objectsInGroup.forEach(function(object) {

@@ -214,7 +214,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     if (s.type == 'circle') {
       shape = new Circle(x, y, r, "black", newS.fill)
     } else {
-      console.log(s)
+      // console.log(s)
       shape = new DragPoint(x, y, r, 'green')
     }
   } else if (s.type == 'rect' || s.type == 'image') {
@@ -362,7 +362,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
 
-  console.log(retStore.prog.allFrees)
+  // console.log(retStore.prog.allFrees)
   for (let [dp] of retStore.prog.allFrees) {
 
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')

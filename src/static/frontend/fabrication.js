@@ -33,9 +33,7 @@ numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint, // current drag point on the "sims" panel
 
 dpColor = "red", // color of unselected drag points
-dpSelectedColor = "orange", // color of selected drag points
-
-whereDP = 0; // checks which drag points to delete in the dragPointList
+dpSelectedColor = "orange"; // color of selected drag points
 
 // if true, events are fired for individual objects on a canvas
 canvas.fireEventForObjectInsideGroup = true;
