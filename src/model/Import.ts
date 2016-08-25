@@ -328,6 +328,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // console.log(model.physicsGroups)
   let newPhysicsGroups = new Set<PhysicsGroup>()
   // add in pendulum groups
+  // console.log(model.physicsGroups)
   model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
     let newGroup: PhysicsGroup
@@ -412,7 +413,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
 
   // finally, add dragpoint free variables as needed
-  let drags = filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
+  let drags = retStore.prog.allFrees//filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
 
   retStore.prog.shapes.forEach(s => {
@@ -421,12 +422,19 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     }
   });
 
+  // retStore.debug()
+  // console.log(newPhysicsGroups)
+  let groupCntr = 0
   for (let grp of newPhysicsGroups) {
-    for (let dp of drags) {
+    for (let [dp] of drags) {
       let grpVars = grp.frees()
+      // console.log('dp: ' + pp(dp))
+      // console.log('group frees: ' + [... map(grpVars, v => v.name)].join(','))
       let e = find(retStore.store.equations, e =>
        (e.vars().has(dp.x) || e.vars().has(dp.y)) && intersect(e.vars(), grpVars).size > 0)
       if (e) {
+        // console.log('adding: ')
+        // console.log(dp)
         grp.addDrag(dp)
      }
     }

@@ -115,7 +115,7 @@ export function pp(s: Shape): string {
 
   if (s instanceof Line) {
     ret += "Line("
-    s.points.forEach(([x, y]) => ret + " " + pPoint(x, y) + ",")
+    s.points.forEach(([x, y]) => ret +=  (" " + pPoint(x, y) + ","))
     ret = ret.slice(0, -1)
   } else if (s instanceof Arrow || s instanceof Spring) {
     if (s instanceof Arrow) {
@@ -130,7 +130,7 @@ export function pp(s: Shape): string {
     if (s instanceof Circle) {
       ret += "Circle("
     } else {
-      ret += "DragPoint"
+      ret += "DragPoint("
     }
 
     ret += pPoint(s.x, s.y) + ", " + s.r.name
