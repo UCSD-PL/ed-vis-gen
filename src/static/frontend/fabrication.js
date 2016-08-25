@@ -21,7 +21,7 @@ arrayBob = [[0,0.5],[0.5,0],[0.5,0.5],[1,0.5],[0.5,1]],
 arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 
-dragPointList = [], // list of drag points on canvas
+canvasDragPoints = new Set(), // set of drag points on canvas
 physicsObjectList = [], // list of objects with physics attributes on canvas
 
 lastSim = 0, // last interaction for the drag point selection panel
@@ -138,23 +138,26 @@ function addDragPoints(obj, dx, dy) {
 
 // adds all the drag points on the "interact" canvas
 function addAllDP(array, obj) {
-    if (dragPointList.length === 0 ) {
-      for (var i = 0; i < array.length; i++) {
-        addDragPoints(obj, array[i][0], array[i][1]);
-      }}
-    else {
-      for (var i = 0; i < array.length; i++) {
-        for (var j = 0; j < dragPointList.length; j++) {
-            if (!checkDragPointLocation(dragPointList[j], obj, array[i][0], array[i][1])) {
-                addDragPoints(obj, array[i][0], array[i][1]);
-              }
-            else {
-              interact.add(dragPointList[j]);
-              dragPointList[j].set({
-                fill: dpSelectedColor
-              });
-            }
-  }} }
+  if (canvasDragPoints.size == 0 ) {
+    for (let coord of array) { // array has type [number, number][]
+      let [dx, dy] = coord; // coord is a tuple [number, number]
+      addDragPoints(obj, dx, dy);
+    }
+  } else {
+    for (let coord of array) {
+      let [dx, dy] = coord;
+      for (let drag of canvasDragPoints) {
+        if (!checkDragPointLocation(drag, obj, dx, dy)) {
+          addDragPoints(obj, dx, dy);
+        } else {
+          interact.add(drag);
+          drag.set({
+            fill: dpSelectedColor
+          });
+        }
+      }
+    }
+  }
 }
 
 // add snappoints to each object in 'canvas'
@@ -234,8 +237,8 @@ function translateParent(mover, movee) {
   parent.setTop(parent.get('top') + dy);
   parent.setCoords();
 
-  // parent.fire('modified'); // moves drag points
-
+  parent.fire('modified'); // moves drag points
+  canvas.fire('object:moving', {target: parent});
   canvas.fire('object:modified', {target: parent}); // sends to backend
   // updateModifications(true);
   canvas.renderAll();
@@ -254,11 +257,12 @@ function addSnapDrags(locations, receiver) {
       DX: dx,
       DY: dy,
       fill: dpColor,
-      radius: 5,
+      radius: 7,
       type: 'snap'
     });
     drag.startDragPoint(receiver, canvas);
     canvas.add(drag);
+    canvas.bringToFront(drag);
     // console.log('adding: ' + drag.get('name'));
     // SnapGlobals.POINTS.push(drag);
 
@@ -276,9 +280,10 @@ function addSnapDrags(locations, receiver) {
           break;
         // selected, translate the mover's parent object and transition to unselected
         case SnapStates.SELECTED:
+          SnapGlobals.MOVER.set('fill', dpColor);
           translateParent(SnapGlobals.MOVER, me);
-          toggleSnaps();
-          // SnapGlobals.STATE = SnapStates.UNSELECTED;
+          // toggleSnaps();
+          SnapGlobals.STATE = SnapStates.UNSELECTED;
           break;
         case SnapStates.OFF:
         default:
@@ -299,6 +304,12 @@ function addSnapDrags(locations, receiver) {
 function toggleSnaps() {
   switch (SnapGlobals.STATE) {
     case SnapStates.OFF:
+      canvas.forEachObject(obj => {
+        if (obj.get('type') != 'snap') {
+          // obj.set('selectable', false);
+          // obj.set('hasControls', false);
+        }
+      });
       addAllSnaps();
       SnapGlobals.STATE = SnapStates.UNSELECTED;
       break;
@@ -311,6 +322,9 @@ function toggleSnaps() {
       canvas.forEachObject(obj => {
         if (obj.get('type') == 'snap') {
           canvas.remove(obj);
+        } else {
+          // obj.set('selectable', true); // TODO: pendulum
+          // obj.set('hasControls', true);
         }
       });
 
@@ -407,13 +421,10 @@ function checkForDragPoints(obj, type) {
 // adds in the candidate points on the interact canvas
 function candidatePoints() {
   interact.clear();
-  dragPointList = [];
+  canvasDragPoints.clear();
 
-  canvas.forEachObject( function (o) {
-    if (o.get('type') == 'dragPoint') {
-      dragPointList.push(o);
-    }
-  });
+  forEachDP(drag => canvasDragPoints.add(drag)); // SET
+
 
   canvas.forEachObject( function (obj) {
     if (obj.get('type') != 'dragPoint') {
@@ -429,11 +440,11 @@ function candidatePoints() {
 
 //selects drag point and adds it to the drag point list
 function select(dragPoint) {
-    dragPoint.set({
-      fill: dpSelectedColor
-    });
-    dragPointList.push(dragPoint);
-  }
+  dragPoint.set({
+    fill: dpSelectedColor
+  });
+  canvasDragPoints.add(dragPoint);
+}
 
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
@@ -443,12 +454,7 @@ function undoSelect(dragPoint) {
     onCanvas: false
   });
 
-  function checkDP (dp) {
-    return dp == dragPoint;
-  }
-
-  whereDP = dragPointList.findIndex(checkDP); // finds unselected drag point from dragPointList
-  dragPointList.splice(whereDP, 1); // removes unselected drag point from dragPointList
+  canvasDragPoints.delete(dragPoint);
 
   window.BACKEND.finishEditChoice();
 }
@@ -544,16 +550,19 @@ function onOverlayClosed() {
   });
 
   // adds drag points to the canvas and attaches them to shapes
-  for (var i = 0; i < dragPointList.length; i++) {
-      dragPointList[i].set({
-        fill: dpColor,
-        onCanvas: true
-      });
-
-      canvas.add(dragPointList[i]);
-      obj = dragPointList[i].get('shape');
-      dragPointList[i].startDragPoint(obj);
+  for (let drag of canvasDragPoints) {
+    // if it hasn't been added to the canvas yet
+    if (!drag.get('onCanvas')) {
+      canvas.add(drag);
     }
+    drag.set({
+      fill: dpColor,
+      onCanvas: true
+    });
+
+    obj = drag.get('shape');
+    drag.startDragPoint(obj);
+  }
 
   canvas.renderAll();
   updateModifications(true);

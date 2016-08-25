@@ -35,7 +35,7 @@ export function Default([p, s]: Tup<Program, Store>) {
   weights.add([0, FreeVars])
          .add([1, ShapeMotion])
          .add([2, ShapeHeuristics])
-         .add([10, ShapeCoordination])
+         .add([5, ShapeCoordination])
          .add([5, PointMotion])
   let ranker = WeightedSum(weights)
   return ranker([p, s])

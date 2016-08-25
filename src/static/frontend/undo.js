@@ -11,7 +11,7 @@ current = 0; // current state on the "canvas" canvas
 function removeAllWeirdObjects(canvas) {
   canvas.forEachObject( function(o) {
     if (o.get('type') === 'dragPoint') {
-        dragPointList.push(o);
+        canvasDragPoints.add(o);
         canvas.remove(o);
     }
     if (o.get('physics') === 'pendulum') {
@@ -35,15 +35,15 @@ function addBackAllWeirdObjects(canvas) {
   }
   pendulumList = [];
   // adds drag points back to the canvas
-  for (var i = 0; i < dragPointList.length; i++) {
-    canvas.add(dragPointList[i]);
-    dragPointList[i].startDragPointByName(canvas);
+  for (let drag of canvasDragPoints) {
+    canvas.add(drag);
+    drag.startDragPointByName(canvas);
   }
 }
 
 // when undo and redo are implemented, drag points and pendulums are redrawn (to include more physics objects as well)
 function onUndoRedo() {
-  dragPointList = [];
+  canvasDragPoints.clear();
   physicsObjectList = [];
   removeAllWeirdObjects(canvas);
   addBackAllWeirdObjects(canvas);

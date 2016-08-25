@@ -3,7 +3,7 @@
 /// credits to Anna Phillips @https://jsfiddle.net/aphillips8/31qbr0vn/1/
 /////////
 
-var snapping = true, // true permits snapping on the "canvas" canvas
+var snapping = false, // true permits snapping on the "canvas" canvas
 newArray = [],
 snap = 8; // pixels to snap;
 

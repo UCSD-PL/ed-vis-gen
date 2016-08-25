@@ -54,7 +54,7 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:100, left:100, 'physics':'spring'});
+  var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:100, left:100, angle:180, 'physics':'spring'});
   addShape(spring);
 }
 
@@ -219,3 +219,12 @@ var allocSName = (function() {
     return "S" + (suffix++).toString()
   };
 })();
+
+// helper function: for each dragpoint in canvas, invoke the callback with dp as argument
+function forEachDP(callback) {
+  canvas.forEachObject(o => {
+    if (o.get('type') == 'dragPoint') {
+      callback(o);
+    }
+  });
+}

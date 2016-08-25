@@ -70,7 +70,8 @@ type fabricDrag = {
   DX: number,
   DY: number,
   shape: fabricObject,
-  choice: number
+  choice: number,
+  angle: number
 } & fabricCircle
 
 type fabricArrow = {
@@ -177,15 +178,22 @@ function normalizeFabricShape(s: fabricObject): fabricObject {
     ret = newS
 
   } else if (s.type == 'dragPoint') {
+    // console.log(s);
     // TODO: left and top don't reflect the underlying object in the import...
     //       ...but do in the frontend. debug.
     let newS = Object.assign({}, s) as fabricDrag
+    // if (newS.angle == 0) {
+    //   // newS.left = newS.X
+    //   return newS
+    // } else if (1 == 1) {
+    //   return newS
+    // }
 
     // left: X + shape.width*shape.scaleX*DX,
     // top: Y  + shape.height*shape.scaleY*DY
     newS.radius *= Math.sqrt(newS.scaleX * newS.scaleY)
-    newS.left = newS.X + newS.shape.width*newS.shape.scaleX*newS.DX
-    newS.top = newS.Y + newS.shape.height*newS.shape.scaleY*newS.DY
+    newS.left = newS.X + newS.shape.width*newS.shape.scaleX*newS.DX //* Math.sin(2*Math.PI/360 * newS.angle)
+    newS.top = newS.Y + newS.shape.height*newS.shape.scaleY*newS.DY //* Math.cos(2*Math.PI/360 * newS.angle)
     ret = newS
     // console.log(ret)
   } else {
@@ -206,6 +214,7 @@ function buildBackendShapes(store: State, s: fabricObject): Tup<string, Shape> {
     if (s.type == 'circle') {
       shape = new Circle(x, y, r, "black", newS.fill)
     } else {
+      console.log(s)
       shape = new DragPoint(x, y, r, 'green')
     }
   } else if (s.type == 'rect' || s.type == 'image') {
@@ -353,7 +362,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   let possibleFrees = new Map<DragPoint, Set<Variable>[]>()
 
-
+  console.log(retStore.prog.allFrees)
   for (let [dp] of retStore.prog.allFrees) {
 
     assert(dp.x instanceof CassVar, 'expected cassvars for dragpoint members')

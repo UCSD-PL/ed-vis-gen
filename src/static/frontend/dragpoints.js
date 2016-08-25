@@ -118,7 +118,7 @@
     lockScalingY: true,
     lockRotation: true,
     hasBorders: false,
-    //hasControls: false,
+    // hasControls: true,
     /**
      * Constructor
      * @param {Object} [options] Options object
@@ -205,6 +205,7 @@
     /**
     * makes a dragpoint follow given shape
     * @return */
+    // TODO: functions need to be the same reference for on/off to work properly.
     unfollowShape: function(shape, canvas) {
       var dragPoint = this;
       var thisShape = shape;
@@ -303,6 +304,7 @@
         });
       }
         if (canvas != null) {
+          // canvas.bringToFront(this);
           canvas.renderAll();
         }
         return this;
