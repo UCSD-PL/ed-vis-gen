@@ -22,6 +22,7 @@ arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 
 canvasDragPoints = new Set(), // set of drag points on canvas
+// candidateDragPoints = new Map(),
 physicsObjectList = [], // list of objects with physics attributes on canvas
 
 lastSim = 0, // last interaction for the drag point selection panel
@@ -74,9 +75,20 @@ function resizePhysicsPanel () {
 resizeCanvas();
 resizePhysicsPanel();
 
+// states of global application
+const AppStates = {
+  EDITING: 0, // basic editing mode
+  // SNAPPING: 1, // snapping mode
+  SELECTDP: 2, // selecting dragpoint location mode
+  SIMDP: 3 // simulation dragpoint semantics mode
+}
+
+let AppGlobals = {
+  STATE: AppStates.EDITING
+}
 
 // snapping states enum
-let SnapStates = {
+const SnapStates = {
   OFF: 0,
   UNSELECTED: 1,
   SELECTED: 2
@@ -85,52 +97,68 @@ let SnapStates = {
 let SnapGlobals = {
   STATE: SnapStates.OFF, // one of SnapStates
   MOVER: null, // original snappoint, whose parent object will translate
-  POINTS: [] // list of all snappoints, currently unused
+  POINTS: new Set() // set of all snappoints
 }
 
 // adds drag points
-function addDragPoints(obj, dx, dy) {
-  var drag = new fabric.DragPoint({
-      name: allocSName(),
-      shape: obj,
-      shapeName: obj.get('name'),
-      DX: dx,
-      DY: dy,
-      fill: dpColor,
-      radius: 7
-    });
-    drag.startDragPoint(obj, interact);
-    interact.add(drag);
+function buildInteractDP(obj, dx, dy) {
+  let drag = new fabric.DragPoint({
+    name: allocSName(),
+    shape: obj,
+    shapeName: obj.get('name'),
+    DX: dx,
+    DY: dy,
+    fill: dpColor,
+    radius: 7
+  });
 
-    drag.on('selected', function() {
-      // if a drag point hasn't been clicked before, upon being clicked, a drag point is selected and added to dragPointList
-      if (this.get('fill') == dpColor && this.get('onCanvas') != true) {
-        select(this);
-      }
+  drag.startDragPoint(obj, interact);
+
+  drag.on('selected', () => {
+    // if a drag point hasn't been clicked before, upon being clicked, a drag point is selected and added to dragPointList
+    if (drag.get('fill') == dpColor && drag.get('onCanvas') != true) {
+      select(drag);
+    } else if (drag.get('fill') == dpSelectedColor && drag.get('onCanvas') === true) {
       // if it's on the canvas, but has been unselected on the dp selection panel, remove it from the canvas
-      else if (this.get('fill') == dpSelectedColor && this.get('onCanvas') === true) {
-        undoSelect(this);
-        canvas.remove(this);
-      }
+      undoSelect(drag);
+      canvas.remove(drag);
+    } else if (drag.get('fill') == dpColor && drag.get('onCanvas') === true) {
       // if it's already on the canvas and reselected, do nothing
-      else if (this.get('fill') == dpColor && this.get('onCanvas') === true) {}
-
+    } else {
       // undos selection of a drag point if you click it again so it won't show up on canvas
-      else {
-        undoSelect(this);
-      }});
+      undoSelect(drag);
+    }
+  });
 
-    // on right click, opens up the edit simulation panel
-    drag.on('mousedown', function (options) {
-      if (options.e.which === 3) {
-          //console.log('BETTER BE RIGHT CLICKING');
-          if (this.get('onCanvas') != true) {
-              select(drag);
+  // on right click, opens up the edit simulation panel
+  drag.on('mousedown', options => {
+    if (options.e.which === 3) {
+      switch (AppGlobals.STATE) {
+
+        case AppStates.EDITING:
+          if (drag.get('onCanvas') != true) {
+            select(drag);
           }
           open1();
+          AppGlobals.STATE = AppStates.SIMDP;
           onLoadSims(drag);
-      } } );
-  }
+          break;
+
+        case AppStates.SELECTDP:
+          // ignore if we're in selection mode
+          break;
+        case AppStates.SIMDP:
+        default:
+          console.log('unrecognized appstate in dragpoint click:');
+          console.log(AppGlobals);
+          break;
+      }
+    }
+  });
+
+
+  return drag;
+}
 
 
 
@@ -139,14 +167,15 @@ function addAllDP(array, obj) {
   if (canvasDragPoints.size == 0 ) {
     for (let coord of array) { // array has type [number, number][]
       let [dx, dy] = coord; // coord is a tuple [number, number]
-      addDragPoints(obj, dx, dy);
+      let drag = buildInteractDP(obj, dx, dy);
+      interact.add(drag);
     }
   } else {
     for (let coord of array) {
       let [dx, dy] = coord;
       for (let drag of canvasDragPoints) {
         if (!checkDragPointLocation(drag, obj, dx, dy)) {
-          addDragPoints(obj, dx, dy);
+          interact.add(buildInteractDP(obj, dx, dy));
         } else {
           interact.add(drag);
           drag.set({
@@ -158,15 +187,9 @@ function addAllDP(array, obj) {
   }
 }
 
-// add snappoints to each object in 'canvas'
-function addAllSnaps() {
-  canvas.forEachObject((obj) => {
-    addSnapPoints(obj);
-  });
-}
 
-// add snappoints to 'canvas' for a particular object.
-function addSnapPoints(obj) {
+// build snappoints for a particular object and add to 'canvas' if specified.
+function addSnapPoints(obj, addToCanvas) {
   let dragLocs; // [number, number][]
   switch (obj.get('physics')) {
     case 'pendulum':
@@ -217,7 +240,7 @@ function addSnapPoints(obj) {
       console.log(obj.get('physics'))
       return;
   }
-  addSnapDrags(dragLocs, obj);
+  addSnapDrags(dragLocs, obj, addToCanvas);
 }
 
 // translate parent obj of mover to location specified by movee s.t. mover has
@@ -243,8 +266,8 @@ function translateParent(mover, movee) {
 }
 
 // foreach part of receiver specified by locations, add a "dragpoint" to the
-// main canvas and register a snapping callback.
-function addSnapDrags(locations, receiver) {
+// main canvas and register a snapping callback. add to 'canvas' if specified.
+function addSnapDrags(locations, receiver, addToCanvas) {
   // initialize state
   // SnapGlobals.STATE = SnapStates.UNSELECTED;
   for (let [dx, dy] of locations) {
@@ -254,15 +277,16 @@ function addSnapDrags(locations, receiver) {
       shapeName: receiver.get('name'),
       DX: dx,
       DY: dy,
-      fill: dpColor,
+      fill: 'black',
       radius: 7,
       type: 'snap'
     });
+
+    SnapGlobals.POINTS.add(drag);
+
     drag.startDragPoint(receiver, canvas);
-    canvas.add(drag);
-    canvas.bringToFront(drag);
-    // console.log('adding: ' + drag.get('name'));
-    // SnapGlobals.POINTS.push(drag);
+    if (addToCanvas)
+      canvas.add(drag);
 
     // register callback(s)
     drag.on('selected', () => {
@@ -278,7 +302,7 @@ function addSnapDrags(locations, receiver) {
           break;
         // selected, translate the mover's parent object and transition to unselected
         case SnapStates.SELECTED:
-          SnapGlobals.MOVER.set('fill', dpColor);
+          SnapGlobals.MOVER.set('fill', 'black');
           translateParent(SnapGlobals.MOVER, me);
           // toggleSnaps();
           SnapGlobals.STATE = SnapStates.UNSELECTED;
@@ -300,6 +324,7 @@ function addSnapDrags(locations, receiver) {
 }
 
 function toggleSnaps() {
+  let button = document.getElementById('toggle-snaps');
   switch (SnapGlobals.STATE) {
     case SnapStates.OFF:
       canvas.forEachObject(obj => {
@@ -308,8 +333,13 @@ function toggleSnaps() {
           // obj.set('hasControls', false);
         }
       });
-      addAllSnaps();
+
+      for (let snap of SnapGlobals.POINTS) {
+        canvas.add(snap);
+      }
+
       SnapGlobals.STATE = SnapStates.UNSELECTED;
+      button.innerHTML = 'Hide Alignment Points';
       break;
     case SnapStates.UNSELECTED:
     case SnapStates.SELECTED:
@@ -328,6 +358,7 @@ function toggleSnaps() {
 
       SnapGlobals.STATE = SnapStates.OFF;
       SnapGlobals.MOVER = null;
+      button.innerHTML = 'Show Alignment Points';
       // canvas.renderAll();
       break;
     default:
@@ -340,18 +371,20 @@ canvas.on('object:added', opts => {
   let obj = opts.target;
   // console.log(newObj);
   switch (obj.type) {
+    case 'dragPoint':
     case 'snap':
       break; // do nothing
     default:
       switch (SnapGlobals.STATE) {
         case SnapStates.OFF:
+          addSnapPoints(obj, false);
           break; // do nothing
 
         // add in snappoints for the new obj if we're in snapping mode
         case SnapStates.UNSELECTED:
         case SnapStates.SELECTED: // clear the selection....?
-          console.log('adding');
-          addSnapPoints(obj);
+          // console.log('adding');
+          addSnapPoints(obj, true);
           break;
         default:
           console.log('unhandled state in new object snap handler:');
@@ -421,7 +454,7 @@ function candidatePoints() {
   interact.clear();
   canvasDragPoints.clear();
 
-  forEachDP(drag => canvasDragPoints.add(drag)); // SET
+  forEachDP(drag => canvasDragPoints.add(drag));
 
 
   canvas.forEachObject( function (obj) {
@@ -433,6 +466,8 @@ function candidatePoints() {
       checkForDragPoints(obj, obj.get('type'));
     }
   });
+
+  AppGlobals.STATE = AppStates.SELECTDP;
   interact.renderAll();
 }
 
@@ -446,13 +481,27 @@ function select(dragPoint) {
 
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
+  console.log('undoing selection, from state:');
+  console.log(AppGlobals);
+  switch (AppGlobals.STATE) {
+    case AppStates.SIMDP:
+      AppGlobals.STATE = AppStates.EDITING;
+      break;
+    case AppStates.SELECTDP:
+    case AppStates.EDITING:
+    default:
+      console.log('unrecognized app state in undo sim:');
+      console.log(AppGlobals);
+      break;
+  }
+
   dragPoint.set({
     fill: dpColor,
     choice: formerChoice,
     onCanvas: false
   });
 
-  canvasDragPoints.delete(dragPoint);
+  canvasDragPoints.delete(dragPoint); //?
 
   window.BACKEND.finishEditChoice();
 }
@@ -495,6 +544,17 @@ function onLeft() {
 
 // accepts currentSim as selectedSim for the choice attribute on the drag point
 function onACCEPT() {
+  switch (AppGlobals.STATE) {
+    case AppStates.SIMDP:
+      AppGlobals.STATE = AppStates.EDITING;
+      break;
+    case AppStates.SELECTDP:
+    case AppStates.EDITING:
+    default:
+      console.log('unrecognized app state in accept simulation:');
+      console.log(AppGlobals);
+      break;
+  }
   // sets 'choice', the selected sim, to the corresponding dragpoint
   selectedSim = currentSim;
   currentDragPoint.set({
@@ -509,12 +569,13 @@ function onACCEPT() {
 // loads a sim on the drag point
 function onLoadSims(dragPoint) {
   // sets up JSON files the simsArray list and loads the current JSON
+  AppGlobals.STATE = AppStates.SIMDP;
+
   sims.clear();
   currentDragPoint = dragPoint;  //.clone();
   currentSim = 0;
   formerChoice = currentDragPoint.get('choice');
-  console.log(currentDragPoint);
-  console.log(currentDragPoint.get('name'));
+
   numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name")) - 1;
   generateSims(currentDragPoint);
 }
@@ -530,9 +591,11 @@ function generateSims(currentDP) {
     fabricJSON = transfer();
     window.BACKEND.drawToPhysics(fabricJSON, physics);
   }
-    window.BACKEND.drawToEdit(currentDP.get('name'), currentDP.get('choice'), sims);
-    sims.renderAll();
-if (currentDP.get('onCanvas') != true) {
+
+  window.BACKEND.drawToEdit(currentDP.get('name'), currentDP.get('choice'), sims);
+  sims.renderAll();
+
+  if (currentDP.get('onCanvas') != true) {
     canvas.remove(currentDP);
     canvas.renderAll();
   }
@@ -541,10 +604,21 @@ if (currentDP.get('onCanvas') != true) {
 // closes the interact canvas and adds any drag points on the drag point list
 function onOverlayClosed() {
 
-  var obj;
+  switch (AppGlobals.STATE) {
+    case AppStates.SELECTDP:
+      AppGlobals.STATE = AppStates.EDITING;
+      break;
+    case AppStates.EDITING:
+    case AppStates.SIMDP:
+    default:
+      console.log('unrecognized app state in select overlay:');
+      console.log(AppGlobals);
+      break;
+  }
+
   // makes objects selectable again
-  canvas.forEachObject( function (obj) {
-    obj.set ({
+  canvas.forEachObject( obj => {
+    obj.set({
       selectable: true
     });
   });
@@ -556,15 +630,39 @@ function onOverlayClosed() {
       canvas.add(drag);
     }
     drag.set({
-      fill: dpColor,
+      // fill: dpColor,
       onCanvas: true
     });
 
-    obj = drag.get('shape');
-    drag.startDragPoint(obj);
+    drag.startDragPoint(drag.get('shape'));
   }
+
+
 
   canvas.renderAll();
   updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
+
+
+// manual hit detection...fun
+canvas.on('mouse:down', opts => {
+  // console.log(opts);
+  // console.log(canvas.getPointer(opts.e));
+  let clickLocation = canvas.getPointer(opts.e);
+  let clickPoint = new fabric.Point(clickLocation.x, clickLocation.y);
+  // console.log(clickPoint);
+
+  forEachDP(drag => {
+    // console.log(drag.getLeft());
+    // console.log(drag.getTop());
+    let dragCent = new fabric.Point(drag.getLeft(), drag.getTop());
+    // console.log(dragCent);
+    let contained = clickPoint.distanceFrom(dragCent) <= drag.get('radius');
+    // console.log(contained);
+    if (contained) {
+      drag.fire('mousedown', opts);
+      // TODO: fire selected for snappoints
+    }
+  });
+});

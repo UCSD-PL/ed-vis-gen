@@ -236,7 +236,10 @@ var allocSName = (function() {
 // helper function: for each dragpoint in canvas, invoke the callback with dp as argument
 function forEachDP(callback) {
   canvas.forEachObject(o => {
-    if (o.get('type') == 'dragPoint') {
+    // if (o.get('type') == 'dragPoint') {
+    //   callback(o);
+    // }
+    if (o instanceof fabric.DragPoint) {
       callback(o);
     }
   });
