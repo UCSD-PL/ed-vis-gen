@@ -1,11 +1,14 @@
 import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map, map4Tup} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength, Inequality, GEQ} from 'cassowary'
 import {Timer} from '../util/Timer'
 import {Integrator, PhysicsGroup} from './Physics'
 import {Poset} from '../util/Poset'
+
+import {PhysChart} from './Chart'
+import {PhysExpr} from './PhysicsExpr'
 
 import {Eq, Expr} from './Expr'
 
@@ -300,12 +303,13 @@ export class State {
 
   // TODO: convert dragged to option
   constructor(public prog: Program, public store: Store,
+              public plots: PhysChart[],
               public dragging: boolean, public draggedPoint: DragPoint,
               public physicsEngine: PhysicsEngine, public physicsRunning: boolean
   ){}
 
   public static empty(): State {
-    return new State( Program.empty(), new Store(), false, null, PhysicsEngine.empty(), false)
+    return new State( Program.empty(), new Store(), [], false, null, PhysicsEngine.empty(), false)
   }
 
   public debug() {
@@ -325,10 +329,16 @@ export class State {
   }
 
 
-  // given a store and x,y coordinates, make new cassowary variables corresponding
-  // to the x, y values and wrap in a point.
-  // mutates this to add the new variable
-  public allocVar(v: number, prefix?: string): CassVar {
+  public allocPrimVar(v: number, prefix?: string): Primitive {
+    prefix = prefix || "V"
+    let suffix = 0
+    let sVals = this.eval()
+    while (exists(sVals, ([k, v]) => k.name == (prefix + suffix.toString())))
+      ++suffix
+
+    return this.addVar(VType.Prim, prefix + suffix.toString(), v) as Primitive
+  }
+  public allocCassVar(v: number, prefix?: string): CassVar {
     prefix = prefix || "V"
     let suffix = 0
     let sVals = this.eval()
@@ -337,9 +347,13 @@ export class State {
 
     return this.addVar(VType.Cass, prefix + suffix.toString(), v) as CassVar
   }
+
+  // given a store and x,y coordinates, make new cassowary variables corresponding
+  // to the x, y values and wrap in a point.
+  // mutates this to add the new variable
   // mutates this to add x, y, and r
   allocPoint(p: Point): DragPoint {
-    let [x, y, r] = [this.allocVar(p.x), this.allocVar(p.y), this.allocVar(5)]
+    let [x, y, r] = [this.allocCassVar(p.x), this.allocCassVar(p.y), this.allocCassVar(5)]
     return new DragPoint(x, y, r, "blue")
   }
 
@@ -349,9 +363,17 @@ export class State {
     let str = this.eval()
     let varValue = -e.eval(str)
   //  console.log(e)
-    let retVar = this.allocVar(v)
+    let retVar = this.allocCassVar(v)
     let eq = new Eq(Expr.fromVar(retVar), e)
     return [retVar, eq]
+  }
+
+  // mutates the current state in-place
+  public addPlot(title: string, expr: PhysExpr, min: number, max: number) {
+    // leave placement of charts up to view
+    let [x, y, h, w] = map4Tup([0, 0, 0, 0], v => this.allocPrimVar(v))
+    let chart = new PhysChart(x, y, h, w, min, max, expr, title, "black")
+    this.plots.push(chart)
   }
 
 
@@ -369,7 +391,7 @@ export class State {
       if (s instanceof Line) {
         // foreach point on the line, add a drag point with the underlying variables
         s.points.forEach(([x, y]) => {
-          let r = this.allocVar(3.5)
+          let r = this.allocCassVar(3.5)
           let np = new DragPoint(x, y, r, "blue")
           let newFrees = (new Set<Variable>()).add(x).add(y)
           editPoints.set(np, newFrees)
@@ -378,7 +400,7 @@ export class State {
       } else if (s instanceof Arrow || s instanceof Spring) {
         // put a drag point on the base, and a drag point at the end. fix
         // the end with equations.
-        let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
+        let [r1, r2] = [this.allocCassVar(3.5), this.allocCassVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.dx as CassVar)
@@ -395,7 +417,7 @@ export class State {
 
       } else if (s instanceof Circle) {
         // point in the middle, point on the right edge
-        let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
+        let [r1, r2] = [this.allocCassVar(3.5), this.allocCassVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.r as CassVar)
@@ -408,7 +430,7 @@ export class State {
         editEqs.add(endXEq)
         editPoints.set(bp, baseFrees).set(ep, endFrees)
       } else if (s instanceof Rectangle || s instanceof Image) {
-        let [r1, r2] = [this.allocVar(3.5), this.allocVar(3.5)]
+        let [r1, r2] = [this.allocCassVar(3.5), this.allocCassVar(3.5)]
         let bp = new DragPoint(s.x, s.y, r1, "blue")
 
         let endXExpr = Expr.fromVar(s.x as CassVar).plus(s.dx as CassVar)
@@ -447,10 +469,10 @@ export class State {
 
 
 
-    return new State(newProg, this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
+    return new State(newProg, this.store, this.plots, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
   public addFrees(p: DragPoint, fvs: Set<Variable>): State {
-    return new State(this.prog.addFrees(p, fvs), this.store, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
+    return new State(this.prog.addFrees(p, fvs), this.store, this.plots, this.dragging, this.draggedPoint, this.physicsEngine, this.physicsRunning)
   }
 
   public addPhysDecls(integrationDecls: Integrator, freeVals: Set<Variable>, initialDecls: Integrator, renderer: () => void) {

@@ -23,6 +23,7 @@
   "files": [
     "src/controller/Controller.ts",
     "src/main.ts",
+    "src/model/Chart.ts",
     "src/model/Events.ts",
     "src/model/Export.ts",
     "src/model/Expr.ts",
@@ -39,6 +40,7 @@
     "src/util/Poset.ts",
     "src/util/Timer.ts",
     "src/util/Util.ts",
+    "src/view/Chart.ts",
     "src/view/Shapes.ts",
     "src/view/View.ts",
     "typings/index.d.ts"

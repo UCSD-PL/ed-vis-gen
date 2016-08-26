@@ -16,17 +16,17 @@ export function buildSpringGroup (s: Spring, state: State): SpringGroup {
 
   let [fx, fy] = map2Tup(
     [['FX', 0], ['FY', 0]] as Tup<Tup<string, number>, Tup<string, number>>,
-    ([name, val]) => state.allocVar(val, name)
+    ([name, val]) => state.allocCassVar(val, name)
   )
 
   let [vx, vy] = map2Tup(
     [['VX', 0], ['VY', 0]] as Tup<Tup<string, number>, Tup<string, number>>,
-    ([name, val]) => state.allocVar(val, name)
+    ([name, val]) => state.allocCassVar(val, name)
   )
 
   let [rlx, rly] = map2Tup(
     [['RLX', ix], ['RLY', iy]] as Tup<Tup<string, number>, Tup<string, number>>,
-    ([name, val]) => state.allocVar(val, name)
+    ([name, val]) => state.allocCassVar(val, name)
   )
 
 
@@ -36,12 +36,12 @@ export function buildSpringGroup (s: Spring, state: State): SpringGroup {
   // public gravConstant: Variable
   let [c, g] = map2Tup(
     [['C', 10], ['G', 9.8]] as Tup<Tup<string, number>, Tup<string, number>>,
-    ([name, val]) => state.allocVar(val, name)
+    ([name, val]) => state.allocCassVar(val, name)
   )
 
   let [mass, k] = map2Tup(
     [['M', 100], ['K', 4]] as Tup<Tup<string, number>, Tup<string, number>>,
-    ([name, val]) => state.allocVar(val, name)
+    ([name, val]) => state.allocCassVar(val, name)
   )
 
   let eqs = uniqify(new Set(map(state.store.equations, e => e.vars() as Set<CassVar>)))
