@@ -131,7 +131,7 @@ function buildInteractDP(obj, dx, dy) {
   });
 
   // on right click, opens up the edit simulation panel
-  drag.on('mousedown', options => {
+  drag.on('eddie:mousedown', options => {
     if (options.e.which === 3) {
       switch (AppGlobals.STATE) {
 
@@ -278,7 +278,7 @@ function addSnapDrags(locations, receiver, addToCanvas) {
       DX: dx,
       DY: dy,
       fill: 'black',
-      radius: 7,
+      radius: 5,
       type: 'snap'
     });
 
@@ -289,8 +289,8 @@ function addSnapDrags(locations, receiver, addToCanvas) {
       canvas.add(drag);
 
     // register callback(s)
-    drag.on('selected', () => {
-      let me = drag; // ugh
+    drag.on('eddie:selected', () => {
+      console.log('selected');
       // once selected, if the state is:
       switch (SnapGlobals.STATE) {
         // unselected, track the selected object + receiver and
@@ -298,12 +298,14 @@ function addSnapDrags(locations, receiver, addToCanvas) {
         case SnapStates.UNSELECTED:
           SnapGlobals.MOVER = drag;
           drag.set('fill', 'yellow');
+          canvas.renderAll();
           SnapGlobals.STATE = SnapStates.SELECTED;
           break;
         // selected, translate the mover's parent object and transition to unselected
         case SnapStates.SELECTED:
           SnapGlobals.MOVER.set('fill', 'black');
-          translateParent(SnapGlobals.MOVER, me);
+          canvas.renderAll();
+          translateParent(SnapGlobals.MOVER, drag);
           // toggleSnaps();
           SnapGlobals.STATE = SnapStates.UNSELECTED;
           break;
@@ -311,7 +313,7 @@ function addSnapDrags(locations, receiver, addToCanvas) {
         default:
           console.log('unhandled state in snappoint callback:');
           console.log(SnapGlobals);
-          console.log(me);
+          console.log(drag);
       }
     });
   }
@@ -481,8 +483,8 @@ function select(dragPoint) {
 
 //undos selection of a drag point when you click on the "x" in the second overlay
 function undoSelect(dragPoint) {
-  console.log('undoing selection, from state:');
-  console.log(AppGlobals);
+  // console.log('undoing selection, from state:');
+  // console.log(AppGlobals);
   switch (AppGlobals.STATE) {
     case AppStates.SIMDP:
       AppGlobals.STATE = AppStates.EDITING;
@@ -497,11 +499,8 @@ function undoSelect(dragPoint) {
 
   dragPoint.set({
     fill: dpColor,
-    choice: formerChoice,
-    onCanvas: false
+    choice: formerChoice
   });
-
-  canvasDragPoints.delete(dragPoint); //?
 
   window.BACKEND.finishEditChoice();
 }
@@ -652,6 +651,7 @@ canvas.on('mouse:down', opts => {
   let clickLocation = canvas.getPointer(opts.e);
   let clickPoint = new fabric.Point(clickLocation.x, clickLocation.y);
   // console.log(clickPoint);
+  let notFired = true
 
   forEachDP(drag => {
     // console.log(drag.getLeft());
@@ -660,9 +660,10 @@ canvas.on('mouse:down', opts => {
     // console.log(dragCent);
     let contained = clickPoint.distanceFrom(dragCent) <= drag.get('radius');
     // console.log(contained);
-    if (contained) {
-      drag.fire('mousedown', opts);
-      // TODO: fire selected for snappoints
+    if (contained && notFired) {
+      notFired = false;
+      drag.fire('eddie:mousedown', opts);
+      drag.fire('eddie:selected', opts);
     }
   });
 });
