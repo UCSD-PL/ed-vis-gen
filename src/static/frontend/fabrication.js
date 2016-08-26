@@ -115,19 +115,32 @@ function buildInteractDP(obj, dx, dy) {
   drag.startDragPoint(obj, interact);
 
   drag.on('selected', () => {
-    // if a drag point hasn't been clicked before, upon being clicked, a drag point is selected and added to dragPointList
-    if (drag.get('fill') == dpColor && drag.get('onCanvas') != true) {
-      select(drag);
-    } else if (drag.get('fill') == dpSelectedColor && drag.get('onCanvas') === true) {
-      // if it's on the canvas, but has been unselected on the dp selection panel, remove it from the canvas
-      undoSelect(drag);
-      canvas.remove(drag);
-    } else if (drag.get('fill') == dpColor && drag.get('onCanvas') === true) {
-      // if it's already on the canvas and reselected, do nothing
-    } else {
-      // undos selection of a drag point if you click it again so it won't show up on canvas
-      undoSelect(drag);
+    switch (AppGlobals.STATE) {
+      case AppStates.SELECTDP:
+        if (drag.get('fill') == dpColor && drag.get('onCanvas') != true) {
+          select(drag);
+        } else if (drag.get('fill') == dpSelectedColor && drag.get('onCanvas') === true) {
+          // if it's on the canvas, but has been unselected on the dp selection panel, remove it from the canvas
+          undoSelect(drag);
+          canvas.remove(drag);
+        } else if (drag.get('fill') == dpColor && drag.get('onCanvas') === true) {
+          // if it's already on the canvas and reselected, do nothing
+        } else {
+          // undos selection of a drag point if you click it again so it won't show up on canvas
+          undoSelect(drag);
+        }
+
+        break;
+      case AppStates.EDITING:
+        break;
+      case AppStates.SIMDP:
+      default:
+        console.log('unhandled state in dragpoint select:');
+        console.log(AppGlobals);
+        break;
+
     }
+    // if a drag point hasn't been clicked before, upon being clicked, a drag point is selected and added to dragPointList
   });
 
   // on right click, opens up the edit simulation panel
@@ -498,7 +511,7 @@ function undoSelect(dragPoint) {
   }
 
   dragPoint.set({
-    fill: dpColor,
+    // fill: dpColor,
     choice: formerChoice
   });
 
@@ -561,6 +574,7 @@ function onACCEPT() {
   });
 
   close1(); // closes current screen; returns to drag point selection panel
+  updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
   window.BACKEND.finishEditChoice();
 }
@@ -651,7 +665,10 @@ canvas.on('mouse:down', opts => {
   let clickLocation = canvas.getPointer(opts.e);
   let clickPoint = new fabric.Point(clickLocation.x, clickLocation.y);
   // console.log(clickPoint);
-  let notFired = true
+  let notFired = true;
+  // DP events might modify the underlying positions, so we run two passes:
+  // gather up the hit dps, then fire mousedown and selected on the hit points.
+  let hitDPs = new Set(); // Set<DragPoint>
 
   forEachDP(drag => {
     // console.log(drag.getLeft());
@@ -660,10 +677,13 @@ canvas.on('mouse:down', opts => {
     // console.log(dragCent);
     let contained = clickPoint.distanceFrom(dragCent) <= drag.get('radius');
     // console.log(contained);
-    if (contained && notFired) {
-      notFired = false;
-      drag.fire('eddie:mousedown', opts);
-      drag.fire('eddie:selected', opts);
+    if (contained) {
+      hitDPs.add(drag);
     }
   });
+
+  for (let drag of hitDPs) {
+    drag.fire('eddie:mousedown', opts);
+    drag.fire('eddie:selected', opts);
+  }
 });
