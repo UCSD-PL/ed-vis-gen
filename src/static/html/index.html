@@ -47,8 +47,13 @@
   }
 
   .rightbuttons{
+    width: 100%;
+    text-align: right;
     float: right;
+  }
 
+  .charts{
+    float: right;
   }
   body {
     margin: 0;
@@ -163,10 +168,10 @@
 
       <!--our canvases-->
       <div id="draw" style ="float:left;">
-        <canvas id="canvas" width="600" height="600" style="border:1px solid silver"></canvas>
+        <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
       </div>
       <div style = "float:left;">
-        <canvas id="physics" width="600" height="600" style="border:1px solid silver"></canvas>
+        <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
       </div>
 
 
@@ -178,6 +183,11 @@
         <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button>
         <button class="btn btn-primary" onclick="BACKEND.resetPhysics()" style="background-color:royalblue">Reset</button>
       </div>
+      <div class='charts'>
+        <canvas id='chartCanv' width='600' height='150' style='border:1px solid silver'></canvas>
+      </div>
+
+
       <!-- open/close -->
       <div id="myCav" class="overlay">
         <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
