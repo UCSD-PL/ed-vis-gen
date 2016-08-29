@@ -147,7 +147,7 @@ function addPendulum(){
 
 
 //Return two arrays, one for physics objects, one for other shapes
-transfer = function transfer() {
+function transfer() {
 
     //initialize physicsGroup and shapes
     var canvasJSON = canvas.toJSON();
@@ -174,6 +174,10 @@ transfer = function transfer() {
       }
       else {
         if (obj.get('type') === 'snap') {
+          return;
+        } else if (obj.get('type') === 'dragPoint' && !obj.get('eddie:active')) { // don't take inactive dragpoints
+          // console.log('filtering out:');
+          // console.log(obj);
           return;
         }
         shapes.push(obj);

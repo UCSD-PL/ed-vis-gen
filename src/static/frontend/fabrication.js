@@ -22,7 +22,7 @@ arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 
 canvasDragPoints = new Set(), // set of drag points on canvas
-// candidateDragPoints = new Map(),
+candidateDragPoints = new Set(),
 physicsObjectList = [], // list of objects with physics attributes on canvas
 
 lastSim = 0, // last interaction for the drag point selection panel
@@ -84,7 +84,8 @@ const AppStates = {
 }
 
 let AppGlobals = {
-  STATE: AppStates.EDITING
+  STATE: AppStates.EDITING,
+  PREVSTATE: AppStates.EDITING
 }
 
 // snapping states enum
@@ -140,7 +141,6 @@ function buildInteractDP(obj, dx, dy) {
         break;
 
     }
-    // if a drag point hasn't been clicked before, upon being clicked, a drag point is selected and added to dragPointList
   });
 
   // on right click, opens up the edit simulation panel
@@ -262,7 +262,8 @@ function buildDragpointsByObj(receiver, addToCanvas) {
       DX: dx,
       DY: dy,
       fill: 'black',
-      radius: 5
+      radius: 5,
+      type: 'dragPoint'
     });
 
     drag.startDragPoint(receiver, canvas);
@@ -276,7 +277,7 @@ function buildDragpointsByObj(receiver, addToCanvas) {
 // build snappoints for a particular object and add to 'canvas' if specified.
 function addSnapPoints(obj, addToCanvas) {
   let newDrags = buildDragpointsByObj(obj, addToCanvas);
-  console.log(newDrags);
+  // console.log(newDrags);
   // addSnapDrags(dragLocs, obj, addToCanvas);
   newDrags.forEach(drag => {
     drag.set('type', 'snap');
@@ -311,6 +312,76 @@ function addSnapPoints(obj, addToCanvas) {
   });
 }
 
+// analogously, build dragpoints for an object and add to 'canvas' if specified.
+function addDragPoints(obj, addToCanvas) {
+  let newDrags = buildDragpointsByObj(obj, addToCanvas);
+
+
+   newDrags.forEach(drag => {
+
+    drag.set('eddie:active', false);
+    // drag.set('type', 'dragPoint');
+
+    drag.on('eddie:selected', () => {
+      switch (AppGlobals.STATE) {
+        case AppStates.SELECTDP:
+          if (drag.get('eddie:active')) {
+            drag.set('eddie:active', false);
+            drag.set('fill', 'black');
+            // select(drag);
+
+          } else {
+            drag.set('eddie:active', true);
+            drag.set('fill', 'green');
+
+            // select(drag);
+          }
+
+          canvas.renderAll();
+          updateModifications(true);
+          window.BACKEND.drawToPhysics(fabricJSON, physics);
+          break;
+        case AppStates.EDITING:
+        // case AppStates.SNAPPING:
+          break;
+        case AppStates.SIMDP:
+        default:
+          console.log('unhandled state in dragpoint select:');
+          console.log(AppGlobals);
+          break;
+
+      }
+    });
+
+    // on right click, opens up the edit simulation panel
+    drag.on('eddie:mousedown', options => {
+      if (drag.get('eddie:active') && options.e.which === 3) {
+        switch (AppGlobals.STATE) {
+
+          case AppStates.EDITING:
+          case AppStates.SELECTDP:
+
+            open1();
+            AppGlobals.PREVSTATE = AppGlobals.STATE;
+            AppGlobals.STATE = AppStates.SIMDP;
+            onLoadSims(drag);
+            break;
+
+          // case AppStates.SNAPPING:
+          //   break;
+
+          case AppStates.SIMDP:
+          default:
+            console.log('unrecognized appstate in dragpoint click:');
+            console.log(AppGlobals);
+            break;
+        }
+      }
+    });
+
+    candidateDragPoints.add(drag);
+  });
+}
 // translate parent obj of mover to location specified by movee s.t. mover has
 // has the same coordinates as movee. mover and movee are instances of DragPoint.
 function translateParent(mover, movee) {
@@ -333,6 +404,41 @@ function translateParent(mover, movee) {
   canvas.renderAll();
 }
 
+function toggleDrags() {
+  // console.log(candidateDragPoints);
+  let button = document.getElementById('toggle-drags');
+
+  switch (AppGlobals.STATE) {
+    case AppStates.EDITING:
+      // show each hidden dragpoint
+      for (let dp of candidateDragPoints) {
+        if (!dp.get('eddie:active')) {
+          canvas.add(dp)
+        }
+      }
+      AppGlobals.STATE = AppStates.SELECTDP;
+      button.innerHTML = 'Hide Drag Points';
+      break;
+    case AppStates.SELECTDP:
+      // hide unselected dragpoints
+      for (let dp of candidateDragPoints) {
+        if (!dp.get('eddie:active')) {
+          canvas.remove(dp)
+        }
+      }
+      AppGlobals.STATE = AppStates.EDITING;
+      button.innerHTML = 'Show Drag Points';
+      break;
+    // case AppStates.SNAPPING:
+    case AppStates.SIMDP:
+      console.log('simming???');
+    default:
+      console.log('unhandled app state in toggle drags:');
+      console.log(AppGlobals);
+      break;
+
+  }
+}
 
 function toggleSnaps() {
   let button = document.getElementById('toggle-snaps');
@@ -378,6 +484,7 @@ function toggleSnaps() {
   }
 }
 
+
 canvas.on('object:added', opts => {
   let obj = opts.target;
   // console.log(newObj);
@@ -386,6 +493,7 @@ canvas.on('object:added', opts => {
     case 'snap':
       break; // do nothing
     default:
+      // handle snappoints
       switch (SnapGlobals.STATE) {
         case SnapStates.OFF:
           addSnapPoints(obj, false);
@@ -400,6 +508,20 @@ canvas.on('object:added', opts => {
         default:
           console.log('unhandled state in new object snap handler:');
           console.log(SnapGlobals);
+      }
+
+      // handle dragpoints
+      switch (AppGlobals.STATE) {
+        // case AppStates.SNAPPING:
+        case AppStates.EDITING:
+          addDragPoints(obj, false);
+          break;
+        case AppStates.SELECTDP:
+          addDragPoints(obj, true);
+          break;
+        default:
+          console.log('unhandled state in new object drag handler:');
+          console.log(AppGlobals);
       }
       break;
   }
@@ -552,17 +674,19 @@ function onLeft() {
 
 // accepts currentSim as selectedSim for the choice attribute on the drag point
 function onACCEPT() {
-  switch (AppGlobals.STATE) {
-    case AppStates.SIMDP:
-      AppGlobals.STATE = AppStates.EDITING;
-      break;
-    case AppStates.SELECTDP:
-    case AppStates.EDITING:
-    default:
-      console.log('unrecognized app state in accept simulation:');
-      console.log(AppGlobals);
-      break;
-  }
+  // switch (AppGlobals.STATE) {
+  //   case AppStates.SIMDP:
+  //     AppGlobals.STATE = AppStates.EDITING; // oops
+  //     break;
+  //   case AppStates.SELECTDP:
+  //   case AppStates.EDITING:
+  //   default:
+  //     console.log('unrecognized app state in accept simulation:');
+  //     console.log(AppGlobals);
+  //     break;
+  // }
+
+  AppGlobals.STATE = AppGlobals.PREVSTATE;
   // sets 'choice', the selected sim, to the corresponding dragpoint
   selectedSim = currentSim;
   currentDragPoint.set({
@@ -577,6 +701,8 @@ function onACCEPT() {
 
 // loads a sim on the drag point
 function onLoadSims(dragPoint) {
+  // console.log('loading sims for dp:');
+  // console.log(dragPoint);
   // sets up JSON files the simsArray list and loads the current JSON
   AppGlobals.STATE = AppStates.SIMDP;
 
@@ -591,23 +717,24 @@ function onLoadSims(dragPoint) {
 
 // generates the animations for the interactions
 function generateSims(currentDP) {
-  if (currentDP.get('onCanvas') != true) {
-    canvas.add(currentDP);
-    obj = currentDP.get('shape');
-    currentDP.startDragPoint(obj);
-    canvas.renderAll();
-    myjson = JSON.stringify(canvas);
-    fabricJSON = transfer();
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
-  }
+  // console.log('generating');
+  // if (currentDP.get('onCanvas') != true) {
+  //   canvas.add(currentDP);
+  //   obj = currentDP.get('shape');
+  //   currentDP.startDragPoint(obj);
+  //   canvas.renderAll();
+  //   myjson = JSON.stringify(canvas);
+  //   fabricJSON = transfer();
+  //   window.BACKEND.drawToPhysics(fabricJSON, physics);
+  // }
 
   window.BACKEND.drawToEdit(currentDP.get('name'), currentDP.get('choice'), sims);
   sims.renderAll();
 
-  if (currentDP.get('onCanvas') != true) {
-    canvas.remove(currentDP);
-    canvas.renderAll();
-  }
+  // if (currentDP.get('onCanvas') != true) {
+  //   canvas.remove(currentDP);
+  //   canvas.renderAll();
+  // }
 }
 
 // closes the interact canvas and adds any drag points on the drag point list
@@ -678,8 +805,14 @@ canvas.on('mouse:down', opts => {
     }
   });
 
+  // console.log('hits:');
+  // console.log(hitDPs);
+
   for (let drag of hitDPs) {
-    drag.fire('eddie:mousedown', opts);
-    drag.fire('eddie:selected', opts);
+    if (opts.e.which === 3) {
+      drag.fire('eddie:mousedown', opts);
+    } else {
+      drag.fire('eddie:selected', opts);
+    }
   }
 });
