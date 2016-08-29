@@ -29,36 +29,3 @@ export class PhysChart {
     return evalPhysicsExpr(store, this.expr)
   }
 }
-
-// export class VecChart(x, y, h, w, config, stroke, simple) {
-//   return {
-//     x: x,
-//     y: y,
-//     dx: 0,
-//     dy: 0,
-//     h: h,
-//     w: w,
-//     stroke: stroke,
-//     config: config, // record holding ymin, ymax, xmin, xmax, xtitle, ytitle
-//     // takes input of the form {x: val, y: val}
-//     record: function(data) { with (this) {
-//
-//       // scale data to axis
-//       var hCnst = (config.ymax-config.ymin);
-//       dy = 2*h * (1 - (data.y - config.ymin)/hCnst) - h;
-//       // ymax -> -h, ymin -> h
-//     }},
-//     draw: function(ctx) { with (this) {
-//       //draw labels, plot vector at center w/ dy, dx
-//       // TODO
-//       var plotConfig = _.extend(config, {
-//         x: x, y: y, h: h, w: w
-//       });
-//       Plot.drawAxes(ctx, plotConfig);
-//       // Arrow(x, y, dx, dy, color)
-//
-//       Arrow(x + w/2, y + h/2, dx, dy, stroke).draw(ctx);
-//
-//     }}
-//   }
-// }

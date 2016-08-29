@@ -54,7 +54,7 @@ window.addEventListener('resize', resizePhysicsPanel(), false);
 
 // resizes the "canvas" canvas according to the current dimensions of the browser window
 function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.7);
+ canvas.setHeight(window.innerHeight*0.6);
  canvas.setWidth(window.innerWidth*1.55/3);
  interact.setWidth(canvasWidth);
  interact.setHeight(canvasHeight);
@@ -67,7 +67,7 @@ function resizeCanvas () {
 
 // resizes the "physics" canvas according to the current dimensions of the browser window
 function resizePhysicsPanel () {
- physics.setHeight(window.innerHeight*0.7);
+ physics.setHeight(window.innerHeight*0.6);
  physics.setWidth(window.innerWidth*(1-1.55/3));
  physics.renderAll();
 }
@@ -200,13 +200,13 @@ function addAllDP(array, obj) {
   }
 }
 
-
-// build snappoints for a particular object and add to 'canvas' if specified.
-function addSnapPoints(obj, addToCanvas) {
+// given an object, returns a new array of dragpoints attached to the object.
+// addToCanvas => whether or not the dragpoint should be added to the global canvas.
+function buildDragpointsByObj(receiver, addToCanvas) {
   let dragLocs; // [number, number][]
-  switch (obj.get('physics')) {
+  switch (receiver.get('physics')) {
     case 'pendulum':
-      switch (obj.get('item')) {
+      switch (receiver.get('item')) {
         case 'bob':
           dragLocs = arrayBob;
           break;
@@ -214,9 +214,9 @@ function addSnapPoints(obj, addToCanvas) {
           dragLocs = arrayPiv;
           break;
         default:
-          console.log('unhandled object in snappoints:');
-          console.log(obj);
-          return;
+          console.log('unhandled object in dragpoint builder:');
+          console.log(receiver);
+          return [];
       }
 
       break;
@@ -224,7 +224,7 @@ function addSnapPoints(obj, addToCanvas) {
       dragLocs = arraySpring;
       break;
     case 'none':
-      switch (obj.get('type')) {
+      switch (receiver.get('type')) {
         case 'arrow':
           dragLocs = arrayArr;
           break;
@@ -242,48 +242,19 @@ function addSnapPoints(obj, addToCanvas) {
           // do nothing
           return;
         default:
-          console.log('unhandled object in snappoints:');
-          console.log(obj);
-          return;
+          console.log('unhandled object in dragpoint builder:');
+          console.log(receiver);
+          return [];
       }
       break;
     default:
-      console.log('unhandled physics type in snappoints');
-      console.log(obj);
-      console.log(obj.get('physics'))
-      return;
+      console.log('unhandled physics type in dragpoint builder');
+      console.log(receiver);
+      console.log(receiver.get('physics'))
+      return [];
   }
-  addSnapDrags(dragLocs, obj, addToCanvas);
-}
-
-// translate parent obj of mover to location specified by movee s.t. mover has
-// has the same coordinates as movee. mover and movee are instances of DragPoint.
-function translateParent(mover, movee) {
-  // all dragpoints have the same radius, so it suffices to calculate dx, dy
-  // with respect to top and left
-  // assumes mover and movee are both oriented wrt to the canvas
-  let [dx, dy] =
-    [movee.get('left') - mover.get('left'), movee.get('top') - mover.get('top')];
-  // console.log([dx, dy]);
-  let parent = mover.get('shape');
-
-  parent.setLeft(parent.get('left') + dx);
-  parent.setTop(parent.get('top') + dy);
-  parent.setCoords();
-
-  parent.fire('modified'); // moves drag points
-  canvas.fire('object:moving', {target: parent});
-  canvas.fire('object:modified', {target: parent}); // sends to backend
-  // updateModifications(true);
-  canvas.renderAll();
-}
-
-// foreach part of receiver specified by locations, add a "dragpoint" to the
-// main canvas and register a snapping callback. add to 'canvas' if specified.
-function addSnapDrags(locations, receiver, addToCanvas) {
-  // initialize state
-  // SnapGlobals.STATE = SnapStates.UNSELECTED;
-  for (let [dx, dy] of locations) {
+  return dragLocs.map(loc => {
+    let [dx, dy] = loc
     let drag = new fabric.DragPoint({
       name: allocSName(),
       shape: receiver,
@@ -291,20 +262,28 @@ function addSnapDrags(locations, receiver, addToCanvas) {
       DX: dx,
       DY: dy,
       fill: 'black',
-      radius: 5,
-      type: 'snap'
+      radius: 5
     });
-
-    SnapGlobals.POINTS.add(drag);
 
     drag.startDragPoint(receiver, canvas);
     if (addToCanvas)
       canvas.add(drag);
 
-    // register callback(s)
+    return drag;
+  });
+}
+
+// build snappoints for a particular object and add to 'canvas' if specified.
+function addSnapPoints(obj, addToCanvas) {
+  let newDrags = buildDragpointsByObj(obj, addToCanvas);
+  console.log(newDrags);
+  // addSnapDrags(dragLocs, obj, addToCanvas);
+  newDrags.forEach(drag => {
+    drag.set('type', 'snap');
+    SnapGlobals.POINTS.add(drag);
     drag.on('eddie:selected', () => {
-      console.log('selected');
-      // once selected, if the state is:
+    // console.log('selected');
+    // once selected, if the state is:
       switch (SnapGlobals.STATE) {
         // unselected, track the selected object + receiver and
         // transition to selected
@@ -329,14 +308,31 @@ function addSnapDrags(locations, receiver, addToCanvas) {
           console.log(drag);
       }
     });
-  }
-
-  // SnapGlobals.POINTS.forEach(p => {
-  //   // canvas.add(p);
-  //   // canvas.bringToFront(p);
-  // });
-
+  });
 }
+
+// translate parent obj of mover to location specified by movee s.t. mover has
+// has the same coordinates as movee. mover and movee are instances of DragPoint.
+function translateParent(mover, movee) {
+  // all dragpoints have the same radius, so it suffices to calculate dx, dy
+  // with respect to top and left
+  // assumes mover and movee are both oriented wrt to the canvas
+  let [dx, dy] =
+    [movee.get('left') - mover.get('left'), movee.get('top') - mover.get('top')];
+  // console.log([dx, dy]);
+  let parent = mover.get('shape');
+
+  parent.setLeft(parent.get('left') + dx);
+  parent.setTop(parent.get('top') + dy);
+  parent.setCoords();
+
+  parent.fire('modified'); // moves drag points
+  canvas.fire('object:moving', {target: parent});
+  canvas.fire('object:modified', {target: parent}); // sends to backend
+  // updateModifications(true);
+  canvas.renderAll();
+}
+
 
 function toggleSnaps() {
   let button = document.getElementById('toggle-snaps');
