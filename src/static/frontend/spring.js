@@ -39,7 +39,7 @@
       //height is equvalent to dy
           .set('height', options.height || 100)
      // dx is input as attribute
-          .set('dx', options.dx );
+          .set('dx', options.dx || 0);
     },
 
     /**
@@ -74,7 +74,7 @@
       ctx.moveTo(0, -heightBy2);
       // Translate the cirle
       ctx.lineTo(0+dx2, (-heightBy2)+dy2);
-      // i is the amount of translation 
+      // i is the amount of translation
       for (let i = 100; i < iMAX - 100; ++i){
         var p1 = 0 + i * (dx - dx2) / iMAX + A * Math.sin(tau * i + offset);
         var q1 = (-heightBy2) + i * (dy - dy2) / iMAX + A * Math.cos(tau * i + offset);

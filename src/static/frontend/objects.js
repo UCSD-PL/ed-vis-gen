@@ -54,7 +54,7 @@ function toggleSnap() {
 
 //Add spring
 function addSpring(){
-  var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:100, left:100, angle:180, 'physics':'spring'});
+  var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, 'physics':'spring'});
   spring.set('physicsGroup', [spring]);
   addShape(spring);
 }
@@ -65,7 +65,7 @@ function addPendulum(){
   var rodname = allocSName();
   var rod = new fabric.Line([50, 50, 50, 250], {
     name: rodname,
-    stroke:'cornflowerblue',
+    stroke:'black',
     strokeWidth: 2,
     selectable: false,
     hasControls: false,
@@ -84,7 +84,7 @@ function addPendulum(){
   var pivot = new fabric.Circle({
     name: pivotname,
     radius: 4,
-    fill: 'dogerblue',
+    fill: 'dodgerblue',
     left: 47,
     top: 42,
     hasControls: false,
@@ -97,7 +97,7 @@ function addPendulum(){
   var bob = new fabric.Circle({
     name: bobname,
     radius: 30,
-    fill: 'dogerblue',
+    fill: 'dodgerblue',
     left: 21,
     top: 250,
     hasControls: false,
@@ -208,14 +208,22 @@ function deleteObjects(){
     if (activeObject.get('physics') == 'none' ) {
       // no dependencies
       canvas.remove(activeObject)
+      candidateDragPoints.delete(activeObject);
+      SnapGlobals.POINTS.delete(activeObject);
     } else {
-      activeObject.get('physicsGroup').forEach(o => canvas.remove(o));
+      activeObject.get('physicsGroup').forEach(o => {
+        canvas.remove(o);
+        candidateDragPoints.delete(o);
+        SnapGlobals.POINTS.delete(o);
+      });
     }
   } else if (activeGroup) {
 		var objectsInGroup = activeGroup.getObjects();
 		canvas.discardActiveGroup();
 		objectsInGroup.forEach(function(object) {
 		    canvas.remove(object);
+        candidateDragPoints.delete(object);
+        SnapGlobals.POINTS.delete(object);
 		});
   }
 }

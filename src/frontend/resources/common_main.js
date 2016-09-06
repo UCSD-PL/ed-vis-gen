@@ -13,6 +13,7 @@ function c_main(height, width, shouldSimInteractions, shouldSimPhysics, shouldSh
 
 }
 
+
 function startDisplay() {
   displaySimID = simInteractions();
 }

@@ -2,11 +2,11 @@
   "name": "EDDIE",
   "scripts": {
     "initialize": "npm install && mkdir -p new/target && cd src/main/webapp/ && rm cassie eddie resources && ln -s ../../frontend/cassie && ln -s ../../frontend/eddie && ln -s ../../frontend/resources && cd ../../..",
-    "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/static/frontend new/target/",
+    "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/static/frontend new/target/ && rm -rf src/main/webapp/target/ && cp -r new/target src/main/webapp/target/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",
     "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts",
-    "clean": "rm -rf new"
+    "clean": "rm -rf new && rm -rf src/main/webapp/target"
   },
   "description": "Educational Visualization DSL and Synthesis =============",
   "version": "1.0.0",

@@ -124,7 +124,7 @@
       <button class="btn btn-default navbar-btn" onclick="addCircle()" style="color:royalblue"><span class="fa fa-fw fa-circle"></span></button>
       <!-- <button class="btn btn-default navbar-btn" onclick="addTriangle()" style="color:royalblue"><span class="fa fa-fw fa-play"></span></button> -->
       <button class="btn btn-default navbar-btn" onclick="addLine()" style="color:royalblue"><span class="fa fa-fw fa-minus"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button>
+      <!-- <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button> -->
 
       <!--delete button-->
       <button class="btn btn-default navbar-btn" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
@@ -138,7 +138,7 @@
           <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
           Physics <span class="caret"></span></button>
           <ul class="dropdown-menu" role="menu">
-            <li onclick="addArrow()"><a href="#">Arrow</a></li>
+            <!-- <li onclick="addArrow()"><a href="#">Arrow</a></li> -->
             <li onclick="addSpring()"><a href="#">Spring</a></li>
             <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
           </ul>
@@ -154,6 +154,14 @@
       <!--overlay-->
       <button class="btn btn-primary" style="background-color:royalblue; width: 175px;" type="button" onclick = "toggleDrags();" id="toggle-drags">
         Show Drag Points
+      </button>
+
+      <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "startSession();" id="start-session">
+        Start Session
+      </button>
+
+      <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "endSession();" id="end-session">
+        End Session
       </button>
 
 
@@ -183,9 +191,9 @@
         <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button>
         <button class="btn btn-primary" onclick="BACKEND.resetPhysics()" style="background-color:royalblue">Reset</button>
       </div>
-      <div class='charts'>
+      <!-- <div class='charts'>
         <canvas id='chartCanv' width='600' height='150' style='border:1px solid silver'></canvas>
-      </div>
+      </div> -->
 
 
       <!-- open/close -->

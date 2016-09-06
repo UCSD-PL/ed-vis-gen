@@ -16,6 +16,8 @@ import {ICanvas} from 'fabric'
 import {triggerMD} from './model/Events'
 import {circularSim} from './model/Simulation'
 
+import {startSession, endSession} from './logging/Session'
+
 
 
 // let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
@@ -182,3 +184,5 @@ backendExport.testME = testME
 backendExport.printMain = printMain
 backendExport.finishEditChoice = finishEditChoice
 backendExport.getNumChoices = getNumChoices
+backendExport.startSession = startSession
+backendExport.endSession = endSession

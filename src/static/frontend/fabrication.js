@@ -13,16 +13,16 @@ the top-left corner of the associated object multiplied by its dimension.
 --Add arrays here for new shapes, as well as in the checkForDragPoints function--*/
 arrayRect = [[0,0],[0,0.5],[0.5,0],[0.5,0.5],[0,1],[1,0],[0.5,1],[1,0.5],[1,1]],
 arrayCirc = [[0.15,0.15],[0,0.5],[0.5,0],[0.5,0.5],[0.15,0.85],[0.85,0.15],[0.85,0.85],[1,0.5],[0.5,1]],
-arrayLine = [[0,0],[0,0.5],[0,1]],
+arrayLine = [[0,0], [0, 0.5], [0,1]],
 arrayArr = [[0.5,0],[0.5,0.5],[0.5,1]],
-arrayPen = [[0.5,0],[0.5,0,4],[0.5,0.8]],
+arrayPen = [[0.5,0],[0.5,0.4],[0.5,0.8]],
 arraySpring = [[0.5,0],[0.5,0.5],[0.5,1]],
 arrayBob = [[0,0.5],[0.5,0],[0.5,0.5],[1,0.5],[0.5,1]],
 arrayRod = [[0,0.5]],
 arrayPiv = [[0.5,0.5]],
 
 canvasDragPoints = new Set(), // set of drag points on canvas
-candidateDragPoints = new Set(),
+candidateDragPoints = new Map(), // map from objects to sets of dragpoints
 physicsObjectList = [], // list of objects with physics attributes on canvas
 
 lastSim = 0, // last interaction for the drag point selection panel
@@ -40,7 +40,7 @@ dpSelectedColor = "orange"; // color of selected drag points
 canvas.fireEventForObjectInsideGroup = true;
 interact.fireEventForObjectInsideGroup = true;
 
-canvas.selection = true; // if true, canvas is in selection mode
+canvas.selection = false; // if true, canvas is in selection mode
 physics.selection = false;
 physics.isDrawingMode = false; // if false, canvas is not in drawing mode
 
@@ -98,7 +98,7 @@ const SnapStates = {
 let SnapGlobals = {
   STATE: SnapStates.OFF, // one of SnapStates
   MOVER: null, // original snappoint, whose parent object will translate
-  POINTS: new Set() // set of all snappoints
+  POINTS: new Map() // map from object to object's snappoints
 }
 
 // adds drag points
@@ -277,11 +277,12 @@ function buildDragpointsByObj(receiver, addToCanvas) {
 // build snappoints for a particular object and add to 'canvas' if specified.
 function addSnapPoints(obj, addToCanvas) {
   let newDrags = buildDragpointsByObj(obj, addToCanvas);
+  let newSnaps = new Set();
   // console.log(newDrags);
   // addSnapDrags(dragLocs, obj, addToCanvas);
   newDrags.forEach(drag => {
     drag.set('type', 'snap');
-    SnapGlobals.POINTS.add(drag);
+    newSnaps.add(drag);
     drag.on('eddie:selected', () => {
     // console.log('selected');
     // once selected, if the state is:
@@ -310,11 +311,21 @@ function addSnapPoints(obj, addToCanvas) {
       }
     });
   });
+
+  SnapGlobals.POINTS.set(obj, newSnaps);
 }
 
 // analogously, build dragpoints for an object and add to 'canvas' if specified.
 function addDragPoints(obj, addToCanvas) {
+
+  if (obj instanceof fabric.Spring || obj instanceof fabric.Line) {
+    // TODO: we don't add dragpoints for springs and lines because the import is broken.
+    // fix the import and remove this part.
+    return;
+  }
+
   let newDrags = buildDragpointsByObj(obj, addToCanvas);
+  let newDragSet = new Set();
 
 
    newDrags.forEach(drag => {
@@ -379,8 +390,10 @@ function addDragPoints(obj, addToCanvas) {
       }
     });
 
-    candidateDragPoints.add(drag);
+    newDragSet.add(drag);
   });
+
+  candidateDragPoints.set(obj, newDragSet);
 }
 // translate parent obj of mover to location specified by movee s.t. mover has
 // has the same coordinates as movee. mover and movee are instances of DragPoint.
@@ -411,9 +424,11 @@ function toggleDrags() {
   switch (AppGlobals.STATE) {
     case AppStates.EDITING:
       // show each hidden dragpoint
-      for (let dp of candidateDragPoints) {
-        if (!dp.get('eddie:active')) {
-          canvas.add(dp)
+      for (let [_, dps] of candidateDragPoints) {
+        for (let dp of dps) {
+          if (!dp.get('eddie:active')) {
+            canvas.add(dp)
+          }
         }
       }
       AppGlobals.STATE = AppStates.SELECTDP;
@@ -421,9 +436,11 @@ function toggleDrags() {
       break;
     case AppStates.SELECTDP:
       // hide unselected dragpoints
-      for (let dp of candidateDragPoints) {
-        if (!dp.get('eddie:active')) {
-          canvas.remove(dp)
+      for (let [_, dps] of candidateDragPoints) {
+        for (let dp of dps) {
+          if (!dp.get('eddie:active')) {
+            canvas.remove(dp)
+          }
         }
       }
       AppGlobals.STATE = AppStates.EDITING;
@@ -451,8 +468,10 @@ function toggleSnaps() {
         }
       });
 
-      for (let snap of SnapGlobals.POINTS) {
-        canvas.add(snap);
+      for (let [_, snaps] of SnapGlobals.POINTS) {
+        for (let snap of snaps) {
+          canvas.add(snap);
+        }
       }
 
       SnapGlobals.STATE = SnapStates.UNSELECTED;
@@ -816,3 +835,19 @@ canvas.on('mouse:down', opts => {
     }
   }
 });
+
+
+function startSession() {
+  const sessionID = prompt("Please input your group identifier: ", "");
+  BACKEND.startSession(sessionID);
+}
+
+function endSession() {
+
+  const done = confirm("Has John or Sorin recorded your result?");
+  if (done) {
+    BACKEND.endSession();
+  } else {
+    // do nothing
+  }
+}

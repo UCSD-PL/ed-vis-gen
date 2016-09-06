@@ -30,10 +30,10 @@ function addBackAllWeirdObjects(canvas) {
     }
     if (pendulumList.length == 3) {
       console.log(state[current]);
-      updatePendulum(pendulumList);
+      // updatePendulum(pendulumList);
+      pendulumList = [];
     }
   }
-  pendulumList = [];
   // adds drag points back to the canvas
   for (let drag of canvasDragPoints) {
     canvas.add(drag);
@@ -45,8 +45,9 @@ function addBackAllWeirdObjects(canvas) {
 function onUndoRedo() {
   canvasDragPoints.clear();
   physicsObjectList = [];
-  removeAllWeirdObjects(canvas);
-  addBackAllWeirdObjects(canvas);
+  // removeAllWeirdObjects(canvas);
+  // addBackAllWeirdObjects(canvas);
+  updatePhysics(true);
   canvas.renderAll();
 }
 
@@ -63,9 +64,9 @@ canvas.on('object:removed', function (object) {
     updatePhysics(true);
   });
 
-canvas.on('object:rotating', function (object) {
-    updatePhysics(true);
-  });
+// canvas.on('object:rotating', function (object) {
+//     updatePhysics(true);
+//   });
 
 canvas.on('object:modified', function () {
     updateModifications(true);
@@ -96,7 +97,37 @@ undo = function undo() {
     if (mods < state.length) {
         canvas.clear().renderAll();
         current = state.length - mods - 1;
+
+        // candidateDragPoints.clear();
+        // SnapGlobals.POINTS.clear();
+
         canvas.loadFromJSON(state[current - 1]);
+
+        // rebuild the snappoint/dragpoint datastructures
+        // canvas.forEachObject((obj) => {
+        //   if (obj instanceof fabric.DragPoint) {
+        //     let parent = obj.get('shape');
+        //     let newCands = candidateDragPoints.get(parent);
+        //     let newSnaps = SnapGlobals.POINTS.get(parent);
+        //
+        //     if (!newCands) {
+        //       newCands = new Set();
+        //       candidateDragPoints.set(parent, newCands);
+        //     }
+        //
+        //     if (!newSnaps) {
+        //       newSnaps = new Set();
+        //       SnapGlobals.POINTS.set(parent, newSnaps);
+        //     }
+        //
+        //     if (obj.get('type') == 'snap') {
+        //       newSnaps.add(obj)
+        //     } else {
+        //       newCands.add(obj);
+        //     }
+        //   }
+        // });
+
         mods += 1;
         canvas.renderAll();
         updatePhysics();

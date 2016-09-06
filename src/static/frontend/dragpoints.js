@@ -40,6 +40,13 @@
     shape: null,
 
     /**
+    * canvas that the dragPoint hangs around width
+    * @type fabric.Canvas
+    * @default
+    */
+    canv: null,
+
+    /**
     * Shape that the dragPoint hangs around width
     * @type fabric.Object
     * @default
@@ -202,62 +209,36 @@
         }});
     },
 
-    /**
-    * makes a dragpoint follow given shape
-    * @return */
-    // TODO: functions need to be the same reference for on/off to work properly.
-    unfollowShape: function(shape, canvas) {
-      var dragPoint = this;
-      var thisShape = shape;
-      dragPoint.set({
-        shape: null,
-        shapeName: ''
-      });
-      shape.off("added", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.off("modified", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.off("moving", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.off("scaling", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.off("rotating", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.off("removed", function() {
-        canvas.remove(dragPoint);
-      });
-    },
+
 
     /**
     * makes a dragpoint follow given shape
     * @return */
     followShape: function(shape, canvas) {
-      var dragPoint = this;
-      var thisShape = shape;
-      shape.on("added", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.on("modified", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.on("moving", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.on("scaling", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.on("rotating", function() {
-        dragPoint.updateDragPoint(thisShape, canvas);
-      });
-      shape.on("removed", function() {
-        canvas.remove(dragPoint);
-      });
+      // helper function: partially apply updateDragPoint with thisShape and this as args.
+      this.shape = shape;
+      this.canv = canvas;
+      const follower = () => {
+        this.updateDragPoint(shape, canvas);
+      }
+      shape.on("added", follower);
+      shape.on("modified", follower);
+      shape.on("moving", follower);
+      shape.on("scaling", follower);
+      shape.on("rotating", follower);
+
+      this.unfollowShape = () => {
+        shape.off("added", follower);
+        shape.off("modified", follower);
+        shape.off("moving", follower);
+        shape.off("scaling", follower);
+        shape.off("rotating", follower);
+        this.canv.remove(this);
+      };
+      shape.on("removed", () => this.unfollowShape());
     },
+
+
 
     updateDragPointByName: function(canvas) {
       var drag = this,
