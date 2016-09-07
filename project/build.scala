@@ -6,6 +6,8 @@ import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
 import fi.gekkio.sbtplugins.jrebel
 
+// port in container.Configuration := 80
+
 object EddieBuild extends Build {
   val Organization = "com.github.jsarracino"
   val Name = "EDDIE"

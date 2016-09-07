@@ -7,6 +7,7 @@ src/controller/**/*.js
 src/model/**/*.js
 src/view/**/*.js
 src/util/**/*.js
+src/logging/**/*.js
 src/main.js
 
 src/frontend/eddiflow/dfexpr.js

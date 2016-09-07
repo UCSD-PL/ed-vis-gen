@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="faq.css">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="frequently-asked-questions-faq">Frequently Asked Questions (FAQ)</h1>
+<h2 id="where-is-the-irb-consent-form">Where is the IRB consent form?</h2>
+<p>You can find the IRB consent form at this link <a href="http://goto.ucsd.edu/~john/EDDIE/forms/consent.pdf">here</a>.</p>
+<h2 id="what-am-i-doing">What am I doing?</h2>
+<p>If you haven't already, please read the <a href="http://goto.ucsd.edu/~john/EDDIE/forms/consent.pdf">IRB consent form</a>. You're using <a href="goto.ucsd.edu:8081/target/html/">EDDIE</a> to replicate (to the best of your abilities, within the tool's limitations) these two PhET diagrams, the <a href="https://phet.colorado.edu/sims/pendulum-lab/pendulum-lab_en.html">Pendulum Lab</a> and the <a href="https://phet.colorado.edu/sims/html/hookes-law/latest/hookes-law_en.html">Spring Lab</a>. For the pendulum lab, please implement a version with two pendulums. For the spring lab, please implement a version with two springs.</p>
+<p>Before you start, please describe each diagram using the provided worksheets. While you're building the diagram, ensure your version is correct by interacting with both the generated diagram and the original PhET diagram. Once you're done, raise your hand and call over Sorin Lerner and John Sarracino so that they can record your result.</p>
+<h2 id="whats-the-deal-with-the-two-windows">What's the deal with the two windows?</h2>
+<p>EDDIE is a graphical editor with two panes, the editor and the simulator. The editor is on the left and is used to build the diagram on the right. The simulator is on the right and is the perspective of the student. Your objective is to make the diagram on the right match the original PhET diagram.</p>
+<h2 id="what-objects-can-i-place">What objects can I place?</h2>
+<p>EDDIE has several primitive plain and physics objects -- circles, rectangles, and lines are primitive and do not have physical meaning. We also include springs and pendulums, which do have physical meaning.</p>
+<h2 id="how-do-i-make-objects">How do I make objects?</h2>
+<p>The way to create objects is to click the corresponding button. Physical objects are accessed through the drop-down menu labeled <code>Physics</code>.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/create_object.ogv" /><figcaption>Tutorial of how to create objects.</figcaption>
+</figure>
+<h2 id="how-do-i-edit-objects">How do I edit objects?</h2>
+<p>You can translate most objects by left-clicking and dragging in the editor pane. You can resize all objects by left-clicking the object and dragging on the corner of the object. You can rotate lines and springs by left-clicking the object and dragging the rotation knob above the object.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/edit_object.ogv" /><figcaption>Tutorial of how to edit objects.</figcaption>
+</figure>
+<h2 id="what-happens-if-i-mess-up">What happens if I mess up?</h2>
+<p>If you make a mistake, you can either delete an object, undo your action, or redo your action.</p>
+<p>To delete an object, first select it, then click the delete button.</p>
+<p>To undo and redo, simply click the undo or redo buttons. This feature is rather buggy and undo sometimes needs to be clicked multiple times.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/remove_undo.ogv" /><figcaption>Tutorial of how to remove objects.</figcaption>
+</figure>
+<h2 id="how-do-i-make-the-students-diagram-interactive">How do I make the student's diagram interactive?</h2>
+<p>The way to add drag points is to display the possible drag points for the diagram using the <code>Show Drag Points</code> button. Then, you can toggle drag points in the editor pane by left-clicking on them. Green drag points are present, while black drag points are not.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/drags.ogv" /><figcaption>Tutorial of how to add drag points to objects.</figcaption>
+</figure>
+<h2 id="how-do-i-change-a-drag-points-meaning">How do I change a drag point's meaning?</h2>
+<p>EDDIE makes an educated guess about what the drag point should mean in the simulation -- if this meaning is incorrect, you can change the meaning by right-clicking on the drag point in the editor pane.</p>
+<p>After right-clicking, several preview meanings are demonstrated in an overlay -- you can change between previews using the <code>left</code> and <code>right</code> buttons, accept the current preview using the <code>accept</code> button, and cancel editing by closing the overlay.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/drag_change.ogv" /><figcaption>Tutorial of how to change drag points.</figcaption>
+</figure>
+<h2 id="how-do-i-make-objects-connected-in-the-diagram">How do I make objects connected in the diagram?</h2>
+<p>EDDIE detects related objects using <strong>alignment points</strong>, which have the same location as drag points. When two alignment points overlap, EDDIE groups together the parent objects. You can display the alignment points in the editor pane using the <code>Show Alignment Points</code> button.</p>
+<p>For convenience, alignment points can be clicked to move objects such that the alignment points are at the same position. The yellow alignment point is the currently selected alignment point, and its parent object will translate as soon as another alignment point is clicked.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/alignments.ogv" /><figcaption>Tutorial of how to use alignment points.</figcaption>
+</figure>
+<h2 id="how-do-i-make-the-spring-move-objectshow-do-springs-work">How do I make the spring move objects/How do springs work?</h2>
+<p>EDDIE's springs work using alignment points as well, and one end of the spring is fixed and one end obeys physical laws. We can see if the spring is moving an object (and see the motion of the spring) by using the <code>start</code>, <code>stop</code>, and <code>reset</code> buttons.</p>
+<p>The moving end of a spring is an alignment point and objects aligned to it will follow the spring's motion.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/springs.ogv" /><figcaption>Tutorial of how to make objects attach to springs.</figcaption>
+</figure>
+<h2 id="how-do-i-make-multiple-objects-attach-to-a-spring">How do I make multiple objects attach to a spring?</h2>
+<p>If an aligned group of objects is attached to the end of a spring, all objects obey the spring's motion.</p>
+<figure>
+<embed src="http://goto.ucsd.edu/~john/EDDIE/vids/many_springs.ogv" /><figcaption>Tutorial of how to make multiple objects attach to springs.</figcaption>
+</figure>
+<h2 id="what-if-eddie-doesnt-have-x">What if EDDIE doesn't have X?</h2>
+<p>That's OK! Please make sure X is written down in your description worksheet and implement a version faithful to the original diagram.</p>
+<h2 id="is-there-a-way-to-make-a-point-be-fixed-i.e.-not-move">Is there a way to make a point be fixed i.e. not move?</h2>
+<p>No, but that's a great idea!</p>
+<h2 id="everything-is-broken-how-do-i-fix-it">Everything is broken! How do I fix it?</h2>
+<p>If EDDIE gets hard to use due to bugs, you can refresh the page. Please <em>don't</em> click 'Start Session' again!</p>
+</body>
+</html>

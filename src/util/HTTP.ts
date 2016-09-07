@@ -3,7 +3,7 @@
 // pulled from http://stackoverflow.com/questions/247483/http-get-request-in-javascript
 
 export function sendGet(urlTail: string, callback: (s: string) => any) {
-  const url = "http://localhost:8080/" + urlTail
+  const url = "http://goto.ucsd.edu:8081/" + urlTail
   const req = new XMLHttpRequest()
   req.onreadystatechange = ()  => {
     if (req.readyState == 4 && req.status == 200) {
