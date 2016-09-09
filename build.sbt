@@ -7,4 +7,4 @@ scalacOptions += "-feature"
 scalacOptions += "-deprecation"
 scalacOptions += "-language:experimental.macros"
 
-jetty(port = 8081)
+jetty(port = 6000)
