@@ -60,9 +60,9 @@ canvas.on('object:scaling', function (object) {
     updatePhysics(true);
   });
 
-canvas.on('object:removed', function (object) {
-    updatePhysics(true);
-  });
+// canvas.on('object:removed', function (object) {
+//     updatePhysics(true);
+//   });
 
 // canvas.on('object:rotating', function (object) {
 //     updatePhysics(true);
@@ -76,16 +76,17 @@ canvas.on('object:modified', function () {
 // updates the modifications
 function updateModifications(savehistory) {
     if (savehistory === true) {
-        myjson = JSON.stringify(canvas);
-        state.push(myjson);
+        // myjson = JSON.stringify(canvas);
+        // state.push(myjson);
         fabricJSON = transfer();
-        mods = 0;
-        current = state.length - 1;
+        // mods = 0;
+        // current = state.length - 1;
     }
 }
 
 // updates the right-side physics canvas
 function updatePhysics(start) {
+  // console.trace();
   if (start === true) {
     fabricJSON = transfer();
     window.BACKEND.drawToPhysics(fabricJSON, physics);

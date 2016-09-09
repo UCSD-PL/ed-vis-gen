@@ -220,6 +220,7 @@
       this.canv = canvas;
       const follower = () => {
         this.updateDragPoint(shape, canvas);
+        // console.log('firing follower');
       }
       shape.on("added", follower);
       shape.on("modified", follower);

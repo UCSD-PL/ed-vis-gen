@@ -78,14 +78,15 @@ resizePhysicsPanel();
 // states of global application
 const AppStates = {
   EDITING: 0, // basic editing mode
-  // SNAPPING: 1, // snapping mode
+  SNAPPING: 1, // snapping mode
   SELECTDP: 2, // selecting dragpoint location mode
   SIMDP: 3 // simulation dragpoint semantics mode
 }
 
 let AppGlobals = {
   STATE: AppStates.EDITING,
-  PREVSTATE: AppStates.EDITING
+  PREVSTATE: AppStates.EDITING,
+  PHYSICS_RUNNING: false
 }
 
 // snapping states enum
@@ -133,6 +134,7 @@ function buildInteractDP(obj, dx, dy) {
 
         break;
       case AppStates.EDITING:
+      case AppStates.SNAPPING:
         break;
       case AppStates.SIMDP:
       default:
@@ -158,6 +160,7 @@ function buildInteractDP(obj, dx, dy) {
           break;
 
         case AppStates.SELECTDP:
+        case AppStates.SNAPPING:
           // ignore if we're in selection mode
           break;
         case AppStates.SIMDP:
@@ -282,6 +285,7 @@ function addSnapPoints(obj, addToCanvas) {
   // addSnapDrags(dragLocs, obj, addToCanvas);
   newDrags.forEach(drag => {
     drag.set('type', 'snap');
+    // drag.set('fill', 'red');
     newSnaps.add(drag);
     drag.on('eddie:selected', () => {
     // console.log('selected');
@@ -331,6 +335,7 @@ function addDragPoints(obj, addToCanvas) {
    newDrags.forEach(drag => {
 
     drag.set('eddie:active', false);
+    drag.set('fill', 'red');
     // drag.set('type', 'dragPoint');
 
     drag.on('eddie:selected', () => {
@@ -338,7 +343,7 @@ function addDragPoints(obj, addToCanvas) {
         case AppStates.SELECTDP:
           if (drag.get('eddie:active')) {
             drag.set('eddie:active', false);
-            drag.set('fill', 'black');
+            drag.set('fill', 'red');
             // select(drag);
 
           } else {
@@ -353,7 +358,7 @@ function addDragPoints(obj, addToCanvas) {
           window.BACKEND.drawToPhysics(fabricJSON, physics);
           break;
         case AppStates.EDITING:
-        // case AppStates.SNAPPING:
+        case AppStates.SNAPPING:
           break;
         case AppStates.SIMDP:
         default:
@@ -378,8 +383,8 @@ function addDragPoints(obj, addToCanvas) {
             onLoadSims(drag);
             break;
 
-          // case AppStates.SNAPPING:
-          //   break;
+          case AppStates.SNAPPING:
+            break;
 
           case AppStates.SIMDP:
           default:
@@ -422,6 +427,26 @@ function toggleDrags() {
   let button = document.getElementById('toggle-drags');
 
   switch (AppGlobals.STATE) {
+    // if we're in snapping mode, turn snapping mode off, then show drags
+    case AppStates.SNAPPING:
+      // turn snapping mode off and fall-through
+      canvas.forEachObject(obj => {
+        if (obj.get('type') == 'snap') {
+          canvas.remove(obj);
+        } else {
+          // obj.set('selectable', true); // TODO: pendulum
+          // obj.set('hasControls', true);
+        }
+      });
+
+      SnapGlobals.STATE = SnapStates.OFF;
+
+      if (SnapGlobals.MOVER)
+        SnapGlobals.MOVER.set('fill', 'black');
+
+      SnapGlobals.MOVER = null;
+      document.getElementById('toggle-snaps').innerHTML = 'Show Alignment Points';
+      // FALLTHROUGH!!!!!
     case AppStates.EDITING:
       // show each hidden dragpoint
       for (let [_, dps] of candidateDragPoints) {
@@ -446,7 +471,8 @@ function toggleDrags() {
       AppGlobals.STATE = AppStates.EDITING;
       button.innerHTML = 'Show Drag Points';
       break;
-    // case AppStates.SNAPPING:
+
+
     case AppStates.SIMDP:
       console.log('simming???');
     default:
@@ -459,48 +485,85 @@ function toggleDrags() {
 
 function toggleSnaps() {
   let button = document.getElementById('toggle-snaps');
-  switch (SnapGlobals.STATE) {
-    case SnapStates.OFF:
-      canvas.forEachObject(obj => {
-        if (obj.get('type') != 'snap') {
-          // obj.set('selectable', false);
-          // obj.set('hasControls', false);
-        }
-      });
 
-      for (let [_, snaps] of SnapGlobals.POINTS) {
-        for (let snap of snaps) {
-          canvas.add(snap);
+  switch (AppGlobals.STATE) {
+    // if we're selecting DPs, stop selecting dps and transition to snapping
+    case AppStates.SELECTDP:
+      for (let [_, dps] of candidateDragPoints) {
+        for (let dp of dps) {
+          canvas.remove(dp)
         }
       }
+      document.getElementById('toggle-drags').innerHTML = 'Show Drag Points';
+      // FALLTHROUGH
+    case AppStates.EDITING:
+    case AppStates.SNAPPING: // TODO...this is wonky...
+      switch (SnapGlobals.STATE) {
+        case SnapStates.OFF:
+          canvas.forEachObject(obj => {
+            if (obj.get('type') != 'snap') {
+              // obj.set('selectable', false);
+              // obj.set('hasControls', false);
+            }
+          });
 
-      SnapGlobals.STATE = SnapStates.UNSELECTED;
-      button.innerHTML = 'Hide Alignment Points';
-      break;
-    case SnapStates.UNSELECTED:
-    case SnapStates.SELECTED:
-      // SnapGlobals.POINTS.forEach(p => {
-      //   console.log('removing: ' + p.get('name'));
-      //   canvas.remove(p);
-      // });
-      canvas.forEachObject(obj => {
-        if (obj.get('type') == 'snap') {
-          canvas.remove(obj);
-        } else {
-          // obj.set('selectable', true); // TODO: pendulum
-          // obj.set('hasControls', true);
-        }
-      });
+          for (let [_, snaps] of SnapGlobals.POINTS) {
+            for (let snap of snaps) {
+              canvas.add(snap);
+            }
+          }
 
-      SnapGlobals.STATE = SnapStates.OFF;
-      SnapGlobals.MOVER = null;
-      button.innerHTML = 'Show Alignment Points';
-      // canvas.renderAll();
+          SnapGlobals.STATE = SnapStates.UNSELECTED;
+          button.innerHTML = 'Hide Alignment Points';
+
+          AppGlobals.STATE = AppStates.SNAPPING;
+          break;
+        case SnapStates.UNSELECTED:
+        case SnapStates.SELECTED:
+        // SnapGlobals.POINTS.forEach(p => {
+        //   console.log('removing: ' + p.get('name'));
+        //   canvas.remove(p);
+        // });
+        canvas.forEachObject(obj => {
+          if (obj.get('type') == 'snap') {
+            canvas.remove(obj);
+          } else {
+            // obj.set('selectable', true); // TODO: pendulum
+            // obj.set('hasControls', true);
+          }
+        });
+
+        SnapGlobals.STATE = SnapStates.OFF;
+
+        AppGlobals.STATE = AppStates.EDITING;
+
+        SnapGlobals.MOVER = null;
+        button.innerHTML = 'Show Alignment Points';
+        // canvas.renderAll();
+        break;
+        default:
+          console.log('unhandled state in toggle snaps:');
+          console.log(SnapGlobals);
+      }
       break;
+    case AppStates.SIMDP:
     default:
-      console.log('unhandled state in toggle snaps:');
-      console.log(SnapGlobals);
+      console.log('unhandled global state in toggle snaps:');
+      console.log(AppGlobals);
   }
+}
+
+function togglePhysics() {
+  const button = document.getElementById('toggle-physics');
+  if (AppGlobals.PHYSICS_RUNNING) {
+    BACKEND.stopPhysics();
+    button.innerHTML = 'Start';
+  } else {
+    BACKEND.startPhysics();
+    button.innerHTML = 'Stop';
+  }
+
+  AppGlobals.PHYSICS_RUNNING = !AppGlobals.PHYSICS_RUNNING;
 }
 
 
@@ -531,7 +594,7 @@ canvas.on('object:added', opts => {
 
       // handle dragpoints
       switch (AppGlobals.STATE) {
-        // case AppStates.SNAPPING:
+        case AppStates.SNAPPING:
         case AppStates.EDITING:
           addDragPoints(obj, false);
           break;
@@ -838,16 +901,15 @@ canvas.on('mouse:down', opts => {
 
 
 function startSession() {
-  const sessionID = prompt("Please input your group identifier: ", "");
-  BACKEND.startSession(sessionID);
+  BACKEND.startSession();
 }
 
 function endSession() {
 
-  const done = confirm("Has John or Sorin recorded your result?");
-  if (done) {
+  // const done = confirm("Has John or Sorin recorded your result?");
+  // if (done) {
     BACKEND.endSession();
-  } else {
+  // } else {
     // do nothing
-  }
+  // }
 }

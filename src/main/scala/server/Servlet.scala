@@ -38,7 +38,7 @@ class Servlet extends Stack {
     old
   }
 
-  val logFile = "/Users/john/ed-vis-gen/logs/session0.txt"
+  val logFile = "/home/john/ed-vis-gen/logs/session1.txt"
 
   // given a string, produce a log of the format body :: current time and append to the log file
   def mylog(body: String) {
@@ -60,17 +60,17 @@ class Servlet extends Stack {
     } finally writer.close()
   }
 
-  get("/start/:id") {
+  get("/start/:id/:bench") {
     // println("hello, world")
     // allocate a session ID, log the start, and return the ID
     // val newID = allocID
-    mylog("START, " + params("id"))
+    mylog("START, " + params("id") + ", " + params("bench"))
     ()
   }
 
   get("/endSession/:id") {
     // log the end
-    mylog("END, " + params("id"))
+    mylog("END, " + params("id") + ", " + params("bench"))
     ()
   }
 

@@ -47,6 +47,7 @@ export function refresh(cont: DragController, canv: ICanvas) {
 
 export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   // console.log(object)
+  // console.trace();
   physCanv = canvas
   initModel = buildModel(object, () => refresh(physCont, canvas))
   if (physicsFirst) {

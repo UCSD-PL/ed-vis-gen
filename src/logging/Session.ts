@@ -1,22 +1,23 @@
 import {sendGet} from '../util/HTTP'
 
-let currentID = -1
 
-export function startSession(inp: string) {
-  currentID = parseInt(inp)
+export function startSession() {
+  // oooo boy
+  // super hackish but meh
+  const id = prompt("Session ID?")
+  const benchmark = prompt("Benchmark?")
+  // const trusted = prompt("Mika?")
   // send a session start request, set currentID to the response
   const handler = (response: string) => {
     // do nothing
     return 0
   }
-  sendGet('start/' + currentID.toString(), handler)
+  sendGet('start/' + id + "/" + benchmark, handler)
 }
 
 export function endSession() {
   // send a session end request, clear current ID
-  if (currentID != -1) {
-    sendGet('endSession/' + currentID.toString(), (s: string) => 0)
-  } else {
-    console.log('error: end sessions called before currentID is set')
-  }
+  const id = prompt("Session ID?")
+  const benchmark = prompt("Benchmark?")
+  sendGet('endSession/' + id + "/" + benchmark, (s: string) => 0)
 }

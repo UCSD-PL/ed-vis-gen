@@ -130,8 +130,8 @@
       <button class="btn btn-default navbar-btn" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
 
       <!--undo & redo-->
-      <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button>
+      <!-- <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
+      <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button> -->
 
       <div class="btn-group">
         <div class="btn-group">
@@ -152,19 +152,21 @@
 
 
       <!--overlay-->
-      <button class="btn btn-primary" style="background-color:royalblue; width: 175px;" type="button" onclick = "toggleDrags();" id="toggle-drags">
+      <button class="btn btn-primary" style="background-color:royalblue; width: 150px;" type="button" onclick = "toggleDrags();" id="toggle-drags">
         Show Drag Points
       </button>
 
-      <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "startSession();" id="start-session">
+      <!-- <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "startSession();" id="start-session">
         Start Session
       </button>
 
       <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "endSession();" id="end-session">
         End Session
-      </button>
+      </button> -->
 
-      <a href='http://goto.ucsd.edu/~john/EDDIE/faq.html' class="btn btn-primary" style="background-color:royalblue;"> Confused? FAQ/Help page</a>
+
+      <button class="btn btn-primary" style="background-color:royalblue;" type='button'
+      onclick="window.open('http://goto.ucsd.edu/~john/EDDIE/faq.html');"> Confused? FAQ/Help page</button>
 
 
 
@@ -189,9 +191,9 @@
 
 
       <div class="rightbuttons">
-        <button class="btn btn-primary" onclick="BACKEND.startPhysics()" style="background-color:royalblue">Start</button>
-        <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button>
-        <button class="btn btn-primary" onclick="BACKEND.resetPhysics()" style="background-color:royalblue">Reset</button>
+        <button class="btn btn-primary" onclick="togglePhysics();" width='75' style="background-color:royalblue" id='toggle-physics'>Start</button>
+        <!-- <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button> -->
+        <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
       </div>
       <!-- <div class='charts'>
         <canvas id='chartCanv' width='600' height='150' style='border:1px solid silver'></canvas>
@@ -258,5 +260,28 @@
       </script>
 
 
+      <script>
+      document.onkeydown = function(event) {
+        // console.log(event.char);
+        if (event.shiftKey && event.ctrlKey && event.which) {
+          // console.log(event.which);
+          // console.log(event.keyCode);
+          if (event.which === 49) {
+            // 1
+            startSession();
+          } else if (event.which === 50) {
+            // 2
+            endSession();
+          } else if (event.which === 51) {
+            // 3
+            window.open('https://phet.colorado.edu/sims/resonance/resonance_en.html');
+          } else if (event.which === 52) {
+            // 4
+            window.open('https://phet.colorado.edu/sims/pendulum-lab/pendulum-lab_en.html');
+          }
+        }
+      }
+
+      </script>
 
 </html>

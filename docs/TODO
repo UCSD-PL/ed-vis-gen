@@ -1,15 +1,28 @@
+lookup metric for acceptable usability performance
+
+for study:
+  * ping sorin about IRB stuff to say later in week
+  * change study to:
+    ** do piston diagram instead of hookes
+      ** present resonance diagram **only** in the beginning
+      ** "we can't implement the piston part, please disregard it."
+    ** remove diagram description worksheets
+    ** **I** hit start/end session, somehow.
+    ** include link to diagram in tool
+
+    ** make links create popups: window.open(url);
+
+    ** add session ID to exit forms
+
+    ** test audio recording of phone video
+
+  * print out forms:
+    ** exit forms
+    ** IRB forms + 1 full copy
+    ** reimbursement sheet
 
 
 BUGS:
-  * img tag is broken on returned iframe
-
-
-  * LEQs are failing for some apparatus benchmarks, disabled for now
-    ** planets, hooke_2, hooke_par, normal_modes_2d
-  * generated program for normal_modes_2d is ass: see biggun.html. takes
-    1 minute to load...10k lines of JS??
-  * onrelease is broken.
-  * planets takes forever to load ???
 
 
 
@@ -58,8 +71,6 @@ TODO:
        > ARG_1: Set(-3.0 + 3.0*V_2 + 2.0*V_4 ≡ -1.0 - 4.0*V_1 - V_5 + V_0 + 2.0*V_3 - V_2, -5.0 - 3.0*V_5 - 4.0*V_1 ≡ -5.0 + V_3 + 0.0*V_1)
        (violated fuzz testing)
 
-  * inlining isn't optimal: with a point on weight + point in spring,
-     IY = IY_PY is an equation
 
   * find more benchmarks
   ** http://www.malinc.se/math/
@@ -70,12 +81,8 @@ TODO:
 
 
   * explore locked edges for locking variables (specifically height/width)
-  * or maybe learn from rejects? multi tier accept/reject phases?
 
-  * finish point generation
-    ** add triangles
-  * finish AST
-    ** add plots
+
 
 
 long term:
@@ -94,7 +101,6 @@ distinguish between recursive updates and nonlinear one-way constraints:
     ** type system: DFValues can't appear in cass equations and vice versa
   * runtime semantics:
     ** interactions: suggestValue for x, y values. reevaluate both networks.
-
 
 
   NLP: given some text in a textbook describing a sim,

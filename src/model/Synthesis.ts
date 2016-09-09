@@ -6,10 +6,10 @@ import {Expression, Equation, Constraint, Strength} from 'cassowary'
 
 import {Expr, Eq} from './Expr'
 
-// go from Program -> a set of points and their cass expressions. so, we need to:
+// go from Program -> a set of points, their cass expressions, and their parent shapes. so, we need to:
 // build a bunch of points, a bunch of corresponding cass expressions, and a map
 // including the new variables.
-type PExpr = Tup<CassVar, Expr>
+type PExpr = [CassVar, Expr, Shape]
 
 export class PointGeneration {
   private _vars: Map<CassVar, number>
@@ -20,35 +20,44 @@ export class PointGeneration {
         this._vars.set(k, v)
   }
 
+  private static allocSuffix = 0;
   private alloc(v: number): CassVar {
     let prefix = "PGV"
-    let suffix = 0
-    while (exists(this._vars, ([k, v]) => k.name== (prefix + suffix.toString())))
-      ++suffix
+    ++PointGeneration.allocSuffix
 
-    let newVar = new CassVar(prefix + suffix.toString(), v)
+    let newVar = new CassVar(prefix + PointGeneration.allocSuffix.toString(), v)
     this._vars.set(newVar, v)
     return newVar
   }
   // given two vars and exprs, build a middle var/expr
   private between(l: PExpr, r: PExpr): PExpr {
     // alloc a new variable,
-    let [lcv, le] = l
-    let [rcv, re] = r
+    let [lcv, le, lparent] = l
+    let [rcv, re, rparent] = r
+    if (lparent !== rparent) {
+      console.log('left and right parents are different??')
+      console.log(lparent)
+      console.log(rparent)
+    }
     let [lv, rv] = [this._vars.get(lcv), this._vars.get(rcv)]
     let newVar = this.alloc((lv + rv)/2)
     let newExp = le.plus(re).div(2)
-    return [newVar, newExp]
+    return [newVar, newExp, lparent]
   }
 
   // given a base and a delta, return the end
   private from(base: PExpr, delta: PExpr): PExpr {
-    let [bCV, bE] = base
-    let [deltaCV, deltaE] = delta
+    let [bCV, bE, lparent] = base
+    let [deltaCV, deltaE, rparent] = delta
+    if (lparent !== rparent) {
+      console.log('left and right parents are different??')
+      console.log(lparent)
+      console.log(rparent)
+    }
     let [bV, deltaV] = [this._vars.get(bCV), this._vars.get(deltaCV)]
     let newVar = this.alloc(bV + deltaV)
     let newExp = bE.plus(deltaE)
-    return [newVar, newExp]
+    return [newVar, newExp, lparent]
   }
 
   // monadic plus...huehuehue
@@ -76,7 +85,7 @@ export class PointGeneration {
     // console.log(v[1].toString())
     let ne = v[1].times(-1)
     // console.log(ne.toString())
-    return [nv, ne]
+    return [nv, ne, v[2]]
   }
   // given a shape, return the points
   private shapePoints(s: Shape): Set<Tup<PExpr, PExpr>> {
@@ -90,7 +99,7 @@ export class PointGeneration {
     } else if (s instanceof Rectangle || s instanceof Image) {
       ret = this.rectPoints(s)
     }  else {
-      console.log('unhandled shape for drawing: ' + s.toString())
+      console.log('unhandled shape for shapepoints: ' + s.toString())
       assert(false)
     }
 
@@ -98,19 +107,19 @@ export class PointGeneration {
   }
 
   // TODO: this creates shared variable references. clone if necessary
-  private toPoint(x: Variable, y: Variable): Tup<PExpr, PExpr> {
+  private toPoint(x: Variable, y: Variable, parent: Shape): Tup<PExpr, PExpr> {
     assert(x instanceof CassVar)
     assert(y instanceof CassVar)
-    let hd: PExpr = [x as CassVar, Expr.fromVar(x as CassVar)]
-    let tl: PExpr = [y as CassVar, Expr.fromVar(y as CassVar)]
+    let hd: PExpr = [x as CassVar, Expr.fromVar(x as CassVar), parent]
+    let tl: PExpr = [y as CassVar, Expr.fromVar(y as CassVar), parent]
     return [hd, tl]
   }
 
-  private _line(start: Tup<Variable, Variable>, finish: Tup<Variable, Variable>): Set<Tup<PExpr, PExpr>> {
+  private _line(start: Tup<Variable, Variable>, finish: Tup<Variable, Variable>, parent:Shape): Set<Tup<PExpr, PExpr>> {
     let [x1, y1] = start
     let [x2, y2] = finish
-    let begin = this.toPoint(x1, y1)
-    let end = this.toPoint(x2, y2)
+    let begin = this.toPoint(x1, y1, parent)
+    let end = this.toPoint(x2, y2, parent)
     let mid = this.midPoint(begin, end)
     let ret = new Set<Tup<PExpr, PExpr>>()
     return ret.add(begin).add(end).add(mid)
@@ -121,19 +130,19 @@ export class PointGeneration {
     // beginning, middle, and end
     let begin = s.points[0]
     let end = s.points[1]
-    return this._line(begin, end)
+    return this._line(begin, end, s)
   }
   private vectPoints(s: VecLike): Set<Tup<PExpr, PExpr>> {
-    let begin = this.toPoint(s.x, s.y)
-    let delta = this.toPoint(s.dx, s.dy)
+    let begin = this.toPoint(s.x, s.y, s)
+    let delta = this.toPoint(s.dx, s.dy, s)
     let next = this.plusPoint(begin, delta)
     let mid = this.midPoint(begin, next)
     return (new Set<Tup<PExpr, PExpr>>()).add(begin).add(next).add(mid)
   }
   private circPoints(s: Circle | DragPoint): Set<Tup<PExpr, PExpr>> {
-    let [x, y] = this.toPoint(s.x, s.y)
+    let [x, y] = this.toPoint(s.x, s.y, s)
     assert(s.r instanceof CassVar)
-    let r:PExpr = [s.r as CassVar, Expr.fromVar(s.r as CassVar)]
+    let r:PExpr = [s.r as CassVar, Expr.fromVar(s.r as CassVar), s]
     let mr = this.negate(r)
     let ret = new Set<Tup<PExpr, PExpr>>()
     ret.add([x, y])
@@ -146,8 +155,8 @@ export class PointGeneration {
     return ret
   }
   private rectPoints(s: RecLike): Set<Tup<PExpr, PExpr>> {
-    let [x, y] = this.toPoint(s.x, s.y)
-    let [dx, dy] = this.toPoint(s.dx, s.dy)
+    let [x, y] = this.toPoint(s.x, s.y, s)
+    let [dx, dy] = this.toPoint(s.dx, s.dy, s)
     let [mdx, mdy] = [this.negate(dx), this.negate(dy)]
     let ret = new Set<Tup<PExpr, PExpr>>()
     ret.add([x, y]) // center
@@ -189,6 +198,7 @@ export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<Cas
   // coordinates, add the points to the state and add an equality between the points
 
   let added = new Set<Tup<PExpr, PExpr>>()
+  let constrained = new Map<Shape, Shape>()
 
   let finder = ([[seedX], [seedY]]: Tup<PExpr, PExpr>) => (test: Tup<PExpr, PExpr>) => {
     let [[testX], [testY]] = test
@@ -206,8 +216,13 @@ export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<Cas
     if (overlapped) {
 
       // TODO: i don't use the LHS variables, rewrite
-      let [[x1v, x1e], [y1v, y1e]] = point
-      let [[x2v, x2e], [y2v, y2e]] = overlapped
+      let [[x1v, x1e, p1], [y1v, y1e]] = point
+      let [[x2v, x2e, p2], [y2v, y2e]] = overlapped
+
+      if (constrained.get(p1) === p2 || constrained.get(p2) === p1) {
+        // console.log('skipping')
+        continue
+      }
 
       let ex = new Eq(x1e, x2e)
       let ey = new Eq(y1e, y2e)
@@ -225,6 +240,8 @@ export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<Cas
       }
 
       added.add(point)
+      constrained.set(p1, p2)
+      constrained.set(p2, p1)
     }
   }
 
@@ -233,6 +250,7 @@ export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<Cas
   // console.log(rett)
 
   // console.log('finished rett with: ' + rett.size.toString())
+  // console.log('finished with ' + (retX.size + retY.size).toString())
 
   return [retX, retY]
 }
