@@ -37,6 +37,9 @@
 <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
 <style>
   h1{
     float: right;
@@ -66,11 +69,11 @@
   .overlay {
       text-align: center;
       height: 0%;
-      width: 100%;
+      width: 50%;
       position: fixed;
       z-index: 1;
-      top: 0;
-      left: 0;
+      top: 25%;
+      left: 25%;
       background-color: rgb(0,0,0);
       background-color: #ffffff;
       overflow-y: hidden;
@@ -78,6 +81,7 @@
   }
   .overlay-selection {
       text-align: center;
+      position: relative;
       height: 0%;
       width: 100%;
       position: fixed;
@@ -110,6 +114,10 @@
       right: 35px;
     }
 }
+</style>
+
+<style>
+  .toggle-on { background-color: royalblue; }
 </style>
 
 <body>
@@ -162,20 +170,15 @@
                   </div>
                 </div>
 
-                <!--delete button-->
-                <button class="btn btn-primary navbar-btn" style="background-color:royalblue;" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
+                <!-- alignment -->
+                <input type="checkbox" id="toggle-snaps" 
+                       data-toggle="toggle" data-style="eddie"
+                       data-on="Alignment" data-off="Alignment">
 
-
-                <!-- snap points -->
-                <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "toggleSnaps()" id="toggle-snaps">
-                  Align
-                </button>
-
-
-                <!--overlay-->
-                <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "toggleDrags();" id="toggle-drags">
-                  Interact
-                </button>
+                <!--interactions-->
+                <input type="checkbox" id="toggle-drags" 
+                       data-toggle="toggle"
+                       data-on="Interaction" data-off="Interaction">
               </div>
             </nav>
           </div>
@@ -192,7 +195,10 @@
           <div class="panel-body">
             <nav>
               <div class="rightbuttons">
-                <button class="btn btn-primary" onclick="togglePhysics();" width='75' style="background-color:royalblue" id='toggle-physics'>Start</button>
+                <input type="checkbox" id="toggle-physics" 
+                       data-toggle="toggle" 
+                       data-on="<i class='fa fa-pause'></i>"
+                       data-off="<i class='fa fa-play'></i>">
                 <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
               </div>
             </nav>
@@ -209,7 +215,7 @@
   <div id="myCav" class="overlay">
     <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
    <div class="overlay-content">
-     <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+     <canvas id="interact" width="500" height="300" style="border:5px solid #000000 "></canvas>
     </div>
   </div>
 
@@ -240,6 +246,27 @@
     <script src="../frontend/undo.js"></script>
       <!-- backend script -->
     <script src="../lib.js"></script>
+
+    <!-- scripts for toggle buttons -->
+    <script>
+      $(function() {
+        $('#toggle-snaps').change(function() {
+          if (this.checked && $('#toggle-drags')[0].checked) {
+            $('#toggle-drags').bootstrapToggle('off');
+          }
+          toggleSnaps();
+        })
+        $('#toggle-drags').change(function() {
+          if (this.checked && $('#toggle-snaps')[0].checked) {
+            $('#toggle-snaps').bootstrapToggle('off')
+          }
+          toggleDrags();
+        })
+        $('#toggle-physics').change(function() {
+          togglePhysics();
+        })
+      })
+    </script>
 
 
       <script>
