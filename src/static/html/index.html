@@ -43,21 +43,22 @@
     font-family: monospace;
   }
   .leftbuttons{
-    float: left;
+    /*float: left;*/
   }
 
   .rightbuttons{
-    width: 100%;
+    /*width: 100%;*/
     text-align: right;
-    float: right;
+    /*float: right;*/
   }
 
   .charts{
     float: right;
   }
   body {
-    margin: 0;
+    margin: 10;
     font-family: 'Lato', sans-serif;
+    background-color: royalblue;
   }
   .canvas-container{
     margin: 0 auto;
@@ -113,121 +114,124 @@
 
 <body>
 
+  <div class="container-fluid">
+    <nav class="navbar navbar-default navbar-static-top">
+      <a href="#" class="navbar-brand">EDDIE</a>
+      <ul class="nav navbar-nav pull-right">
+        <li>
+          <a href="http://goto.ucsd.edu/~john/EDDIE/faq.html" target="_">About</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Editor
+          </div>
+          <div class="panel-body">
+            <nav class="">
+              <div class="leftbuttons">
 
-    <!-- <script src="fabrication.js"></script>
+                <!-- shapes -->
+                <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
+                    Shapes <span class="caret"></span></button>
+                  <ul class="dropdown-menu" role="menu">
+                      <li onclick="addRectangle()">
+                        <a href="#"><span class="fa fa-fw fa-square" style="color: royalblue"></span> Rectangle</a>
+                      </li>
+                      <li onclick="addCircle()">
+                        <a href="#"><span class="fa fa-fw fa-circle" style="color: royalblue"></span> Circle</a>
+                      </li>
+                      <li onclick="addLine()">
+                        <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Line</a>
+                      </li>
+                    </ul>
+                </div>
 
-    <script src="objects.js"></script> -->
+                <!-- physics -->
+                <div class="btn-group">
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
+                    Physics <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li onclick="addSpring()"><a href="#">Spring</a></li>
+                      <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
+                    </ul>
+                  </div>
+                </div>
 
-    <nav id="toolbar" class="navbar navbar-default">
-    <div class="leftbuttons">
-      <button class="btn btn-default navbar-btn" onclick="addRectangle()" style="color:royalblue"><span class="fa fa-fw fa-square"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="addCircle()" style="color:royalblue"><span class="fa fa-fw fa-circle"></span></button>
-      <!-- <button class="btn btn-default navbar-btn" onclick="addTriangle()" style="color:royalblue"><span class="fa fa-fw fa-play"></span></button> -->
-      <button class="btn btn-default navbar-btn" onclick="addLine()" style="color:royalblue"><span class="fa fa-fw fa-minus"></span></button>
-      <!-- <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button> -->
+                <!--delete button-->
+                <button class="btn btn-primary navbar-btn" style="background-color:royalblue;" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
 
-      <!--delete button-->
-      <button class="btn btn-default navbar-btn" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
 
-      <!--undo & redo-->
-      <!-- <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button> -->
+                <!-- snap points -->
+                <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "toggleSnaps()" id="toggle-snaps">
+                  Align
+                </button>
 
-      <div class="btn-group">
-        <div class="btn-group">
-          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
-          Physics <span class="caret"></span></button>
-          <ul class="dropdown-menu" role="menu">
-            <!-- <li onclick="addArrow()"><a href="#">Arrow</a></li> -->
-            <li onclick="addSpring()"><a href="#">Spring</a></li>
-            <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
-          </ul>
+
+                <!--overlay-->
+                <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "toggleDrags();" id="toggle-drags">
+                  Interact
+                </button>
+              </div>
+            </nav>
+          </div>
+          <div id="draw">
+            <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
+          </div>
         </div>
       </div>
-
-      <!-- snap points -->
-      <button class="btn btn-primary" style="background-color:royalblue; width: 175px;" type="button" onclick = "toggleSnaps()" id="toggle-snaps">
-        Show Alignment Points
-      </button>
-
-
-      <!--overlay-->
-      <button class="btn btn-primary" style="background-color:royalblue; width: 150px;" type="button" onclick = "toggleDrags();" id="toggle-drags">
-        Show Drag Points
-      </button>
-
-      <!-- <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "startSession();" id="start-session">
-        Start Session
-      </button>
-
-      <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "endSession();" id="end-session">
-        End Session
-      </button> -->
-
-
-      <button class="btn btn-primary" style="background-color:royalblue;" type='button'
-      onclick="window.open('http://goto.ucsd.edu/~john/EDDIE/faq.html');"> Confused? FAQ/Help page</button>
-
-
-
-      </div>
-
-
-      </nav>
-
-
-
-
-      <!--our canvases-->
-      <div id="draw" style ="float:left;">
-        <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
-      </div>
-      <div style = "float:left;">
-        <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
-      </div>
-
-
-
-
-
-      <div class="rightbuttons">
-        <button class="btn btn-primary" onclick="togglePhysics();" width='75' style="background-color:royalblue" id='toggle-physics'>Start</button>
-        <!-- <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button> -->
-        <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
-      </div>
-      <!-- <div class='charts'>
-        <canvas id='chartCanv' width='600' height='150' style='border:1px solid silver'></canvas>
-      </div> -->
-
-
-      <!-- open/close -->
-      <div id="myCav" class="overlay">
-        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
-       <div class="overlay-content">
-         <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Viewer
+          </div>
+          <div class="panel-body">
+            <nav>
+              <div class="rightbuttons">
+                <button class="btn btn-primary" onclick="togglePhysics();" width='75' style="background-color:royalblue" id='toggle-physics'>Start</button>
+                <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
+              </div>
+            </nav>
+            <div>
+              <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- open/close -->
+  <div id="myCav" class="overlay">
+    <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+   <div class="overlay-content">
+     <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+    </div>
+  </div>
 
 
-      <!--the second overlay-->
-      <div id="mySelect" class="overlay">
-        <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
-          Left
-        </button>
-        <button class="btn btn-default" type="button" onclick="onRight()" id="right">
-          Right
-        </button>
-        <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
-          Accept
-        </button>
-        <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
-        <div class="overlay-content">
-          <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
-         </div>
+  <!--the second overlay-->
+  <div id="mySelect" class="overlay">
+    <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
+      Left
+    </button>
+    <button class="btn btn-default" type="button" onclick="onRight()" id="right">
+      Right
+    </button>
+    <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
+      Accept
+    </button>
+    <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
+    <div class="overlay-content">
+      <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
+    </div>
+  </div>
 
-       </div>
-
-       <!--more frontend scripts-->
+    <!--more frontend scripts-->
     <script src="../frontend/objects.js"></script>
     <script src="../frontend/fabrication.js"></script>
     <script src="../frontend/dragpoints.js"></script>
