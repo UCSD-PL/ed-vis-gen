@@ -118,6 +118,8 @@
     originX: 'center',
     originY: 'center',
     fill: 'red',
+    stroke: 'black',
+    strokeWidth: 1,
     selectable: true,
     lockMovementX: true,
     lockMovementY: true,

@@ -33,7 +33,7 @@ closing the overlay without accepting will cause the drag point to rever to it's
 numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint, // current drag point on the "sims" panel
 
-dpColor = "red", // color of unselected drag points
+dpColor = "black", // color of unselected drag points
 dpSelectedColor = "orange"; // color of selected drag points
 
 // if true, events are fired for individual objects on a canvas
@@ -333,7 +333,7 @@ function addDragPoints(obj, addToCanvas) {
    newDrags.forEach(drag => {
 
     drag.set('eddie:active', false);
-    drag.set('fill', 'red');
+    drag.set('fill', dpColor);
     // drag.set('type', 'dragPoint');
 
     drag.on('eddie:selected', () => {
@@ -341,12 +341,12 @@ function addDragPoints(obj, addToCanvas) {
         case AppStates.SELECTDP:
           if (drag.get('eddie:active')) {
             drag.set('eddie:active', false);
-            drag.set('fill', 'red');
+            drag.set('fill', dpColor);
             // select(drag);
 
           } else {
             drag.set('eddie:active', true);
-            drag.set('fill', 'green');
+            drag.set('fill', dpSelectedColor);
 
             // select(drag);
           }
