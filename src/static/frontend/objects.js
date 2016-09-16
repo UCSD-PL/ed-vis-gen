@@ -52,6 +52,11 @@ function toggleSnap() {
   }
 }
 
+//Add mass
+function addMass(){
+  console.log('addMass not implemented!');
+}
+
 //Add spring
 function addSpring(){
   var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, 'physics':'spring'});
