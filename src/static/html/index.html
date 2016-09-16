@@ -17,28 +17,35 @@
       });
     </script>
 
+    <!-- Style -->
+    <link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
+    <!--<link rel="stylesheet" href="../frontend/mockup/app/components/bootstrap/dist/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
+    <!--<link rel="stylesheet" href="../frontend/mockup/app/css/layout.css">-->
+    <!--<link rel="stylesheet" href="../frontend/mockup/app/css/test.min.css">-->
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <style>
+      .carousel-control, .carousel-control.left, .carousel-control.right,
+      .carousel-control:focus, .carousel-control:hover {
+        background-image: none !important; 
+        font-size: 30px;
+        color: royalblue;
+      }
+    </style>
 </head>
-
-<!-- Style -->
-<link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
-<link rel="stylesheet" href="../frontend/mockup/app/components/bootstrap/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/layout.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/test.min.css">
-
-<!-- jQuery library -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-
-<!-- Latest compiled JavaScript -->
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
-<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
-<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
 <style>
   h1{
@@ -221,7 +228,7 @@
 
 
   <!--the second overlay-->
-  <div id="mySelect" class="overlay">
+  <!--<div id="mySelect" class="overlay">
     <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
       Left
     </button>
@@ -234,6 +241,37 @@
     <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
     <div class="overlay-content">
       <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
+    </div>
+  </div>-->
+
+  <!-- Modal -->
+  <div class="modal fade" id="mySelect" tabindex="-1" role="dialog" aria-labelledby="mySelectLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="overlay-content">
+            <canvas id="sims" width="300" height="300"></canvas>
+          </div>
+
+          <a class="left carousel-control" role="button" data-slide="prev" onclick="onLeft()" id="left">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="right carousel-control" role="button" data-slide="next" onclick="onRight()" id="right">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" onclick="close1()">Close</button>
+          <button type="button" class="btn btn-primary" onclick="onACCEPT()" id="accept">
+            Accept
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -271,21 +309,23 @@
 
       <script>
       function open0() {
+        console.log('open0');
         document.getElementById("myCav").style.height = "100%";
       }
 
       function close0() {
+        console.log('close0');
         document.getElementById("myCav").style.height = "0%";
         onOverlayClosed();
       }
 
 
       function open1(){
-        document.getElementById("mySelect").style.height = "100%";
+        $('#mySelect').modal('show');
       }
 
       function close1(){
-        document.getElementById("mySelect").style.height = "0%";
+        $('#mySelect').modal('hide');
       }
 
       </script>
