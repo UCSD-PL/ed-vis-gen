@@ -49,26 +49,24 @@ var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
 //resize the canvas
-window.addEventListener('resize', resizeCanvas(), false);
-window.addEventListener('resize', resizePhysicsPanel(), false);
+window.addEventListener('resize', resizeCanvas, false);
+window.addEventListener('resize', resizePhysicsPanel, false);
 
 // resizes the "canvas" canvas according to the current dimensions of the browser window
 function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.6);
- canvas.setWidth(window.innerWidth*1.55/3);
- interact.setWidth(canvasWidth);
- interact.setHeight(canvasHeight);
- sims.setWidth(canvasWidth);
- sims.setHeight(canvasHeight);
+ var theWidth = $('#draw').width(); 
+ var theHeight = $('#draw').height(); 
+ canvas.setWidth(theWidth);
+ canvas.setHeight(theHeight);
  canvas.renderAll();
- canvasWidth = document.getElementById('canvas').width;
- canvasHeight = document.getElementById('canvas').height;
 }
 
 // resizes the "physics" canvas according to the current dimensions of the browser window
 function resizePhysicsPanel () {
- physics.setHeight(window.innerHeight*0.6);
- physics.setWidth(window.innerWidth*(1-1.55/3));
+ var theWidth = $('#simulate').width(); 
+ var theHeight = $('#simulate').height(); 
+ physics.setWidth(theWidth);
+ physics.setHeight(theHeight);
  physics.renderAll();
 }
 

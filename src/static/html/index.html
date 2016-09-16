@@ -181,10 +181,10 @@
                        data-on="Interaction" data-off="Interaction">
               </div>
             </nav>
-          </div>
-          <div id="draw">
-            <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
-          </div>
+            <div id="draw">
+              <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
+            </div>
+          </div>          
         </div>
       </div>
       <div class="col-md-6">
@@ -202,7 +202,7 @@
                 <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
               </div>
             </nav>
-            <div>
+            <div id="simulate">
               <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
             </div>
           </div>
