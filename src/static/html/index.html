@@ -17,25 +17,32 @@
       });
     </script>
 
+    <!-- Style -->
+    <link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
+    <link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <style>
+      .carousel-control, .carousel-control.left, .carousel-control.right,
+      .carousel-control:focus, .carousel-control:hover {
+        background-image: none !important; 
+        font-size: 30px;
+        color: royalblue;
+      }
+    </style>
 </head>
-
-<!-- Style -->
-<link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
-<link rel="stylesheet" href="../frontend/mockup/app/components/bootstrap/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/layout.css">
-<link rel="stylesheet" href="../frontend/mockup/app/css/test.min.css">
-
-<!-- jQuery library -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-
-<!-- Latest compiled JavaScript -->
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
-<link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
 <style>
   h1{
@@ -43,21 +50,22 @@
     font-family: monospace;
   }
   .leftbuttons{
-    float: left;
+    /*float: left;*/
   }
 
   .rightbuttons{
-    width: 100%;
+    /*width: 100%;*/
     text-align: right;
-    float: right;
+    /*float: right;*/
   }
 
   .charts{
     float: right;
   }
   body {
-    margin: 0;
+    margin: 10;
     font-family: 'Lato', sans-serif;
+    background-color: royalblue;
   }
   .canvas-container{
     margin: 0 auto;
@@ -65,11 +73,11 @@
   .overlay {
       text-align: center;
       height: 0%;
-      width: 100%;
+      width: 50%;
       position: fixed;
       z-index: 1;
-      top: 0;
-      left: 0;
+      top: 25%;
+      left: 25%;
       background-color: rgb(0,0,0);
       background-color: #ffffff;
       overflow-y: hidden;
@@ -77,6 +85,7 @@
   }
   .overlay-selection {
       text-align: center;
+      position: relative;
       height: 0%;
       width: 100%;
       position: fixed;
@@ -111,150 +120,210 @@
 }
 </style>
 
+<style>
+  .toggle-on { background-color: royalblue; }
+</style>
+
 <body>
 
+  <div class="container-fluid">
+    <nav class="navbar navbar-default navbar-static-top">
+      <a href="#" class="navbar-brand">EDDIE</a>
+      <ul class="nav navbar-nav pull-right">
+        <li>
+          <a href="http://goto.ucsd.edu/~john/EDDIE/faq.html" target="_">About</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Editor
+          </div>
+          <div class="panel-body">
+            <nav class="">
+              <div class="leftbuttons">
 
-    <!-- <script src="fabrication.js"></script>
+                <!-- shapes -->
+                <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
+                    Shapes <span class="caret"></span></button>
+                  <ul class="dropdown-menu" role="menu">
+                      <li onclick="addRectangle()">
+                        <a href="#"><span class="fa fa-fw fa-square" style="color: royalblue"></span> Rectangle</a>
+                      </li>
+                      <li onclick="addCircle()">
+                        <a href="#"><span class="fa fa-fw fa-circle" style="color: royalblue"></span> Circle</a>
+                      </li>
+                      <li onclick="addLine()">
+                        <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Line</a>
+                      </li>
+                    </ul>
+                </div>
 
-    <script src="objects.js"></script> -->
+                <!-- physics -->
+                <div class="btn-group">
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
+                    Physics <span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li onclick="addMass()"><a href="#">Mass</a></li>
+                      <li onclick="addSpring()"><a href="#">Spring</a></li>
+                      <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
+                    </ul>
+                  </div>
+                </div>
 
-    <nav id="toolbar" class="navbar navbar-default">
-    <div class="leftbuttons">
-      <button class="btn btn-default navbar-btn" onclick="addRectangle()" style="color:royalblue"><span class="fa fa-fw fa-square"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="addCircle()" style="color:royalblue"><span class="fa fa-fw fa-circle"></span></button>
-      <!-- <button class="btn btn-default navbar-btn" onclick="addTriangle()" style="color:royalblue"><span class="fa fa-fw fa-play"></span></button> -->
-      <button class="btn btn-default navbar-btn" onclick="addLine()" style="color:royalblue"><span class="fa fa-fw fa-minus"></span></button>
-      <!-- <button class="btn btn-default navbar-btn" onclick="EnterURL()"><span class="fa fa-fw fa-picture-o"></span></button> -->
+                <!-- alignment -->
+                <input type="checkbox" id="toggle-snaps" 
+                       data-toggle="toggle" data-style="eddie"
+                       data-on="Alignment" data-off="Alignment">
 
-      <!--delete button-->
-      <button class="btn btn-default navbar-btn" onclick="deleteObjects()"><span class="fa fa-fw fa-trash"></span></button>
-
-      <!--undo & redo-->
-      <!-- <button class="btn btn-default navbar-btn" onclick="undo()"><span class="fa fa-fw fa-undo"></span></button>
-      <button class="btn btn-default navbar-btn" onclick="redo()"><span class="fa fa-fw fa-repeat"></span></button> -->
-
-      <div class="btn-group">
-        <div class="btn-group">
-          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
-          Physics <span class="caret"></span></button>
-          <ul class="dropdown-menu" role="menu">
-            <!-- <li onclick="addArrow()"><a href="#">Arrow</a></li> -->
-            <li onclick="addSpring()"><a href="#">Spring</a></li>
-            <li onclick="addPendulum()"><a href="#">Pendulum</a></li>
-          </ul>
+                <!--interactions-->
+                <input type="checkbox" id="toggle-drags" 
+                       data-toggle="toggle"
+                       data-on="Interaction" data-off="Interaction">
+              </div>
+            </nav>
+            <div id="draw">
+              <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
+            </div>
+          </div>          
         </div>
       </div>
-
-      <!-- snap points -->
-      <button class="btn btn-primary" style="background-color:royalblue; width: 175px;" type="button" onclick = "toggleSnaps()" id="toggle-snaps">
-        Show Alignment Points
-      </button>
-
-
-      <!--overlay-->
-      <button class="btn btn-primary" style="background-color:royalblue; width: 150px;" type="button" onclick = "toggleDrags();" id="toggle-drags">
-        Show Drag Points
-      </button>
-
-      <!-- <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "startSession();" id="start-session">
-        Start Session
-      </button>
-
-      <button class="btn btn-primary" style="background-color:royalblue;" type="button" onclick = "endSession();" id="end-session">
-        End Session
-      </button> -->
-
-
-      <button class="btn btn-primary" style="background-color:royalblue;" type='button'
-      onclick="window.open('http://goto.ucsd.edu/~john/EDDIE/faq.html');"> Confused? FAQ/Help page</button>
-
-
-
-      </div>
-
-
-      </nav>
-
-
-
-
-      <!--our canvases-->
-      <div id="draw" style ="float:left;">
-        <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
-      </div>
-      <div style = "float:left;">
-        <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
-      </div>
-
-
-
-
-
-      <div class="rightbuttons">
-        <button class="btn btn-primary" onclick="togglePhysics();" width='75' style="background-color:royalblue" id='toggle-physics'>Start</button>
-        <!-- <button class="btn btn-primary" onclick="BACKEND.stopPhysics()" style="background-color:royalblue">Stop</button> -->
-        <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
-      </div>
-      <!-- <div class='charts'>
-        <canvas id='chartCanv' width='600' height='150' style='border:1px solid silver'></canvas>
-      </div> -->
-
-
-      <!-- open/close -->
-      <div id="myCav" class="overlay">
-        <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
-       <div class="overlay-content">
-         <canvas id="interact" width="600" height="600" style="border:5px solid #000000 "></canvas>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Viewer
+          </div>
+          <div class="panel-body">
+            <nav>
+              <div class="rightbuttons">
+                <input type="checkbox" id="toggle-physics" 
+                       data-toggle="toggle" 
+                       data-on="<i class='fa fa-pause'></i>"
+                       data-off="<i class='fa fa-play'></i>">
+                <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
+              </div>
+            </nav>
+            <div id="simulate">
+              <canvas id="physics" width="600" height="500" style="border:1px solid silver"></canvas>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- open/close -->
+  <div id="myCav" class="overlay">
+    <a href="javascript:void(0)" class="closebtn" onclick="close0()">x</a>
+   <div class="overlay-content">
+     <canvas id="interact" width="500" height="300" style="border:5px solid #000000 "></canvas>
+    </div>
+  </div>
 
 
-      <!--the second overlay-->
-      <div id="mySelect" class="overlay">
-        <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
-          Left
-        </button>
-        <button class="btn btn-default" type="button" onclick="onRight()" id="right">
-          Right
-        </button>
-        <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
-          Accept
-        </button>
-        <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
-        <div class="overlay-content">
-          <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
-         </div>
+  <!--the second overlay-->
+  <!--<div id="mySelect" class="overlay">
+    <button class="btn btn-default" type="button" onclick="onLeft()" id="left">
+      Left
+    </button>
+    <button class="btn btn-default" type="button" onclick="onRight()" id="right">
+      Right
+    </button>
+    <button class="btn btn-default" type="button" onclick="onACCEPT()" id="accept">
+      Accept
+    </button>
+    <a href="javascript:void(0)" class="closebtn" onclick="close1(); undoSelect(currentDragPoint)">x</a>
+    <div class="overlay-content">
+      <canvas id="sims" width="600" height="600" style="border:5px solid #000000 "></canvas>
+    </div>
+  </div>-->
 
-       </div>
+  <!-- Modal -->
+  <div class="modal fade" id="mySelect" tabindex="-1" role="dialog" aria-labelledby="mySelectLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="overlay-content">
+            <canvas id="sims" width="300" height="300"></canvas>
+          </div>
 
-       <!--more frontend scripts-->
+          <a class="left carousel-control" role="button" data-slide="prev" onclick="onLeft()" id="left">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="right carousel-control" role="button" data-slide="next" onclick="onRight()" id="right">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" onclick="close1()">Close</button>
+          <button type="button" class="btn btn-primary" onclick="onACCEPT()" id="accept">
+            Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!--more frontend scripts-->
     <script src="../frontend/objects.js"></script>
     <script src="../frontend/fabrication.js"></script>
     <script src="../frontend/dragpoints.js"></script>
     <script src="../frontend/spring.js"></script>
     <script src="../frontend/snapping.js"></script>
-    <script src="../frontend/undo.js"></script>
+    <script src="../frontend/undo.js"></script> 
       <!-- backend script -->
     <script src="../lib.js"></script>
+
+    <!-- scripts for toggle buttons -->
+    <script>
+      $(function() {
+        $('#toggle-snaps').change(function() {
+          if (this.checked && $('#toggle-drags')[0].checked) {
+            $('#toggle-drags').bootstrapToggle('off');
+          }
+          toggleSnaps();
+        })
+        $('#toggle-drags').change(function() {
+          if (this.checked && $('#toggle-snaps')[0].checked) {
+            $('#toggle-snaps').bootstrapToggle('off')
+          }
+          toggleDrags();
+        })
+        $('#toggle-physics').change(function() {
+          togglePhysics();
+        })
+      })
+    </script>
 
 
       <script>
       function open0() {
+        console.log('open0');
         document.getElementById("myCav").style.height = "100%";
       }
 
       function close0() {
+        console.log('close0');
         document.getElementById("myCav").style.height = "0%";
         onOverlayClosed();
       }
 
 
       function open1(){
-        document.getElementById("mySelect").style.height = "100%";
+        $('#mySelect').modal('show');
       }
 
       function close1(){
-        document.getElementById("mySelect").style.height = "0%";
+        $('#mySelect').modal('hide');
       }
 
       </script>
