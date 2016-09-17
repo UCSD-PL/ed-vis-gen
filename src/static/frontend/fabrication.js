@@ -33,7 +33,7 @@ closing the overlay without accepting will cause the drag point to rever to it's
 numOfChoices = 4, // # of "choices" for the drag point edit panel
 currentDragPoint, // current drag point on the "sims" panel
 
-dpColor = "red", // color of unselected drag points
+dpColor = "black", // color of unselected drag points
 dpSelectedColor = "orange"; // color of selected drag points
 
 // if true, events are fired for individual objects on a canvas
@@ -49,26 +49,24 @@ var canvasWidth = document.getElementById('canvas').width;
 var canvasHeight = document.getElementById('canvas').height;
 
 //resize the canvas
-window.addEventListener('resize', resizeCanvas(), false);
-window.addEventListener('resize', resizePhysicsPanel(), false);
+window.addEventListener('resize', resizeCanvas, false);
+window.addEventListener('resize', resizePhysicsPanel, false);
 
 // resizes the "canvas" canvas according to the current dimensions of the browser window
 function resizeCanvas () {
- canvas.setHeight(window.innerHeight*0.6);
- canvas.setWidth(window.innerWidth*1.55/3);
- interact.setWidth(canvasWidth);
- interact.setHeight(canvasHeight);
- sims.setWidth(canvasWidth);
- sims.setHeight(canvasHeight);
+ var theWidth = $('#draw').width(); 
+ var theHeight = $('#draw').height(); 
+ canvas.setWidth(theWidth);
+ canvas.setHeight(theHeight);
  canvas.renderAll();
- canvasWidth = document.getElementById('canvas').width;
- canvasHeight = document.getElementById('canvas').height;
 }
 
 // resizes the "physics" canvas according to the current dimensions of the browser window
 function resizePhysicsPanel () {
- physics.setHeight(window.innerHeight*0.6);
- physics.setWidth(window.innerWidth*(1-1.55/3));
+ var theWidth = $('#simulate').width(); 
+ var theHeight = $('#simulate').height(); 
+ physics.setWidth(theWidth);
+ physics.setHeight(theHeight);
  physics.renderAll();
 }
 
@@ -335,7 +333,7 @@ function addDragPoints(obj, addToCanvas) {
    newDrags.forEach(drag => {
 
     drag.set('eddie:active', false);
-    drag.set('fill', 'red');
+    drag.set('fill', dpColor);
     // drag.set('type', 'dragPoint');
 
     drag.on('eddie:selected', () => {
@@ -343,12 +341,12 @@ function addDragPoints(obj, addToCanvas) {
         case AppStates.SELECTDP:
           if (drag.get('eddie:active')) {
             drag.set('eddie:active', false);
-            drag.set('fill', 'red');
+            drag.set('fill', dpColor);
             // select(drag);
 
           } else {
             drag.set('eddie:active', true);
-            drag.set('fill', 'green');
+            drag.set('fill', dpSelectedColor);
 
             // select(drag);
           }

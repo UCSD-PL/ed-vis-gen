@@ -11,7 +11,7 @@ function addShape(shape) {
 
 //Add line
 function addLine(){
- var line0 = new fabric.Line([50,100,50,300], {stroke:'cornflowerblue', strokeWidth: 3, top:100, left:100});
+ var line0 = new fabric.Line([50,100,50,300], {stroke:'royalblue', strokeWidth: 3, top:100, left:100});
  addShape(line0);
 }
 
@@ -23,7 +23,7 @@ function addTriangle(){
 
 //Add circle
 function addCircle(){
-  var circle0 = new fabric.Circle({radius: 30, fill: 'dodgerblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
+  var circle0 = new fabric.Circle({radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
   circle0.lockUniScaling = true;
   addShape(circle0);
 }
@@ -50,6 +50,11 @@ function toggleSnap() {
   else {
     snapping = 'on'
   }
+}
+
+//Add mass
+function addMass(){
+  console.log('addMass not implemented!');
 }
 
 //Add spring
