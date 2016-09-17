@@ -68,7 +68,7 @@ class Servlet extends Stack {
     ()
   }
 
-  get("/endSession/:id") {
+  get("/endSession/:id/:bench") {
     // log the end
     mylog("END, " + params("id") + ", " + params("bench"))
     ()

@@ -1,32 +1,16 @@
 lookup metric for acceptable usability performance
 
-for study:
-  * ping sorin about IRB stuff to say later in week
-  * change study to:
-    ** do piston diagram instead of hookes
-      ** present resonance diagram **only** in the beginning
-      ** "we can't implement the piston part, please disregard it."
-    ** remove diagram description worksheets
-    ** **I** hit start/end session, somehow.
-    ** include link to diagram in tool
-
-    ** make links create popups: window.open(url);
-
-    ** add session ID to exit forms
-
-    ** test audio recording of phone video
-
-  * print out forms:
-    ** exit forms
-    ** IRB forms + 1 full copy
-    ** reimbursement sheet
 
 
 BUGS:
 
+  * drag points vanish after one round of selections or something (see recordings)
 
 
 TODO:
+
+  * add masses
+  * make pendulums extend (!!!)
 
   * visuals/controls, for physics sim:
 

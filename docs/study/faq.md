@@ -9,13 +9,11 @@ You can find the IRB consent form at this link [here](http://goto.ucsd.edu/~john
 What am I doing?
 -------
 If you haven't already, please read the [IRB consent form](http://goto.ucsd.edu/~john/EDDIE/forms/consent.pdf). You're using [EDDIE] to replicate (to the best of your abilities, within the tool's limitations) these two PhET diagrams,
-the [Pendulum Lab] and the [Spring Lab]. For the pendulum lab,
-please implement a version with two pendulums. For the spring lab, please implement a version with two springs.
+the [Resonance Lab] and the [Pendulum Lab]. For the pendulum lab,
+please implement a version with two pendulums.
 
-Before you start,
-please describe each diagram using the provided worksheets.
 While you're building the diagram, ensure your version is correct by interacting with both the generated diagram and the original PhET diagram.
-Once you're done, raise your hand and call over Sorin Lerner and John Sarracino so that they can record your result.
+Once you're done, raise your hand and call over Ben Wiedermann and John Sarracino so that they can record your result.
 
 What's the deal with the two windows?
 -------
@@ -37,22 +35,13 @@ You can translate most objects by left-clicking and dragging in the editor pane.
 You can resize all objects by left-clicking the object and dragging on the corner of the object.
 You can rotate lines and springs by left-clicking the object and dragging the
 rotation knob above the object.
+You can delete objects by selecting the object and clicking the delete button.
 
 ![Tutorial of how to edit objects.](http://goto.ucsd.edu/~john/EDDIE/vids/edit_object.ogv)
 
-What happens if I mess up?
--------
-If you make a mistake, you can either delete an object, undo your action, or redo your action.
-
-To delete an object, first select it, then click the delete button.
-
-To undo and redo, simply click the undo or redo buttons. This feature is rather buggy and undo sometimes needs to be clicked multiple times.
-
-![Tutorial of how to remove objects.](http://goto.ucsd.edu/~john/EDDIE/vids/remove_undo.ogv)
-
 How do I make the student's diagram interactive?
 -------
-The way to add drag points is to display the possible drag points for the diagram using the `Show Drag Points` button. Then, you can toggle drag points in the editor pane by left-clicking on them. Green drag points are present, while black drag points are not.
+The way to add drag points is to display the possible drag points for the diagram using the `Show Drag Points` button. Then, you can toggle drag points in the editor pane by left-clicking on them. Green drag points are present, while red drag points are not.
 
 ![Tutorial of how to add drag points to objects.](http://goto.ucsd.edu/~john/EDDIE/vids/drags.ogv)
 
@@ -74,7 +63,7 @@ For convenience, alignment points can be clicked to move objects such that the a
 
 How do I make the spring move objects/How do springs work?
 -------
-EDDIE's springs work using alignment points as well, and one end of the spring is fixed and one end obeys physical laws. We can see if the spring is moving an object (and see the motion of the spring) by using the `start`, `stop`, and `reset` buttons.
+EDDIE's springs work using alignment points as well, and one end of the spring is fixed and one end obeys physical laws. We can see if the spring is moving an object (and see the motion of the spring) by using the `Start/Stop` and `Reset` buttons.
 
 The moving end of a spring is an alignment point and objects aligned to it will follow the spring's motion.
 
@@ -88,7 +77,7 @@ If an aligned group of objects is attached to the end of a spring, all objects o
 
 What if EDDIE doesn't have X?
 -------
-That's OK! Please make sure X is written down in your description worksheet and implement
+That's OK! Please implement
 a version faithful to the original diagram.
 
 Is there a way to make a point be fixed i.e. not move?
@@ -97,11 +86,11 @@ No, but that's a great idea!
 
 Everything is broken! How do I fix it?
 -------
-If EDDIE gets hard to use due to bugs, you can refresh the page. Please *don't*
-click 'Start Session' again!
+If EDDIE gets hard to use due to bugs, you can refresh the page.
 
 
 
 [EDDIE]: goto.ucsd.edu:8081/target/html/
 [Pendulum Lab]: https://phet.colorado.edu/sims/pendulum-lab/pendulum-lab_en.html
 [Spring Lab]: https://phet.colorado.edu/sims/html/hookes-law/latest/hookes-law_en.html
+[Resonance Lab]: https://phet.colorado.edu/sims/resonance/resonance_en.html

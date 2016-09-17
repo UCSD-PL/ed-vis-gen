@@ -217,6 +217,9 @@ function deleteObjects(){
         SnapGlobals.POINTS.delete(o);
       });
     }
+
+    updateModifications(true);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
   } else if (activeGroup) {
 		var objectsInGroup = activeGroup.getObjects();
 		canvas.discardActiveGroup();
@@ -225,6 +228,9 @@ function deleteObjects(){
         candidateDragPoints.delete(object);
         SnapGlobals.POINTS.delete(object);
 		});
+
+    updateModifications(true);
+    window.BACKEND.drawToPhysics(fabricJSON, physics);
   }
 }
 
