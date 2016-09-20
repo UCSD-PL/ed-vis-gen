@@ -1,8 +1,9 @@
 import M = require('../model/Model')
-import VS = require('./Shapes')
-import {DISPLAY_ID} from '../util/Util'
+import {drawShape} from './Shapes'
+import {DISPLAY_ID, partSet} from '../util/Util'
 import {ICanvas} from 'fabric'
 import {Variable} from '../model/Variable'
+import {DragPoint, Shape} from '../model/Shapes'
 
 type Context = CanvasRenderingContext2D
 
@@ -13,10 +14,14 @@ export function renderState(s: M.State, canvas: ICanvas, plotCanv?: ICanvas) {
 
   let ctx = canvas.getContext()
   ctx.clearRect(0,0, canvas.getWidth(), canvas.getHeight())
-  s.prog.shapes.forEach(s => {
-    VS.drawShape(ctx, s, vars)
-  })
+  let [normal, drags] = partSet(s.prog.shapes, s => s instanceof DragPoint)
+  // s.prog.shapes.forEach(s => {
+  //   VS.drawShape(ctx, s, vars)
+  // })
 
+  const drawer = (s: Shape) => drawShape(ctx, s, vars)
+  normal.forEach(drawer)
+  drags.forEach(drawer)
   // let plotCtx = plotCanv.getContext()
   // plotCtx.clearRect(0,0, plotCanv.getWidth(), plotCanv.getHeight())
   // let [x, y, h, w] = [0, 0, 150, 150]

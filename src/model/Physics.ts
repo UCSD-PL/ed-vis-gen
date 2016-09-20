@@ -1,7 +1,7 @@
 import {PhysExpr, evalPhysicsExpr, VarExpr, ConstExpr, pp} from './PhysicsExpr'
 import {Variable} from './Variable'
-import {DragPoint} from './Shapes'
-import {Tup, mapValues, extendMap, union, Point} from '../util/Util'
+import {DragPoint, Circle, Arrow} from './Shapes'
+import {Tup, mapValues, extendMap, union, Point, fold, map2Tup} from '../util/Util'
 
 export class Integrator {
   private vals: Map<Variable, PhysExpr>
@@ -268,5 +268,156 @@ export class SpringGroup implements PhysicsGroup {
     // AHA! by a clever trick, we instead just calculate the delta directly -- see generateIntegrator
     this.X_Objs.push(dp.x)
     this.Y_Objs.push(dp.y)
+  }
+}
+
+// a circle carrying mass and a velocity vector. the mass is proportional to
+// the circle's area and the velocity is proportional to the vector's length.
+class MassBody {
+  static density = 1
+  public constructor(
+    public body: Circle,
+    public mass: Variable,
+    public velVec: Arrow,
+    public velX: Variable,
+    public velY: Variable,
+    public forces: Map<Circle, Variable>,
+    public thetas: Map<Circle, Variable> // map each other mass to a variable for the angle between this and it
+  ) {
+
+  }
+
+}
+export class MassSystem implements PhysicsGroup {
+
+  private bodies: Set<MassBody>
+  private dragVars: Set<Variable>
+
+  public constructor(
+    public gravConst: Variable,
+    public dampening: Variable,
+    public density: number,
+    public velocityScale: number,
+    bodies: Iterable<[Circle, Arrow, Variable, Variable, Variable, Map<Circle, Variable>, Map<Circle, Variable>]>
+  ) {
+    this.bodies = new Set()
+    this.dragVars = new Set()
+
+    for (const [body, velVec, mass, velX, velY, forces, thetas] of bodies) {
+      const newBod = new MassBody(body, mass, velVec, velX, velY, forces, thetas)
+      this.bodies.add(newBod)
+    }
+  }
+  public generateIntegrator(): Integrator {
+    // generate pairwise forces and project velocities to each dimension. fun times fam.
+    // plumb the data to the left...
+    const ret = Integrator.empty()
+    for (const lBody of this.bodies) {
+      // and to the right...
+      const forcesAndThetas: Set<Tup<PhysExpr, PhysExpr>> = new Set()
+      for (const rBody of this.bodies) {
+        // foreach pair l -> r s.t. l != r,
+        // add the term  FLR <- M_R/((l_x - r_x)^2 + (l_y - r_y)^2)
+        if (lBody === rBody) continue
+
+        const newForce = fv(rBody.mass).times(fv(this.gravConst))
+
+        const denom = fv(lBody.body.x).minus(fv(rBody.body.x)).square().plus(
+                      fv(lBody.body.y).minus(fv(rBody.body.y)).square()
+        )
+        ret.add([lBody.forces.get(rBody.body), newForce.div(denom)])
+
+        // add the term thetalr <- atan2(dy, dx)
+        const dy = fv(lBody.body.y).minus(fv(rBody.body.y))
+        const dx = fv(lBody.body.x).minus(fv(rBody.body.x))
+
+        ret.add([lBody.thetas.get(rBody.body), PhysExpr.InvokeMath(Math.atan2, [dy, dx])])
+
+        forcesAndThetas.add(
+          map2Tup([lBody.forces.get(rBody.body), lBody.thetas.get(rBody.body)], v => fv(v))
+        )
+      }
+
+      // for (const [force, theta] of forcesAndThetas) {
+      //
+      // }
+      const velXTerm = fold(forcesAndThetas,
+        (old, [force, theta]) => old.plus(force.times(theta.cos())),
+        ConstExpr.zero as PhysExpr
+      ).neg().plus(fv(lBody.velX))
+
+      const velYTerm = fold(forcesAndThetas,
+        (old, [force, theta]) => old.plus(force.times(theta.sin())),
+        ConstExpr.zero as PhysExpr
+      ).neg().plus(fv(lBody.velY))
+
+      ret.add([lBody.velX, velXTerm]).add([lBody.velY, velYTerm])
+
+      ret.add([lBody.body.x, fv(lBody.body.x).plus(fv(lBody.velX))])
+         .add([lBody.body.y, fv(lBody.body.y).plus(fv(lBody.velY))])
+
+       ret.add([lBody.velVec.x, fv(lBody.velVec.x).plus(fv(lBody.velX))])
+          .add([lBody.velVec.y, fv(lBody.velVec.y).plus(fv(lBody.velY))])
+
+    }
+    // console.log(ret.pp())
+
+    return ret
+  } // small-step physics engine decls
+  public generateInitials(): Integrator {
+    const ret = Integrator.empty()
+    for (const body of this.bodies) {
+      // foreach body, M <- density * r^2
+      const mExpr = fv(body.body.r).times(fv(body.body.r)).times(new ConstExpr(this.density))
+      ret.add([body.mass, mExpr])
+      // foreach body, vx <- vec.dx/scale, vy <- vec.dy/scale
+      ret.add([body.velX, fv(body.velVec.dx).div(new ConstExpr(this.velocityScale))])
+      ret.add([body.velY, fv(body.velVec.dy).div(new ConstExpr(this.velocityScale))])
+    }
+
+    for (const lBody of this.bodies) {
+      for (const rBody of this.bodies) {
+        // foreach pair l -> r s.t. l != r,
+        // add the term  FLR <- M_R/((l_x - r_x)^2 + (l_y - r_y)^2)
+        if (lBody === rBody) continue
+
+        const newForce = fv(rBody.mass).times(fv(this.gravConst))
+
+        const denom = fv(lBody.body.x).minus(fv(rBody.body.x)).square().plus(
+                      fv(lBody.body.y).minus(fv(rBody.body.y)).square()
+        )
+        ret.add([lBody.forces.get(rBody.body), newForce.div(denom)])
+
+        // add the term thetalr <- atan2(dy, dx)
+        const dy = fv(lBody.body.y).minus(fv(rBody.body.y))
+        const dx = fv(lBody.body.x).minus(fv(rBody.body.x))
+
+        ret.add([lBody.thetas.get(rBody.body), PhysExpr.InvokeMath(Math.atan2, [dy, dx])])
+      }
+    }
+    return ret
+  } // initialization of physics constants e.g. spring rest length
+  public frees(): Set<Variable> {
+    const ret = new Set<Variable>()
+    for (const body of this.bodies) {
+      ret.add(body.body.x).add(body.body.y)
+         .add(body.velVec.x).add(body.velVec.y)
+         .add(body.velX).add(body.velY)
+        //  .add(body.velVec.dx).add(body.velVec.dy) TODO
+
+      for (const [_, force] of body.forces)
+        ret.add(force)
+      for (const [_, angle] of body.thetas)
+        ret.add(angle)
+
+
+
+    }
+    for (let dragVar of this.dragVars)
+      ret.add(dragVar)
+    return ret
+  }
+  public addDrag(dp: DragPoint): void  {
+    this.dragVars.add(dp.x).add(dp.y)
   }
 }

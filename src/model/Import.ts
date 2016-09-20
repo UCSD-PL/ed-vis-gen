@@ -3,7 +3,7 @@ import {Model, State, Program, Store} from './Model'
 import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow, Image} from './Shapes'
 
-import {PhysicsGroup, Pendulum, SpringGroup} from './Physics'
+import {PhysicsGroup, Pendulum, SpringGroup, MassSystem} from './Physics'
 import {VType, Variable, CassVar} from './Variable'
 import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
 
@@ -82,8 +82,10 @@ type fabricTriangle = {
   // something something triangle
 } & fabricCommon
 
+
 export type fabricObject =
   fabricCircle | fabricRect | fabricImg | fabricLine | fabricDrag | fabricTriangle | fabricSpring | fabricArrow
+
 type fabricPhysicsCommon = {
   type: string
 }
@@ -93,8 +95,13 @@ type pendulumGroup = {
   bob: fabricCircle
 } & fabricPhysicsCommon
 
+type fabricMass = {
+  mass: fabricCircle,
+  velocity: fabricArrow
+} & fabricPhysicsCommon
 
-export type fabricPhysicsGroup = pendulumGroup
+
+export type fabricPhysicsGroup = pendulumGroup | fabricMass
 
 export type fabricJSONObj = {
   shapes: fabricObject[],
@@ -307,6 +314,72 @@ function buildPendulum(state: State, pivot: Shape, bob: Shape, rod: Shape): Pend
   return pend
 }
 
+function buildGravity(state: State, masses: Iterable<Tup<Circle, Arrow>>): MassSystem {
+  // plumb it real good nawh
+  let pBuilder = ([nme, v]: Tup<string, number>) => state.addVar(VType.Prim, nme, v)
+  let cBuilder = ([nme, v]: Tup<string, number>) => state.addVar(VType.Cass, nme, v)
+
+  let store = state.eval()
+
+  const [g, c] = map2Tup(
+    [['G', 0.98], ['C', 0.00]],
+    pBuilder
+  )
+
+  const density = Math.PI*0.05
+  const velocityScale = 50
+
+  const massMap = new Map<Circle, Variable>()
+
+  for (const [body] of masses) {
+    const mass = store.get(body.r)*store.get(body.r)*density
+    massMap.set(body, state.allocCassVar(mass, "Mass"))
+  }
+
+  store = state.eval()
+
+  const bodies = new Set<[Circle, Arrow, Variable, Variable, Variable, Map<Circle, Variable>, Map<Circle, Variable>]>()
+
+  for (const [src, vec] of masses) {
+
+    const velX = state.allocCassVar(store.get(vec.dx)/velocityScale, "velX")
+    const velY = state.allocCassVar(store.get(vec.dy)/velocityScale, "velY")
+
+    const forces = new Map<Circle, Variable>()
+    const angles = new Map<Circle, Variable>()
+
+    for (const [dst, otherVec] of masses) {
+      if (dst === src) continue
+      // FLR <- G*M_R/((l_x - r_x)^2 + (l_y - r_y)^2)
+      const massDst = store.get(massMap.get(dst))
+      const [sx, sy] = map2Tup([src.x, src.y], v => store.get(v))
+      const [dstX, dstY] = map2Tup([dst.x, dst.y], v => store.get(v))
+
+      const denom = Math.pow(sx - dstX, 2) + Math.pow(sy - dstY, 2)
+      const fLR = state.allocCassVar(-1*store.get(g)*massDst/denom, 'F')
+
+      forces.set(dst, fLR)
+      // theta <- atan2(dy, dx)
+
+      const [dx, dy] = [sx - dstX, sy - dstY]
+      const theta = state.allocCassVar(Math.atan2(dy, dx), "Theta")
+
+      console.log('force: ')
+      console.log(store.get(g)*massDst/denom)
+      console.log('theta: ')
+      console.log(Math.atan2(dy, dx))
+      console.log(store.get(g)*massDst/denom * Math.cos(Math.atan2(dy, dx)))
+      console.log(store.get(g)*massDst/denom * Math.sin(Math.atan2(dy, dx)))
+
+      angles.set(dst, theta)
+
+    }
+
+    bodies.add([src, vec, massMap.get(src), velX, velY, forces, angles])
+  }
+
+  return new MassSystem(g, c, density, velocityScale, bodies)
+}
 // given a json of shapes, build a model for the shapes
 export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
@@ -320,14 +393,32 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   let dragChoices: Map<string, number> = toMap((normObjs.filter(s => s.type == 'dragPoint') as fabricDrag[])
     .map(dp => [dp.name, dp.choice] as Tup<string, number>))
 
-  // finally, allocate variables and shapes for each input object
-  normObjs.map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+  // finally, allocate variables and shapes for each (normal) input object.
+  // handle physics objects later.
+  normObjs.filter(s => s.physics == 'none').map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
 
   // console.log(model.physicsGroups)
   let newPhysicsGroups = new Set<PhysicsGroup>()
-  // add in pendulum groups
+  // add in pendulum groups, gravity groups
+
+  const newMasses = new Set<Tup<Circle, Arrow>>()
+  model.physicsGroups.filter(grp => grp.type == 'gravity').forEach( grp => {
+    const newGrp = grp as fabricMass
+    const mass = newGrp.mass
+    // console.log(mass)
+    // console.log(mass.velocity)
+    const [[cname, circ], [vname, vec]] = map2Tup([normalizeFabricShape(newGrp.mass), normalizeFabricShape(newGrp.velocity)], (shape: fabricObject) => buildBackendShapes(retStore, shape))
+
+    retStore = retStore.addShape(cname, circ, false).addShape(vname, vec, false)
+
+    newMasses.add([circ as Circle, vec as Arrow])
+    // newPhysicsGroups.add(buildGravityGroup(retStore, circ, vec))
+  })
+
+  newPhysicsGroups.add(buildGravity(retStore, newMasses))
+
   // console.log(model.physicsGroups)
   model.physicsGroups.forEach( grp => {
     let newShapes: Tup<string, Shape>[]
@@ -340,8 +431,11 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
       )
       newShapes = [pivot, bob, rod]
       newGroup = buildPendulum(retStore, pivot[1], bob[1], rod[1])
+    } else if (grp.type == 'gravity') {
+      // do nothing
+      return
     } else {
-      console.log('unrecognized group tag:')
+      console.log('unrecognized group tag in import:')
       console.log(grp)
     }
 
@@ -416,11 +510,13 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   let drags = retStore.prog.allFrees//filter(retStore.prog.shapes, s => s instanceof DragPoint) as Iterable<DragPoint>
   let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
 
+  // add in springs
   retStore.prog.shapes.forEach(s => {
     if (s instanceof Spring) {
       newPhysicsGroups.add(buildSpringGroup(s, retStore))
     }
   });
+
 
   // retStore.debug()
   // console.log(newPhysicsGroups)
@@ -433,8 +529,8 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
       let e = find(retStore.store.equations, e =>
        (e.vars().has(dp.x) || e.vars().has(dp.y)) && intersect(e.vars(), grpVars).size > 0)
       if (e) {
-        // console.log('adding: ')
-        // console.log(dp)
+        console.log('adding: ')
+        console.log(dp)
         grp.addDrag(dp)
      }
     }

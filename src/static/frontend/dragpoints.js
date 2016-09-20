@@ -222,6 +222,8 @@
       this.canv = canvas;
       const follower = () => {
         this.updateDragPoint(shape, canvas);
+        // if (shape.get('type') === 'arrow')
+          // console.log('following arr');
         // console.log('firing follower');
       }
       shape.on("added", follower);

@@ -37,7 +37,7 @@
     <style>
       .carousel-control, .carousel-control.left, .carousel-control.right,
       .carousel-control:focus, .carousel-control:hover {
-        background-image: none !important; 
+        background-image: none !important;
         font-size: 30px;
         color: royalblue;
       }
@@ -159,6 +159,12 @@
                       <li onclick="addLine()">
                         <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Line</a>
                       </li>
+                      <li onclick="addImageFromURL()">
+                        <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Image</a>
+                      </li>
+                      <li onclick="addArrow()">
+                        <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Vector</a>
+                      </li>
                     </ul>
                 </div>
 
@@ -176,12 +182,12 @@
                 </div>
 
                 <!-- alignment -->
-                <input type="checkbox" id="toggle-snaps" 
+                <input type="checkbox" id="toggle-snaps"
                        data-toggle="toggle" data-style="eddie"
                        data-on="Alignment" data-off="Alignment">
 
                 <!--interactions-->
-                <input type="checkbox" id="toggle-drags" 
+                <input type="checkbox" id="toggle-drags"
                        data-toggle="toggle"
                        data-on="Interaction" data-off="Interaction">
               </div>
@@ -189,7 +195,7 @@
             <div id="draw">
               <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
             </div>
-          </div>          
+          </div>
         </div>
       </div>
       <div class="col-md-6">
@@ -200,11 +206,11 @@
           <div class="panel-body">
             <nav>
               <div class="rightbuttons">
-                <input type="checkbox" id="toggle-physics" 
-                       data-toggle="toggle" 
+                <input type="checkbox" id="toggle-physics"
+                       data-toggle="toggle"
                        data-on="<i class='fa fa-pause'></i>"
                        data-off="<i class='fa fa-play'></i>">
-                <button class="btn btn-primary" onclick="BACKEND.resetPhysics(); if (AppGlobals.PHYSICS_RUNNING) togglePhysics();" style="background-color:royalblue">Reset</button>
+                <button class="btn btn-primary" onclick="physicsReset();" style="background-color:royalblue">Reset</button>
               </div>
             </nav>
             <div id="simulate">
@@ -279,7 +285,7 @@
     <script src="../frontend/dragpoints.js"></script>
     <script src="../frontend/spring.js"></script>
     <script src="../frontend/snapping.js"></script>
-    <script src="../frontend/undo.js"></script> 
+    <script src="../frontend/undo.js"></script>
       <!-- backend script -->
     <script src="../lib.js"></script>
 

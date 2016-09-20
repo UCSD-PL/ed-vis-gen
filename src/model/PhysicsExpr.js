@@ -23,6 +23,12 @@ class PhysExpr {
         let name = f.name;
         return new FunAppExpr(name, args); // defer math check to runtime
     }
+    cos() {
+        return PhysExpr.InvokeMath(Math.cos, [this]);
+    }
+    sin() {
+        return PhysExpr.InvokeMath(Math.sin, [this]);
+    }
     square() {
         return PhysExpr.InvokeMath(Math.pow, [this, new ConstExpr(2)]);
     }
@@ -35,6 +41,7 @@ class ConstExpr extends PhysExpr {
         this.val = val;
     }
 }
+ConstExpr.zero = new ConstExpr(0);
 exports.ConstExpr = ConstExpr;
 // variables
 class VarExpr extends PhysExpr {

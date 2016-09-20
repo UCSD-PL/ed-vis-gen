@@ -3,7 +3,9 @@ function addShape(shape) {
   shape.set('name', name);
   canvas.add(shape);
   // object:added isn't firing, so we manually fire an object:modified event
-  canvas.fire('object:modified', {target: shape});
+  // canvas.fire('object:modified', {target: shape});
+  // shape.trigger('modified');
+  canvas.trigger('object:modified', {target: shape});
   updateModifications(true);
 }
 
@@ -54,7 +56,50 @@ function toggleSnap() {
 
 //Add mass
 function addMass(){
-  console.log('addMass not implemented!');
+  // console.log('addMass not implemented!');
+  var lineArrow = new fabric.Line([100,120,100,80], {stroke:'black', strokeWidth: 10, top: 120, left: 140, originX: 'center', originY: 'center'});
+  var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 70, left: 125});
+  var arrowGroup = new fabric.Group([triangleArrow, lineArrow], {type: 'arrow', selectable: false, physics: 'gravity'});
+  const velocity = arrowGroup;
+  // console.log(velocity.getLeft())
+  // console.log(velocity.getTop())
+
+  const mass = new fabric.Circle(
+    { radius: 40,
+      fill: 'orange',
+      top: 100, left: 100,
+      lockRotation: true,
+      strokeWidth:0,
+      lockUniScaling: true,
+      physics: 'gravity',
+      velocity: velocity
+    }
+  );
+
+  // mass.set('velocity', velocity)
+  // console.log(mass.velocity);
+
+  addShape(mass);
+  addShape(velocity);
+
+  const updater = () => {
+    // console.log(mass.getLeft())
+    // console.log(mass.getTop())
+    // console.log(mass.get('radius'))
+    const {x, y} = mass.getCenterPoint()
+    // const scaleY = velocity.get('scaleY')
+    velocity.setLeft(x - 15);
+    velocity.setTop(y - 70);
+    velocity.setCoords();
+    velocity.trigger('modified');
+    // canvas.fire('object:moving', {target: velocity});
+    // console.log(velocity.get('type'))
+    canvas.renderAll();
+    updateModifications(true);
+  }
+
+  mass.on('moving', updater)
+  mass.on('modified', updater);
 }
 
 //Add spring
@@ -143,7 +188,8 @@ function addPendulum(){
     canvas.add(rod);
     canvas.add(pivot);
     canvas.add(bob);
-    canvas.fire('object:modified', {target: bob});
+    // canvas.tr('object:modified', {target: bob});
+    bob.trigger('modified');
     updateModifications(true);
     canvas.renderAll();
 
@@ -175,6 +221,18 @@ function transfer() {
 
         else{
           pendulumObj['bob'] = obj;
+        }
+      } else if (obj.get('physics') === 'gravity') {
+        if (obj.get('type') === 'circle') {
+          let physGroup = {
+            type: 'gravity',
+            mass: obj,
+            velocity: obj.velocity
+          }
+
+          physicsGroup.push(physGroup)
+
+          // console.log(JSON.parse(JSON.stringify(obj)))
         }
       }
       else {
@@ -240,13 +298,14 @@ function deleteObjects(){
 }
 
 //Upload image
-function EnterURL(){
-  var URL = prompt("Please enter the URL of image");
-  if (URL != null){
-    fabric.Image.fromURL(URL, function(img){
-      canvas.add(img);
-      // TODO
-  });}}
+function addImageFromURL(){
+  const url = prompt("Please enter the URL of image");
+  if (url){ // TODO: validate
+    fabric.Image.fromURL(url, function(img){
+      addShape(img);
+    });
+  }
+}
 
 // allocator for names
 var allocSName = (function() {

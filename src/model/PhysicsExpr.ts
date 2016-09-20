@@ -26,6 +26,13 @@ export class PhysExpr {
     return new FunAppExpr(name, args) // defer math check to runtime
   }
 
+  public cos() {
+    return PhysExpr.InvokeMath(Math.cos, [this])
+  }
+  public sin() {
+    return PhysExpr.InvokeMath(Math.sin, [this])
+  }
+
   public square(): FunAppExpr {
     return PhysExpr.InvokeMath(Math.pow, [this, new ConstExpr(2)])
   }
@@ -33,6 +40,7 @@ export class PhysExpr {
 // constants
 export class ConstExpr extends PhysExpr {
   constructor(public val: number) {super()}
+  public static zero = new ConstExpr(0)
 }
 
 // variables

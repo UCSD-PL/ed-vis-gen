@@ -54,8 +54,8 @@ window.addEventListener('resize', resizePhysicsPanel, false);
 
 // resizes the "canvas" canvas according to the current dimensions of the browser window
 function resizeCanvas () {
- var theWidth = $('#draw').width(); 
- var theHeight = $('#draw').height(); 
+ var theWidth = $('#draw').width();
+ var theHeight = $('#draw').height();
  canvas.setWidth(theWidth);
  canvas.setHeight(theHeight);
  canvas.renderAll();
@@ -63,8 +63,8 @@ function resizeCanvas () {
 
 // resizes the "physics" canvas according to the current dimensions of the browser window
 function resizePhysicsPanel () {
- var theWidth = $('#simulate').width(); 
- var theHeight = $('#simulate').height(); 
+ var theWidth = $('#simulate').width();
+ var theHeight = $('#simulate').height();
  physics.setWidth(theWidth);
  physics.setHeight(theHeight);
  physics.renderAll();
@@ -224,10 +224,12 @@ function buildDragpointsByObj(receiver, addToCanvas) {
     case 'spring':
       dragLocs = arraySpring;
       break;
+    case 'gravity':
     case 'none':
       switch (receiver.get('type')) {
         case 'arrow':
           dragLocs = arrayArr;
+          console.log('adding to arrow')
           break;
         case 'rect':
         case 'image':
@@ -413,9 +415,10 @@ function translateParent(mover, movee) {
   parent.setTop(parent.get('top') + dy);
   parent.setCoords();
 
-  parent.fire('modified'); // moves drag points
-  canvas.fire('object:moving', {target: parent});
-  canvas.fire('object:modified', {target: parent}); // sends to backend
+  parent.trigger('modified'); // moves drag points
+  parent.trigger('moving');
+  // canvas.trigger('object:moving', {target: parent});
+  // canvas.trigger('object:modified', {target: parent}); // sends to backend
   // updateModifications(true);
   canvas.renderAll();
 }
@@ -896,6 +899,12 @@ canvas.on('mouse:down', opts => {
     }
   }
 });
+
+function physicsReset() {
+  BACKEND.resetPhysics();
+  if (AppGlobals.PHYSICS_RUNNING) togglePhysics();
+  BACKEND.drawToPhysics(fabricJSON, physics);
+}
 
 
 function startSession() {
