@@ -309,9 +309,12 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 export function TranslationPenalty([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
   let emp = new Set<Variable>()
   let makeVars = (s: Shape) => {
-    if (! (s instanceof Line)) {
+    if (! (s instanceof Line || s instanceof Spring)) {
       assert('x' in s && 'y' in s, 'expected x and y in shape: ' + s.toString())
       return new Set<Variable>().add((s as any).x).add((s as any).y)
+    } else if (s instanceof Spring) {
+      // springs should still compress
+      return new Set<Variable>().add(s.dx).add(s.dy)
     } else {
       return emp
     }

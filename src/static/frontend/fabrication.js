@@ -87,6 +87,11 @@ let AppGlobals = {
   PHYSICS_RUNNING: false
 }
 
+const BENCHDATA = {
+  views: 0,
+  maxModalities: 0
+}
+
 // snapping states enum
 const SnapStates = {
   OFF: 0,
@@ -229,7 +234,7 @@ function buildDragpointsByObj(receiver, addToCanvas) {
       switch (receiver.get('type')) {
         case 'arrow':
           dragLocs = arrayArr;
-          console.log('adding to arrow')
+          // console.log('adding to arrow')
           break;
         case 'rect':
         case 'image':
@@ -380,6 +385,8 @@ function addDragPoints(obj, addToCanvas) {
             open1();
             AppGlobals.PREVSTATE = AppGlobals.STATE;
             AppGlobals.STATE = AppStates.SIMDP;
+            // @BENCH
+            BENCHDATA.views++;
             onLoadSims(drag);
             break;
 
@@ -417,8 +424,8 @@ function translateParent(mover, movee) {
 
   parent.trigger('modified'); // moves drag points
   parent.trigger('moving');
-  // canvas.trigger('object:moving', {target: parent});
-  // canvas.trigger('object:modified', {target: parent}); // sends to backend
+  canvas.trigger('object:moving', {target: parent});
+  canvas.trigger('object:modified', {target: parent}); // sends to backend
   // updateModifications(true);
   canvas.renderAll();
 }
@@ -733,6 +740,8 @@ function onRight() {
   currentDragPoint.set({
     choice: currentSim
   });
+  // @BENCH
+  BENCHDATA.views++;
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
@@ -751,6 +760,8 @@ function onLeft() {
   currentDragPoint.set({
     choice: currentSim
   });
+  // @BENCH
+  BENCHDATA.views++;
   window.BACKEND.drawToEdit(currentDragPoint.get('name'), currentSim, sims);
   sims.renderAll();
 }
@@ -795,6 +806,10 @@ function onLoadSims(dragPoint) {
   formerChoice = currentDragPoint.get('choice');
 
   numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name")) - 1;
+  // @BENCH
+  if (numOfChoices+1 > BENCHDATA.maxModalities)
+    BENCHDATA.maxModalities = numOfChoices+1;
+
   generateSims(currentDragPoint);
 }
 

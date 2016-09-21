@@ -4,7 +4,8 @@
     "noImplicitAny": true,
     "rootDir": "src/",
     "target": "ES6",
-    "module": "commonjs"
+    "module": "commonjs",
+    "sourceMap": true
   },
   "filesGlob": [
     "src/**/*{.ts, .d.ts}",

@@ -401,7 +401,7 @@ export class MassSystem implements PhysicsGroup {
     const ret = new Set<Variable>()
     for (const body of this.bodies) {
       ret.add(body.body.x).add(body.body.y)
-         .add(body.velVec.x).add(body.velVec.y)
+         .add(body.velVec.x).add(body.velVec.y) // this should cover all dps...
          .add(body.velX).add(body.velY)
         //  .add(body.velVec.dx).add(body.velVec.dy) TODO
 

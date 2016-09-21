@@ -395,7 +395,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   // finally, allocate variables and shapes for each (normal) input object.
   // handle physics objects later.
-  normObjs.filter(s => s.physics == 'none').map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+  normObjs.filter(s => s.physics != 'gravity').map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
 
@@ -522,18 +522,26 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // console.log(newPhysicsGroups)
   let groupCntr = 0
   for (let grp of newPhysicsGroups) {
-    for (let [dp] of drags) {
-      let grpVars = grp.frees()
-      // console.log('dp: ' + pp(dp))
-      // console.log('group frees: ' + [... map(grpVars, v => v.name)].join(','))
-      let e = find(retStore.store.equations, e =>
-       (e.vars().has(dp.x) || e.vars().has(dp.y)) && intersect(e.vars(), grpVars).size > 0)
-      if (e) {
-        console.log('adding: ')
-        console.log(dp)
-        grp.addDrag(dp)
-     }
+
+    let grpVars = grp.frees()
+    let remainingPoints = new Set(drags.keys())
+    // console.log('group frees: ' + [... map(grpVars, v => v.name)].join(','))
+    let neededPoint = find(remainingPoints, dp => {
+      return exists(retStore.store.equations, e => {
+        return (e.vars().has(dp.x) || e.vars().has(dp.y) && intersect(e.vars(), grpVars).size > 0)
+      })
+    })
+
+    while (neededPoint) {
+      grp.addDrag(neededPoint)
+      remainingPoints.delete(neededPoint)
+      neededPoint = find(remainingPoints, dp => {
+        return exists(retStore.store.equations, e => {
+          return (e.vars().has(dp.x) || e.vars().has(dp.y) && intersect(e.vars(), grpVars).size > 0)
+        })
+      })
     }
+
     retStore.addPhysGroup(grp, renderer)
   }
 
