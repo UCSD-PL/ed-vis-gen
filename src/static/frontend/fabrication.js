@@ -92,6 +92,15 @@ const BENCHDATA = {
   maxModalities: 0
 }
 
+// undo/redo globals
+let undoList = []; // list of actions for undoing, of the form {action: Actions.field, args: json}
+let redoList = []; // same, but for redos
+const Actions = {
+  CreateObject: 0,
+  DeleteObject: 1,
+  ModifyObject: 2
+};
+
 // snapping states enum
 const SnapStates = {
   OFF: 0,
@@ -407,6 +416,20 @@ function addDragPoints(obj, addToCanvas) {
 
   candidateDragPoints.set(obj, newDragSet);
 }
+
+function translateShape(mover, dx, dy) {
+  mover.setLeft(mover.get('left') + dx);
+  mover.setTop(mover.get('top') + dy);
+  mover.setCoords();
+
+  mover.trigger('modified'); // moves drag points
+  mover.trigger('moving');
+  canvas.trigger('object:moving', {target: mover});
+  canvas.trigger('object:modified', {target: mover}); // sends to backend
+  // updateModifications(true);
+  canvas.renderAll();
+
+}
 // translate parent obj of mover to location specified by movee s.t. mover has
 // has the same coordinates as movee. mover and movee are instances of DragPoint.
 function translateParent(mover, movee) {
@@ -417,17 +440,9 @@ function translateParent(mover, movee) {
     [movee.get('left') - mover.get('left'), movee.get('top') - mover.get('top')];
   // console.log([dx, dy]);
   let parent = mover.get('shape');
-
-  parent.setLeft(parent.get('left') + dx);
-  parent.setTop(parent.get('top') + dy);
-  parent.setCoords();
-
-  parent.trigger('modified'); // moves drag points
-  parent.trigger('moving');
-  canvas.trigger('object:moving', {target: parent});
-  canvas.trigger('object:modified', {target: parent}); // sends to backend
-  // updateModifications(true);
-  canvas.renderAll();
+  startObjectModify(parent);
+  translateShape(parent, dx, dy);
+  finishObjectModify(parent);
 }
 
 function toggleDrags() {
@@ -878,11 +893,33 @@ function onOverlayClosed() {
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
 
+// mouse actions modify objects when the underlying active object is not a snap
+function shouldSaveActive() {
+  return canvas.getActiveObject() && canvas.getActiveObject().type != 'snap'
+}
+
+canvas.on('mouse:up', opts => {
+  if (shouldSaveActive()) finishObjectModify(canvas.getActiveObject())
+});
+
+document.addEventListener('keydown', opts => {
+
+  if (opts.key === 'Backspace') deleteObjects();
+})
 
 // manual hit detection...fun
 canvas.on('mouse:down', opts => {
   // console.log(opts);
   // console.log(canvas.getPointer(opts.e));
+
+  // log object modification for undo/redo
+  // let active = canvas.getActiveObject();
+  // if we've selected a DP, it's not a modification
+  if (shouldSaveActive()) {
+    // console.log(canvas.getActiveObject());
+    startObjectModify(canvas.getActiveObject());
+  }
+
   let clickLocation = canvas.getPointer(opts.e);
   let clickPoint = new fabric.Point(clickLocation.x, clickLocation.y);
   // console.log(clickPoint);

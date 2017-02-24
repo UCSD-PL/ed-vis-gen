@@ -1,6 +1,8 @@
 import {Variable} from './Variable'
 import {assert} from '../util/Util'
 
+export enum SType {Line, Arrow, Spring, Text, Circle, Image, Rect, Drag}
+
 export interface Shape {}
 export interface Drawable extends Shape {
   stroke: string

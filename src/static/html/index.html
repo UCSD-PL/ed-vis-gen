@@ -153,7 +153,7 @@
                       <li onclick="addRectangle()">
                         <a href="#"><span class="fa fa-fw fa-square" style="color: royalblue"></span> Rectangle</a>
                       </li>
-                      <li onclick="addCircle()">
+                      <li onclick="externalAdd('circle');">
                         <a href="#"><span class="fa fa-fw fa-circle" style="color: royalblue"></span> Circle</a>
                       </li>
                       <li onclick="addLine()">
@@ -190,7 +190,13 @@
                 <input type="checkbox" id="toggle-drags"
                        data-toggle="toggle"
                        data-on="Interaction" data-off="Interaction">
+
+                <button class="btn btn-primary" onclick="undoOnClick();">Undo</button>
+
+                <button class="btn btn-primary" onclick="redoOnClick();">Redo</button>
               </div>
+
+
             </nav>
             <div id="draw">
               <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>

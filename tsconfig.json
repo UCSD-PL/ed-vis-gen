@@ -39,6 +39,7 @@
     "src/model/Shapes.ts",
     "src/model/Simulation.ts",
     "src/model/Synthesis.ts",
+    "src/model/tracing/Actions.ts",
     "src/model/Variable.ts",
     "src/util/HTTP.ts",
     "src/util/Poset.ts",

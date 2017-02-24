@@ -7,41 +7,55 @@ function addShape(shape) {
   // shape.trigger('modified');
   canvas.trigger('object:modified', {target: shape});
   updateModifications(true);
+  return shape;
 }
 
-
+function externalAdd(type, shapeArgs) {
+  let added;
+  switch (type) {
+    case 'circle':
+      added = addCircle(shapeArgs);
+      break;
+    default:
+      console.log('unhandled type:');
+      console.log(type);
+  }
+  saveToHistory(added, Actions.CreateObject);
+}
 
 //Add line
-function addLine(){
+function addLine(shapeArgs){
  var line0 = new fabric.Line([50,100,50,300], {stroke:'royalblue', strokeWidth: 3, top:100, left:100});
- addShape(line0);
+ return addShape(line0);
 }
 
 //Add triangle
-function addTriangle(){
+function addTriangle(shapeArgs){
   var triangle0 = new fabric.Triangle({width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true, strokeWidth:0});
-  addShape(triangle0);
+  return addShape(triangle0);
 }
 
 //Add circle
-function addCircle(){
-  var circle0 = new fabric.Circle({radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0});
+function addCircle(shapeArgs){
+  console.log(shapeArgs);
+  shapeArgs = shapeArgs || {radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0};
+  var circle0 = new fabric.Circle(shapeArgs);
   circle0.lockUniScaling = true;
-  addShape(circle0);
+  return addShape(circle0);
 }
 
 //Add rectangle
-function addRectangle(){
+function addRectangle(shapeArgs){
   var rectangle0 = new fabric.Rect({width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, strokeWidth:0});
-  addShape(rectangle0);
+  return addShape(rectangle0);
 }
 
 //Add arrow
-function addArrow(){
+function addArrow(shapeArgs){
   var lineArrow = new fabric.Line([50,160,50,320], {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
   var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 60, left: 100});
   var arrowGroup = new fabric.Group([lineArrow, triangleArrow], {type: 'arrow'});
-  addShape(arrowGroup);
+  return addShape(arrowGroup);
 }
 
 // toggle snapping on and off
@@ -55,7 +69,7 @@ function toggleSnap() {
 }
 
 //Add mass
-function addMass(){
+function addMass(shapeArgs){
   // console.log('addMass not implemented!');
   var lineArrow = new fabric.Line([100,120,100,80], {stroke:'black', strokeWidth: 10, top: 120, left: 140, originX: 'center', originY: 'center'});
   var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 70, left: 125});
@@ -103,14 +117,14 @@ function addMass(){
 }
 
 //Add spring
-function addSpring(){
+function addSpring(shapeArgs){
   var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, 'physics':'spring'});
   spring.set('physicsGroup', [spring]);
-  addShape(spring);
+  return addShape(spring);
 }
 
 //Add pendulum
-function addPendulum(){
+function addPendulum(shapeArgs){
   //add rod
   var rodname = allocSName();
   var rod = new fabric.Line([50, 50, 50, 250], {
@@ -193,9 +207,46 @@ function addPendulum(){
     updateModifications(true);
     canvas.renderAll();
 
+    return bob;
+
 }
 
+function getCurrentArgs(wrappedObject) {
+  let obj = wrappedObject.obj;
+  let type = wrappedObject.type;
+  let ret = {obj: obj, type: type};
+  switch (type) {
+    case 'circle':
+      ret.radius = obj.get('radius');
+      ret.scaleX = obj.getScaleX();
+      ret.scaleY = obj.getScaleY();
+      ret.fill = obj.get('fill');
+      ret.top = obj.get('top');
+      ret.left = obj.get('left');
+      ret.lockRotation = obj.get('lockRotation');
+      ret.strokeWidth = obj.get('strokeWidth');
+      break;
+    default:
+      console.log('unhandled case:')
+      console.log(type);
+  }
 
+  return ret;
+}
+
+function saveToHistory(obj, action){
+  switch (obj.get('type')) {
+    case 'circle':
+
+        let args = getCurrentArgs({obj: obj, type: obj.get('type')});
+
+        undoList.push({act: action, args: args});
+      break;
+    default:
+      console.log('unhandled object:');
+      console.log(obj);
+  }
+}
 
 //Return two arrays, one for physics objects, one for other shapes
 function transfer() {
@@ -260,29 +311,36 @@ function transfer() {
     return JSON.parse(JSON.stringify(exported));
   }
 
+function deleteObject(obj) {
+  // canvas.remove(activeObject);
+
+  if (obj.get('physics') == 'none' ) {
+    // no dependencies
+    canvas.remove(obj)
+    candidateDragPoints.delete(obj);
+    SnapGlobals.POINTS.delete(obj);
+  } else {
+    obj.get('physicsGroup').forEach(o => {
+      canvas.remove(o);
+      candidateDragPoints.delete(o);
+      SnapGlobals.POINTS.delete(o);
+    });
+  }
+
+  updateModifications(true);
+  window.BACKEND.drawToPhysics(fabricJSON, physics);
+}
 
 //Deletion
 function deleteObjects(){
 	var activeObject = canvas.getActiveObject(), activeGroup = canvas.getActiveGroup();
   // console.log(activeGroup);
   //Delete active object. if the object is in a physics group, delete the other objects.
+  // save current object state onto undo list
 	if (activeObject) {
-    // canvas.remove(activeObject);
-    if (activeObject.get('physics') == 'none' ) {
-      // no dependencies
-      canvas.remove(activeObject)
-      candidateDragPoints.delete(activeObject);
-      SnapGlobals.POINTS.delete(activeObject);
-    } else {
-      activeObject.get('physicsGroup').forEach(o => {
-        canvas.remove(o);
-        candidateDragPoints.delete(o);
-        SnapGlobals.POINTS.delete(o);
-      });
-    }
+    saveToHistory(activeObject, Actions.DeleteObject);
+    deleteObject(activeObject);
 
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
   } else if (activeGroup) {
 		var objectsInGroup = activeGroup.getObjects();
 		canvas.discardActiveGroup();

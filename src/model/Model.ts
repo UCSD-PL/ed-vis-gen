@@ -207,7 +207,7 @@ export class Store {
         this.addCVar(ret as CassVar)
         break
       default:
-        console.log('adding unhandled variable type: ' + VType[typ])
+        // console.log('adding unhandled variable type: ' + VType[typ])
         assert(false, 'bad variable type for addvar')
         break
     }
