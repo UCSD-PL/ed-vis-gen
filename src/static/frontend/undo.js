@@ -43,7 +43,7 @@ function dumpUndoState(){
 
 
 function initUndoState(obj){
-  obj.__state = getCurrentArgs({obj: obj, type: obj.get('type')});
+  obj.__state = getCurrentState({obj: obj, type: obj.get('type')});
 }
 
 let initialObjState = {};
@@ -51,7 +51,7 @@ function startObjectModify(obj) {
   // console.log(obj.top);
   dumpUndoState();
   redoList = [];
-  initialObjState = getCurrentArgs({obj: obj, type: obj.get('type')});
+  initialObjState = getCurrentState({obj: obj, type: obj.get('type')});
   // console.log(obj.top);
   // console.log(obj.get('top'));
   // console.log(initialObjState.top);
@@ -59,13 +59,15 @@ function startObjectModify(obj) {
 }
 
 function finishObjectModify(obj) {
-  let finalObjState = getCurrentArgs({obj: obj, type: obj.get('type')});
+  let finalObjState = getCurrentState({obj: obj, type: obj.get('type')});
   // initUndoState(obj);
   // console.log(initialObjState);
   undoList.push({act: Actions.ModifyObject, args: {before: initialObjState, after: finalObjState}});
   checkUndoRedo();
 }
 
+// TODO: arrow UNDOs result in incorrect triangle height/width
+// (both regular, and delete UNDO)
 function performModify(wrappedFromObj, wrappedToObj) {
   // console.log('toObject:');
   // console.log(wrappedToObj);
@@ -118,7 +120,7 @@ function performUndo(fromList, toList) {
   switch (act) {
     case Actions.CreateObject:
         // perform a delete
-        inverseArgs = getCurrentArgs(args);
+        inverseArgs = args;
         deleteObject(args.obj);
       break;
     case Actions.DeleteObject:

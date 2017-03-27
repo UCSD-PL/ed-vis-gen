@@ -1,3 +1,23 @@
+// utilities
+
+// given a list of fields and two objects, copy the fields in the list from the
+// RHS object to the LHS object
+// e.g. l = {foo: 1, bar: 3}, r = {foo: 2, baz: 4}
+// pluckFields(l, r, ['foo', 'baz'])
+// l = {foo: 2, bar: 3, baz: 4}
+function pluckFields(l, r, fields) {
+  for (let field of fields) {
+    l[field] = r[field];
+  }
+}
+
+// given a list of fields and an obj, copy the fields specified by the list
+function cloneFields(obj, fields){
+  let ret = {}
+  pluckFields(ret, obj, fields);
+  return ret;
+}
+
 function addShape(shape) {
   var name = allocSName();
   shape.set('name', name);
@@ -34,13 +54,12 @@ function internalAdd(type, shapeArgs) {
   }
 
   let ret = adder(shapeArgs);
-  initUndoState(ret);
 
   return ret;
 }
 
 function externalAdd(type, shapeArgs) {
-  saveToHistory(internalAdd(type, shapeArgs), Actions.CreateObject);
+  saveToHistory(internalAdd(type, shapeArgs), Actions.CreateObject, shapeArgs);
 }
 
 //Add line
@@ -63,9 +82,8 @@ function addTriangle(shapeArgs){
 
 //Add circle
 function addCircle(shapeArgs){
-  shapeArgs = shapeArgs || {radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0};
+  shapeArgs = shapeArgs || {radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0, lockUniScaling: true};
   var circle0 = new fabric.Circle(shapeArgs);
-  circle0.lockUniScaling = true;
   return addShape(circle0);
 }
 
@@ -84,7 +102,7 @@ function addArrow(shapeArgs){
       args: {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'}
     },
     triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100},
-    arrArgs: {type: 'arrow'}
+    arrArgs: {type: 'arrow', centeredRotation: false}
   }
   let {lneArgs, triArgs, arrArgs} = shapeArgs
   let {points, args} = lneArgs
@@ -247,28 +265,59 @@ function addPendulum(shapeArgs){
 
 }
 
-function getBasicState(lhs, rhs) {
-  // let dimensions = rhs.getBoundingRect(); // still broken for lines....???
+
+function makeArrowArgs(arr) {
+  let json = arr.toJSON();
+  let [triSON, liSON] = json.objects;
+  if (triSON.type == 'line') {
+    let tmp = triSON;
+    triSON = liSON;
+    liSON = tmp;
+  }
+
+  let lneArgs = {
+    points: [liSON.x1, liSON.y1, liSON.x2, liSON.y2],
+    args: cloneFields(liSON, ['stroke', 'strokeWidth', 'top', 'left', 'originX', 'originY'])
+  }
+  let triArgs = cloneFields(triSON, ['width', 'height', 'fill', 'top', 'left']);
+  let arrArgs = cloneFields(json, ['type', 'centeredRotation', 'angle', 'scaleX', 'scaleY', 'top', 'left']);
+
+  return { lneArgs: lneArgs, triArgs: triArgs, arrArgs: arrArgs };
+}
+
+function makeShapeArgs(shape) {
+  let ret;
+  switch(shape.type) {
+    case 'arrow':
+      ret = makeArrowArgs(shape);
+      break;
+    case 'circle':
+    case 'line':
+    case 'rect':
+    case 'triangle':
+      ret = getCurrentState({obj: shape, type: shape.get('type')});
+      break;
+    default:
+      console.log('unimplemented:');
+      console.log(shape.type);
+      ret = {}
+  }
+  ret.type = shape.type;
+  return ret;
+}
+
+function getCommonState(lhs, rhs) {
   let properties = ['scaleX','scaleY','fill','stroke','top','left','lockRotation','strokeWidth','angle']
   for (let prop of properties){
     lhs[prop] = rhs.get(prop);
   }
-  // lhs.scaleX = rhs.getScaleX();
-  // lhs.scaleY = rhs.getScaleY();
-  // lhs.fill = rhs.get('fill');
-  // lhs.stroke = rhs.get('stroke');
-  // lhs.top = dimensions.top;
-  // lhs.left = dimensions.left;
-  // lhs.lockRotation = rhs.get('lockRotation');
-  // lhs.strokeWidth = rhs.get('strokeWidth');
-  // lhs.angle = rhs.get('angle');
 }
 
-function getCurrentArgs(wrappedObject) {
+function getCurrentState(wrappedObject) {
   let obj = wrappedObject.obj;
   let type = wrappedObject.type;
   let ret = {obj: obj, type: type};
-  getBasicState(ret, obj);
+  getCommonState(ret, obj);
   switch (type) {
     case 'circle':
       ret.radius = obj.get('radius');
@@ -286,29 +335,8 @@ function getCurrentArgs(wrappedObject) {
       ret.y2 = obj.get('y2');
       break;
     case 'arrow':
-      let arrObjs = obj.getObjects();
-      let lneArgs = {};
-      let triArgs = {};
-      let arrArgs = {type: 'arrow'};
-      for (let arrObject of obj.getObjects()) {
-        switch (arrObject.type) {
-          case 'line':
-            // TODO:
-            // get the points out, and get the
-            // let
-            break;
-          default:
-
-        }
-      }
-    // {
-    //   lneArgs: {
-    //     points: [50,160,50,320],
-    //     args: {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'}
-    //   },
-    //   triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100},
-    //   arrArgs: {type: 'arrow'}
-    // }
+      // it turns out we're actually gucci
+      break;
     default:
       console.log('unhandled case:')
       console.log(type);
@@ -324,24 +352,10 @@ function checkUndoRedo() {
   redoBtn.disabled = redoList.length == 0;
 }
 
-function saveToHistory(obj, action){
-  // console.log(obj);
-  switch (obj.get('type')) {
-    case 'circle':
-    case 'rect':
-    case 'triangle':
-    case 'line':
-    case 'arrow':
+function saveToHistory(obj, action, args){
 
-        let args = getCurrentArgs({obj: obj, type: obj.get('type')});
-
-        undoList.push({act: action, args: args});
-        redoList = [];
-      break;
-    default:
-      console.log('unhandled object:');
-      console.log(obj);
-  }
+  undoList.push({act: action, args: args});
+  redoList = [];
 
   checkUndoRedo();
 }
@@ -436,7 +450,9 @@ function deleteObjects(){
   //Delete active object. if the object is in a physics group, delete the other objects.
   // save current object state onto undo list
 	if (activeObject) {
-    saveToHistory(activeObject, Actions.DeleteObject);
+    saveToHistory(activeObject, Actions.DeleteObject, makeShapeArgs(activeObject));
+    console.log('pushed to history:');
+    console.log(makeShapeArgs(activeObject));
     deleteObject(activeObject);
 
   } else if (activeGroup) {
