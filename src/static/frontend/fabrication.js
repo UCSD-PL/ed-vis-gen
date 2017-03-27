@@ -895,6 +895,7 @@ function onOverlayClosed() {
 
 // mouse actions modify objects when the underlying active object is not a snap
 function shouldSaveActive() {
+  // console.log(canvas.getActiveObject());
   return canvas.getActiveObject() && canvas.getActiveObject().type != 'snap'
 }
 

@@ -150,19 +150,19 @@
                   <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" style="background-color:royalblue">
                     Shapes <span class="caret"></span></button>
                   <ul class="dropdown-menu" role="menu">
-                      <li onclick="addRectangle()">
+                      <li onclick="externalAdd('rect')">
                         <a href="#"><span class="fa fa-fw fa-square" style="color: royalblue"></span> Rectangle</a>
                       </li>
                       <li onclick="externalAdd('circle');">
                         <a href="#"><span class="fa fa-fw fa-circle" style="color: royalblue"></span> Circle</a>
                       </li>
-                      <li onclick="addLine()">
+                      <li onclick="externalAdd('line')">
                         <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Line</a>
                       </li>
                       <li onclick="addImageFromURL()">
                         <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Image</a>
                       </li>
-                      <li onclick="addArrow()">
+                      <li onclick="externalAdd('arrow')">
                         <a href="#"><span class="fa fa-fw fa-minus" style="color: royalblue"></span> Vector</a>
                       </li>
                     </ul>
@@ -191,9 +191,9 @@
                        data-toggle="toggle"
                        data-on="Interaction" data-off="Interaction">
 
-                <button class="btn btn-primary" onclick="undoOnClick();">Undo</button>
+                <button id='undoButton' class="btn btn-primary" onclick="undoOnClick();" disabled>Undo</button>
 
-                <button class="btn btn-primary" onclick="redoOnClick();">Redo</button>
+                <button id='redoButton' class="btn btn-primary" onclick="redoOnClick();" disabled>Redo</button>
               </div>
 
 

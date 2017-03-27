@@ -27,26 +27,80 @@ function invert(actionTag) {
   return invertAct;
 }
 
+function dumpUndoState(){
+  console.log('undo list:');
+  console.log(undoList);
+  console.log('redo list:');
+  console.log(redoList);
+  console.log('initial obj:');
+  console.log(initialObjState);
+}
 
+// invariant -- every object puts its current serialization into a __state field
+// after modifications.
+
+// needs to be in: CREATE, MODIFY
+
+
+function initUndoState(obj){
+  obj.__state = getCurrentArgs({obj: obj, type: obj.get('type')});
+}
 
 let initialObjState = {};
 function startObjectModify(obj) {
+  // console.log(obj.top);
+  dumpUndoState();
+  redoList = [];
   initialObjState = getCurrentArgs({obj: obj, type: obj.get('type')});
+  // console.log(obj.top);
+  // console.log(obj.get('top'));
+  // console.log(initialObjState.top);
+  // console.log(obj.getBoundingRect());
 }
 
 function finishObjectModify(obj) {
   let finalObjState = getCurrentArgs({obj: obj, type: obj.get('type')});
+  // initUndoState(obj);
+  // console.log(initialObjState);
   undoList.push({act: Actions.ModifyObject, args: {before: initialObjState, after: finalObjState}});
+  checkUndoRedo();
 }
 
 function performModify(wrappedFromObj, wrappedToObj) {
+  // console.log('toObject:');
+  // console.log(wrappedToObj);
+
   let mover = wrappedFromObj.obj
+  if (wrappedFromObj.type == "line") {
+    // console.log(wrappedToObj.obj.getBoundingRect().left);
+    // console.log(wrappedToObj.left);
+    // console.log(wrappedToObj.obj.getBoundingRect().top);
+    // console.log(wrappedToObj.top);
+  }
+
+  let restrictedKeys = {x1:0, x2:0, y1:0, y2:0}
   for (let prop in wrappedToObj) {
-    if (mover.get(prop)) mover.set(prop, wrappedToObj[prop]);
+    // if (mover.get(prop))
+    // console.log('setting:')
+    // console.log(prop);
+    if (!(prop in restrictedKeys))
+      mover.set(prop, wrappedToObj[prop]);
+    // console.log('left:');
+    // console.log(mover.left);
   }
 
 
+
+  // mover.set('left', wrappedToObj.left);
+  // mover.set('top', wrappedToObj.top);
+  // console.log('reference:');
+  // console.log(wrappedToObj.left);
+  // console.log(wrappedToObj.top);
+  //
+  // console.log('mover:');
+  // console.log(mover.top);
   mover.setCoords();
+  // console.log(mover.top);
 
   mover.trigger('modified'); // moves drag points
   mover.trigger('moving');
@@ -69,26 +123,16 @@ function performUndo(fromList, toList) {
       break;
     case Actions.DeleteObject:
         // perform a create
-        let newArgs;
-        switch (args.type) {
-          case 'circle':
-            newArgs = {
-              radius: args.radius,
-              fill: args.fill,
-              top: args.top,
-              left: args.left,
-              lockRotation: args.lockRotation,
-              strokeWidth: args.strokeWidth
-            };
-            let newObj = addCircle(newArgs);
-            newArgs.obj = newObj;
-            newArgs.type = newObj.get('type');
+        let newArgs = Object.assign({}, args); // copy the args
+        newArgs.obj = internalAdd(args.type, newArgs);
 
-            break;
-          default:
-            console.log('unhandled type:');
-            console.log(args.type);
-        }
+        // switch (args.type) {
+        //   case 'circle':
+        //     break;
+        //   default:
+        //     console.log('unhandled type:');
+        //     console.log(args.type);
+        // }
 
         inverseArgs = newArgs;
         // deleteObject(args.obj);
@@ -106,6 +150,9 @@ function performUndo(fromList, toList) {
   }
 
   toList.push({act: invert(toReverse.act), args: inverseArgs});
+
+  checkUndoRedo();
+  dumpUndoState();
 }
 
 function redoOnClick() {

@@ -10,34 +10,59 @@ function addShape(shape) {
   return shape;
 }
 
-function externalAdd(type, shapeArgs) {
-  let added;
+function internalAdd(type, shapeArgs) {
+  let adder;
   switch (type) {
     case 'circle':
-      added = addCircle(shapeArgs);
+      adder = addCircle;
+      break;
+    case 'rect':
+      adder = addRectangle;
+      break;
+    case 'triangle':
+      adder = addTriangle;
+      break;
+    case 'line':
+      adder = addLine;
+      break;
+    case 'arrow':
+      adder = addArrow;
       break;
     default:
       console.log('unhandled type:');
       console.log(type);
   }
-  saveToHistory(added, Actions.CreateObject);
+
+  let ret = adder(shapeArgs);
+  initUndoState(ret);
+
+  return ret;
+}
+
+function externalAdd(type, shapeArgs) {
+  saveToHistory(internalAdd(type, shapeArgs), Actions.CreateObject);
 }
 
 //Add line
-function addLine(shapeArgs){
- var line0 = new fabric.Line([50,100,50,300], {stroke:'royalblue', strokeWidth: 3, top:100, left:100});
- return addShape(line0);
+function addLine(opts){
+  opts = opts || {x1: 50, y1: 100, x2: 50, y2: 300, angle:0, stroke: 'royalblue', strokeWidth: 3, top:100, left: 100, centeredRotation: false};
+  // console.log(opts);
+  let points = [opts.x1, opts.y1, opts.x2, opts.y2];
+  let line0 = new fabric.Line(points, opts);
+  //console.log(line0);
+  // console.log(line0);
+  return addShape(line0);
 }
 
 //Add triangle
 function addTriangle(shapeArgs){
-  var triangle0 = new fabric.Triangle({width: 30, height: 30, fill:'cornflowerblue', top:100, left:100, lockRotation: true, strokeWidth:0});
+  shapeArgs = shapeArgs || {height: 30, width:30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0};
+  let triangle0 = new fabric.Triangle(shapeArgs);
   return addShape(triangle0);
 }
 
 //Add circle
 function addCircle(shapeArgs){
-  console.log(shapeArgs);
   shapeArgs = shapeArgs || {radius: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0};
   var circle0 = new fabric.Circle(shapeArgs);
   circle0.lockUniScaling = true;
@@ -46,15 +71,26 @@ function addCircle(shapeArgs){
 
 //Add rectangle
 function addRectangle(shapeArgs){
-  var rectangle0 = new fabric.Rect({width: 30, height:30, fill:'royalblue', top: 100, left:100, lockRotation: true, strokeWidth:0});
+  shapeArgs = shapeArgs || {width: 30, height: 30, fill: 'royalblue', top: 100, left: 100, lockRotation: true, strokeWidth:0};
+  var rectangle0 = new fabric.Rect(shapeArgs);
   return addShape(rectangle0);
 }
 
 //Add arrow
 function addArrow(shapeArgs){
-  var lineArrow = new fabric.Line([50,160,50,320], {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'});
-  var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 60, left: 100});
-  var arrowGroup = new fabric.Group([lineArrow, triangleArrow], {type: 'arrow'});
+  shapeArgs = shapeArgs || {
+    lneArgs: {
+      points: [50,160,50,320],
+      args: {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'}
+    },
+    triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100},
+    arrArgs: {type: 'arrow'}
+  }
+  let {lneArgs, triArgs, arrArgs} = shapeArgs
+  let {points, args} = lneArgs
+  var lineArrow = new fabric.Line(points, args);
+  var triangleArrow = new fabric.Triangle(triArgs);
+  var arrowGroup = new fabric.Group([lineArrow, triangleArrow], arrArgs);
   return addShape(arrowGroup);
 }
 
@@ -211,21 +247,68 @@ function addPendulum(shapeArgs){
 
 }
 
+function getBasicState(lhs, rhs) {
+  // let dimensions = rhs.getBoundingRect(); // still broken for lines....???
+  let properties = ['scaleX','scaleY','fill','stroke','top','left','lockRotation','strokeWidth','angle']
+  for (let prop of properties){
+    lhs[prop] = rhs.get(prop);
+  }
+  // lhs.scaleX = rhs.getScaleX();
+  // lhs.scaleY = rhs.getScaleY();
+  // lhs.fill = rhs.get('fill');
+  // lhs.stroke = rhs.get('stroke');
+  // lhs.top = dimensions.top;
+  // lhs.left = dimensions.left;
+  // lhs.lockRotation = rhs.get('lockRotation');
+  // lhs.strokeWidth = rhs.get('strokeWidth');
+  // lhs.angle = rhs.get('angle');
+}
+
 function getCurrentArgs(wrappedObject) {
   let obj = wrappedObject.obj;
   let type = wrappedObject.type;
   let ret = {obj: obj, type: type};
+  getBasicState(ret, obj);
   switch (type) {
     case 'circle':
       ret.radius = obj.get('radius');
-      ret.scaleX = obj.getScaleX();
-      ret.scaleY = obj.getScaleY();
-      ret.fill = obj.get('fill');
-      ret.top = obj.get('top');
-      ret.left = obj.get('left');
-      ret.lockRotation = obj.get('lockRotation');
-      ret.strokeWidth = obj.get('strokeWidth');
       break;
+    case 'rect':
+    case 'triangle':
+      ret.height = obj.get('height');
+      ret.width = obj.get('height');
+      break;
+    case 'line':
+      // assumes lines are 4 points
+      ret.x1 = obj.get('x1');
+      ret.x2 = obj.get('x2');
+      ret.y1 = obj.get('y1');
+      ret.y2 = obj.get('y2');
+      break;
+    case 'arrow':
+      let arrObjs = obj.getObjects();
+      let lneArgs = {};
+      let triArgs = {};
+      let arrArgs = {type: 'arrow'};
+      for (let arrObject of obj.getObjects()) {
+        switch (arrObject.type) {
+          case 'line':
+            // TODO:
+            // get the points out, and get the
+            // let
+            break;
+          default:
+
+        }
+      }
+    // {
+    //   lneArgs: {
+    //     points: [50,160,50,320],
+    //     args: {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'}
+    //   },
+    //   triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100},
+    //   arrArgs: {type: 'arrow'}
+    // }
     default:
       console.log('unhandled case:')
       console.log(type);
@@ -234,18 +317,33 @@ function getCurrentArgs(wrappedObject) {
   return ret;
 }
 
+function checkUndoRedo() {
+  let undoBtn = document.getElementById('undoButton');
+  let redoBtn = document.getElementById('redoButton');
+  undoBtn.disabled = undoList.length == 0;
+  redoBtn.disabled = redoList.length == 0;
+}
+
 function saveToHistory(obj, action){
+  // console.log(obj);
   switch (obj.get('type')) {
     case 'circle':
+    case 'rect':
+    case 'triangle':
+    case 'line':
+    case 'arrow':
 
         let args = getCurrentArgs({obj: obj, type: obj.get('type')});
 
         undoList.push({act: action, args: args});
+        redoList = [];
       break;
     default:
       console.log('unhandled object:');
       console.log(obj);
   }
+
+  checkUndoRedo();
 }
 
 //Return two arrays, one for physics objects, one for other shapes
