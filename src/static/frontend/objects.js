@@ -18,6 +18,25 @@ function cloneFields(obj, fields){
   return ret;
 }
 
+// super simple diff -- compare two objects and when their fields differ, return a diff entry.
+// equality is shallow -- different objects that have the same structure, will be reported in diff.
+function diff(l, r) {
+  let ret = {};
+  for (let k in l){
+    if (l[k] != r[k]) {
+      ret[k] = {l: l[k], r: r[k]};
+    }
+  }
+
+  for (let k in r){
+    if (l[k] != r[k]) {
+      ret[k] = {l: l[k], r: r[k]};
+    }
+  }
+
+  return ret;
+}
+
 function addShape(shape) {
   var name = allocSName();
   shape.set('name', name);
@@ -101,7 +120,7 @@ function addArrow(shapeArgs){
       points: [50,160,50,320],
       args: {stroke:'black', strokeWidth: 10, top: 160, left: 115, originX: 'center', originY: 'center'}
     },
-    triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100},
+    triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100, strokeWidth: 1},
     arrArgs: {type: 'arrow', centeredRotation: false}
   }
   let {lneArgs, triArgs, arrArgs} = shapeArgs
@@ -279,7 +298,7 @@ function makeArrowArgs(arr) {
     points: [liSON.x1, liSON.y1, liSON.x2, liSON.y2],
     args: cloneFields(liSON, ['stroke', 'strokeWidth', 'top', 'left', 'originX', 'originY'])
   }
-  let triArgs = cloneFields(triSON, ['width', 'height', 'fill', 'top', 'left']);
+  let triArgs = cloneFields(triSON, ['width', 'height', 'fill', 'top', 'left', 'stroke', 'strokeWidth']);
   let arrArgs = cloneFields(json, ['type', 'centeredRotation', 'angle', 'scaleX', 'scaleY', 'top', 'left']);
 
   return { lneArgs: lneArgs, triArgs: triArgs, arrArgs: arrArgs };
@@ -336,6 +355,7 @@ function getCurrentState(wrappedObject) {
       break;
     case 'arrow':
       // it turns out we're actually gucci
+      delete ret.strokeWidth; /// ZZZZ
       break;
     default:
       console.log('unhandled case:')
