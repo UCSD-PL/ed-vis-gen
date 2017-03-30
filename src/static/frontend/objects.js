@@ -67,6 +67,12 @@ function internalAdd(type, shapeArgs) {
     case 'arrow':
       adder = addArrow;
       break;
+    case 'spring':
+      adder = addSpring;
+      break;
+    case 'pendulum':
+      adder = addPendulum;
+      break;
     default:
       console.log('unhandled type:');
       console.log(type);
@@ -191,7 +197,8 @@ function addMass(shapeArgs){
 
 //Add spring
 function addSpring(shapeArgs){
-  var spring = new fabric.Spring({ dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, 'physics':'spring'});
+  shapeArgs = shapeArgs || { dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, physics:'spring', centeredRotation: false};
+  let spring = new fabric.Spring(shapeArgs);
   spring.set('physicsGroup', [spring]);
   return addShape(spring);
 }
@@ -199,8 +206,10 @@ function addSpring(shapeArgs){
 //Add pendulum
 function addPendulum(shapeArgs){
   //add rod
+  shapeArgs = shapeArgs || {x1: 50, y1: 50, x2: 50, y2: 250};
+  let {x1, y1, x2, y2} = shapeArgs;
   var rodname = allocSName();
-  var rod = new fabric.Line([50, 50, 50, 250], {
+  var rod = new fabric.Line([x1, y1, x2, y2], {
     name: rodname,
     stroke:'black',
     strokeWidth: 2,
@@ -222,8 +231,8 @@ function addPendulum(shapeArgs){
     name: pivotname,
     radius: 4,
     fill: 'dodgerblue',
-    left: 47,
-    top: 42,
+    left: x1-2,
+    top: y1-8,
     hasControls: false,
     hasBorders: false,
     physics:'pendulum',
@@ -235,8 +244,8 @@ function addPendulum(shapeArgs){
     name: bobname,
     radius: 30,
     fill: 'dodgerblue',
-    left: 21,
-    top: 250,
+    left: x2 - 29,
+    top: y2,
     hasControls: false,
     hasBorders: false,
     physics:'pendulum',
@@ -252,6 +261,8 @@ function addPendulum(shapeArgs){
 
 
   //Attach pendulum pivot and bob
+  // TODO: delete needs to clear these event listeners, which requires factoring
+  // function out into static func. not sure how to do that.
   canvas.on('object:moving', function (options) {
 
     var p = options.target;
@@ -304,24 +315,50 @@ function makeArrowArgs(arr) {
   return { lneArgs: lneArgs, triArgs: triArgs, arrArgs: arrArgs };
 }
 
+function makeSpringArgs(spring){
+  let sprJSON = spring.toJSON();
+  let args = cloneFields(sprJSON, ['stroke', 'dx', 'width', 'height', 'left', 'top', 'angle', 'physics', 'scaleX', 'scaleY']);
+  // { dx:0, width: 30, height: 200, stroke:'black', top:250, left:100, angle:180, physics:'spring'}
+  return args;
+}
+
+function makePendulumArgs(pend) {
+  let [rod, pivot, bob] = pend.physicsGroup;
+  return {x1: pivot.getCenterPoint().x, x2: bob.getCenterPoint().x, y1: pivot.getCenterPoint().y, y2: bob.getCenterPoint().y};
+}
+
+
 function makeShapeArgs(shape) {
   let ret;
-  switch(shape.type) {
-    case 'arrow':
+  if (shape.physics == 'none' || shape.physics == 'spring') {
+    switch(shape.type) {
+      case 'arrow':
       ret = makeArrowArgs(shape);
       break;
-    case 'circle':
-    case 'line':
-    case 'rect':
-    case 'triangle':
+      case 'circle':
+      case 'line':
+      case 'rect':
+      case 'triangle':
       ret = getCurrentState({obj: shape, type: shape.get('type')});
       break;
-    default:
+      case 'spring':
+      ret = makeSpringArgs(shape);
+      break;
+      default:
       console.log('unimplemented:');
       console.log(shape.type);
       ret = {}
+    }
+  } else if (shape.physics == 'pendulum') {
+    ret = makePendulumArgs(shape);
+  } else if (shape.physics == 'mass') {
+    // TODO
+  } else {
+    console.log('unhandled phyiscs:');
+    console.log(shape);
   }
   ret.type = shape.type;
+  ret.physics = shape.physics;
   return ret;
 }
 
@@ -354,7 +391,8 @@ function getCurrentState(wrappedObject) {
       ret.y2 = obj.get('y2');
       break;
     case 'arrow':
-      // it turns out we're actually gucci
+      // setting the strokeWidth of the group also modifies the strokewidth
+      // of the triangle arrowhead, which is not desired.
       delete ret.strokeWidth; /// ZZZZ
       break;
     default:

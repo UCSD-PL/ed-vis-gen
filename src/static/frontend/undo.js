@@ -66,8 +66,7 @@ function finishObjectModify(obj) {
   checkUndoRedo();
 }
 
-// TODO: arrow UNDOs result in incorrect triangle height/width
-// (both regular, and delete UNDO)
+// TODO: delete screws with undo history, e.g. translate -> delete -> undo -> undo
 function performModify(wrappedFromObj, wrappedToObj) {
   // console.log('toObject:');
   // console.log(wrappedToObj);
@@ -126,7 +125,26 @@ function performUndo(fromList, toList) {
     case Actions.DeleteObject:
         // perform a create
         let newArgs = Object.assign({}, args); // copy the args
-        newArgs.obj = internalAdd(args.type, newArgs);
+        let constructorTag;
+        switch (args.physics) {
+          case "spring": // type, physics == spring for springs
+            if (args.type != "spring") {
+              console.log('spring physics without spring type:')
+              console.log(args);
+            }
+            // fall through
+          case "none":
+            constructorTag = args.type;
+            break;
+          case "pendulum":
+          case "mass":
+            constructorTag = args.physics;
+            break;
+          default:
+            console.log('unhandled physics tag:');
+            console.log(args);
+          }
+        newArgs.obj = internalAdd(constructorTag, newArgs);
 
         // switch (args.type) {
         //   case 'circle':

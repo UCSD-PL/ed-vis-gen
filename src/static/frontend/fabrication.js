@@ -228,6 +228,9 @@ function buildDragpointsByObj(receiver, addToCanvas) {
         case 'pivot':
           dragLocs = arrayPiv;
           break;
+        case 'rod':
+          dragLocs = arrayRod;
+          break;
         default:
           console.log('unhandled object in dragpoint builder:');
           console.log(receiver);
