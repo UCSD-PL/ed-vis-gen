@@ -49,7 +49,7 @@ function initUndoState(obj){
 let initialObjState = {};
 function startObjectModify(obj) {
   // console.log(obj.top);
-  dumpUndoState();
+  // dumpUndoState();
   redoList = [];
   initialObjState = getCurrentState({obj: obj, type: obj.get('type')});
   // console.log(obj.top);
@@ -172,7 +172,7 @@ function performUndo(fromList, toList) {
   toList.push({act: invert(toReverse.act), args: inverseArgs});
 
   checkUndoRedo();
-  dumpUndoState();
+  // dumpUndoState();
 }
 
 function redoOnClick() {

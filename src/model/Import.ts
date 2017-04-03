@@ -395,7 +395,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
   // finally, allocate variables and shapes for each (normal) input object.
   // handle physics objects later.
-  normObjs.filter(s => s.physics != 'gravity').map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
+  normObjs.filter(s => s.physics != 'mass').map(fs => buildBackendShapes(retStore, fs)).forEach(([name, shape]) => {
     retStore = retStore.addShape(name, shape, false)
   })
 
@@ -404,7 +404,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // add in pendulum groups, gravity groups
 
   const newMasses = new Set<Tup<Circle, Arrow>>()
-  model.physicsGroups.filter(grp => grp.type == 'gravity').forEach( grp => {
+  model.physicsGroups.filter(grp => grp.type == 'mass').forEach( grp => {
     const newGrp = grp as fabricMass
     const mass = newGrp.mass
     // console.log(mass)
@@ -431,7 +431,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
       )
       newShapes = [pivot, bob, rod]
       newGroup = buildPendulum(retStore, pivot[1], bob[1], rod[1])
-    } else if (grp.type == 'gravity') {
+    } else if (grp.type == 'mass') {
       // do nothing
       return
     } else {
@@ -544,6 +544,8 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
     retStore.addPhysGroup(grp, renderer)
   }
+
+  // retStore.debug()
 
   // add in spring groups
 

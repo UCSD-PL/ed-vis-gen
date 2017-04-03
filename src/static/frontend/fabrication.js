@@ -241,7 +241,7 @@ function buildDragpointsByObj(receiver, addToCanvas) {
     case 'spring':
       dragLocs = arraySpring;
       break;
-    case 'gravity':
+    case 'mass':
     case 'none':
       switch (receiver.get('type')) {
         case 'arrow':

@@ -73,6 +73,9 @@ function internalAdd(type, shapeArgs) {
     case 'pendulum':
       adder = addPendulum;
       break;
+    case 'mass':
+      adder = addMass;
+      break;
     default:
       console.log('unhandled type:');
       console.log(type);
@@ -119,6 +122,16 @@ function addRectangle(shapeArgs){
   return addShape(rectangle0);
 }
 
+// assumes args are instantiated
+function makeArrow(shapeArgs) {
+  let {lneArgs, triArgs, arrArgs} = shapeArgs;
+  let {points, args} = lneArgs;
+  let lineArrow = new fabric.Line(points, args);
+  let triangleArrow = new fabric.Triangle(triArgs);
+  let arrowGroup = new fabric.Group([lineArrow, triangleArrow], arrArgs);
+  return arrowGroup;
+}
+
 //Add arrow
 function addArrow(shapeArgs){
   shapeArgs = shapeArgs || {
@@ -129,12 +142,8 @@ function addArrow(shapeArgs){
     triArgs: {width: 30, height:30, fill: 'black', top: 60, left: 100, strokeWidth: 1},
     arrArgs: {type: 'arrow', centeredRotation: false}
   }
-  let {lneArgs, triArgs, arrArgs} = shapeArgs
-  let {points, args} = lneArgs
-  var lineArrow = new fabric.Line(points, args);
-  var triangleArrow = new fabric.Triangle(triArgs);
-  var arrowGroup = new fabric.Group([lineArrow, triangleArrow], arrArgs);
-  return addShape(arrowGroup);
+  let arrow = makeArrow(shapeArgs);
+  return addShape(arrow);
 }
 
 // toggle snapping on and off
@@ -150,27 +159,39 @@ function toggleSnap() {
 //Add mass
 function addMass(shapeArgs){
   // console.log('addMass not implemented!');
-  var lineArrow = new fabric.Line([100,120,100,80], {stroke:'black', strokeWidth: 10, top: 120, left: 140, originX: 'center', originY: 'center'});
-  var triangleArrow = new fabric.Triangle({width: 30, height:30, fill: 'black', top: 70, left: 125});
-  var arrowGroup = new fabric.Group([triangleArrow, lineArrow], {type: 'arrow', selectable: false, physics: 'gravity'});
-  const velocity = arrowGroup;
+  let defaultArgs = {
+    lneArgs: {
+      points: [100,120,100,80],
+      args: {
+        stroke:'black', strokeWidth: 10, top: 120, left: 140, originX: 'center',
+        originY: 'center'
+      }
+    },
+    triArgs: {
+      width: 30, height:30, fill: 'black', top: 70, left: 125, strokeWidth: 1
+    },
+    arrArgs: {
+      type: 'arrow', selectable: false, physics: 'mass', centeredRotation: false
+    },
+    massArgs: {
+      radius: 40, fill: 'orange', top: 100, left: 100, lockRotation: true,
+      strokeWidth:0, lockUniScaling: true, physics: 'mass'
+    }
+  };
+  shapeArgs = shapeArgs || defaultArgs;
+  // let diffed = diff(shapeArgs, defaultArgs);
+  // console.log(shapeArgs);
+  let velocity = makeArrow(shapeArgs);
   // console.log(velocity.getLeft())
   // console.log(velocity.getTop())
 
-  const mass = new fabric.Circle(
-    { radius: 40,
-      fill: 'orange',
-      top: 100, left: 100,
-      lockRotation: true,
-      strokeWidth:0,
-      lockUniScaling: true,
-      physics: 'gravity',
-      velocity: velocity
-    }
-  );
+  let {massArgs} = shapeArgs;
+  const mass = new fabric.Circle( massArgs );
+  mass.set('velocity', velocity);
 
-  // mass.set('velocity', velocity)
-  // console.log(mass.velocity);
+  let physGroup = [mass, velocity];
+  velocity.set('physicsGroup', physGroup);
+  mass.set('physicsGroup', physGroup);
 
   addShape(mass);
   addShape(velocity);
@@ -191,8 +212,10 @@ function addMass(shapeArgs){
     updateModifications(true);
   }
 
-  mass.on('moving', updater)
+  mass.on('moving', updater);
   mass.on('modified', updater);
+
+  return mass;
 }
 
 //Add spring
@@ -310,7 +333,7 @@ function makeArrowArgs(arr) {
     args: cloneFields(liSON, ['stroke', 'strokeWidth', 'top', 'left', 'originX', 'originY'])
   }
   let triArgs = cloneFields(triSON, ['width', 'height', 'fill', 'top', 'left', 'stroke', 'strokeWidth']);
-  let arrArgs = cloneFields(json, ['type', 'centeredRotation', 'angle', 'scaleX', 'scaleY', 'top', 'left']);
+  let arrArgs = cloneFields(json, ['type', 'centeredRotation', 'angle', 'scaleX', 'scaleY', 'top', 'left', 'physics']);
 
   return { lneArgs: lneArgs, triArgs: triArgs, arrArgs: arrArgs };
 }
@@ -327,32 +350,48 @@ function makePendulumArgs(pend) {
   return {x1: pivot.getCenterPoint().x, x2: bob.getCenterPoint().x, y1: pivot.getCenterPoint().y, y2: bob.getCenterPoint().y};
 }
 
+function makeMassArgs(mass) {
+  let velocityArgs = makeArrowArgs(mass.velocity);
+
+  let massJSON = mass.toJSON();
+
+  // console.log(velocityArgs);
+  // console.log(massJSON);
+
+
+
+  let massArgs = cloneFields( massJSON, ['radius', 'fill', 'top', 'left', 'lockRotation', 'scaleX', 'scaleY', 'strokeWidth', 'lockUniScaling', 'physics']);
+  velocityArgs.massArgs = massArgs;
+
+  return velocityArgs;
+}
+
 
 function makeShapeArgs(shape) {
   let ret;
   if (shape.physics == 'none' || shape.physics == 'spring') {
     switch(shape.type) {
       case 'arrow':
-      ret = makeArrowArgs(shape);
+        ret = makeArrowArgs(shape);
       break;
       case 'circle':
       case 'line':
       case 'rect':
       case 'triangle':
-      ret = getCurrentState({obj: shape, type: shape.get('type')});
+        ret = getCurrentState({obj: shape, type: shape.get('type')});
       break;
       case 'spring':
-      ret = makeSpringArgs(shape);
-      break;
+        ret = makeSpringArgs(shape);
+        break;
       default:
-      console.log('unimplemented:');
-      console.log(shape.type);
-      ret = {}
+        console.log('unimplemented:');
+        console.log(shape.type);
+        ret = {}
     }
   } else if (shape.physics == 'pendulum') {
     ret = makePendulumArgs(shape);
   } else if (shape.physics == 'mass') {
-    // TODO
+    ret = makeMassArgs(shape);
   } else {
     console.log('unhandled phyiscs:');
     console.log(shape);
@@ -443,10 +482,10 @@ function transfer() {
         else{
           pendulumObj['bob'] = obj;
         }
-      } else if (obj.get('physics') === 'gravity') {
+      } else if (obj.get('physics') === 'mass') {
         if (obj.get('type') === 'circle') {
           let physGroup = {
-            type: 'gravity',
+            type: 'mass',
             mass: obj,
             velocity: obj.velocity
           }
@@ -477,7 +516,7 @@ function transfer() {
     });
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
-    // console.log(exported);
+    console.log(exported);
     return JSON.parse(JSON.stringify(exported));
   }
 
@@ -490,6 +529,7 @@ function deleteObject(obj) {
     candidateDragPoints.delete(obj);
     SnapGlobals.POINTS.delete(obj);
   } else {
+    // console.log(obj);
     obj.get('physicsGroup').forEach(o => {
       canvas.remove(o);
       candidateDragPoints.delete(o);
@@ -509,8 +549,8 @@ function deleteObjects(){
   // save current object state onto undo list
 	if (activeObject) {
     saveToHistory(activeObject, Actions.DeleteObject, makeShapeArgs(activeObject));
-    console.log('pushed to history:');
-    console.log(makeShapeArgs(activeObject));
+    // console.log('pushed to history:');
+    // console.log(makeShapeArgs(activeObject));
     deleteObject(activeObject);
 
   } else if (activeGroup) {
