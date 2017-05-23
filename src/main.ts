@@ -7,7 +7,7 @@ import {renderState} from './view/View'
 import {DragController} from './controller/Controller'
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
-import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip, assert, filter} from './util/Util'
+import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip, assert, filter, map} from './util/Util'
 import {fabricJSONObj, buildModel} from './model/Import'
 import {Pendulum} from './model/Physics'
 import {Poset} from './util/Poset'
@@ -117,7 +117,7 @@ export function changeDPChoice(dpName: string, dpChoice: number): DragPoint {
 
 }
 
-function getNumChoices(dpName: string): number {
+function getChoices(dpName: string): string[][] {
   let dp = initModel.main.prog.names.get(dpName)
   if (!dp) {
     console.log('WARNING: dragpoint not found:')
@@ -136,7 +136,30 @@ function getNumChoices(dpName: string): number {
   // console.log('frees:')
   // console.log(initModel.candidateFrees)
   // console.log('choices:')
-  return initModel.candidateFrees.get(dp as DragPoint).length
+  let allFrees = Array.from(initModel.candidateFrees.get(dp as DragPoint).map(vs => Array.from(map(vs, (v:Variable) => v.name))))
+  return allFrees
+}
+
+function getConnections(dpName: string): string[][] {
+  let dp = initModel.main.prog.names.get(dpName)
+  if (!dp) {
+    console.log('WARNING: dragpoint not found:')
+    console.log(dpName)
+    console.log('store:')
+    initModel.main.prog.printShapes()
+    return null
+  }
+  assert(dp instanceof DragPoint, 'expected dragpoint but found' + pp(dp) + " for name " + dpName)
+  if (!initModel.candidateFrees.has(dp as DragPoint)) {
+    console.log('WARNING: dragpoint present but frees not found:')
+    console.log(dp)
+    console.log('frees:')
+    console.log(initModel.candidateFrees)
+  }
+
+  let shapes = initModel.getConnectedShapes(dp as DragPoint)
+  let names = flip(initModel.main.prog.names)
+  return shapes.map(ss => [...map(ss, s => names.get(s))])
 }
 
 // console.log(finalModel.eval())
@@ -184,6 +207,7 @@ backendExport.resetPhysics = () => initModel.main.reset()
 backendExport.testME = testME
 backendExport.printMain = printMain
 backendExport.finishEditChoice = finishEditChoice
-backendExport.getNumChoices = getNumChoices
+backendExport.getChoices = getChoices
+backendExport.getConnections = getConnections
 backendExport.startSession = startSession
 backendExport.endSession = endSession

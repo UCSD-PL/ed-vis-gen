@@ -98,7 +98,9 @@ let redoList = []; // same, but for redos
 const Actions = {
   CreateObject: 0,
   DeleteObject: 1,
-  ModifyObject: 2
+  ModifyObject: 2,
+  ToggleDP: 3,
+  ChangeDP: 4
 };
 
 // snapping states enum
@@ -370,6 +372,7 @@ function addDragPoints(obj, addToCanvas) {
             // select(drag);
           }
 
+          console.log('eddie:selected');
           canvas.renderAll();
           updateModifications(true);
           window.BACKEND.drawToPhysics(fabricJSON, physics);
@@ -801,11 +804,21 @@ function onACCEPT() {
   AppGlobals.STATE = AppGlobals.PREVSTATE;
   // sets 'choice', the selected sim, to the corresponding dragpoint
   selectedSim = currentSim;
+
+  let affectedShapes = window.BACKEND.getConnections(currentDragPoint.get('name'));
+  if (selectedSim >= affectedShapes.length) {
+    console.log('error: bad shapes from backend');
+    console.log(affectedShapes);
+  }
   currentDragPoint.set({
-    choice: selectedSim
+    choice: selectedSim,
+    affectedShapes: affectedShapes[selectedSim] // list of string
   });
 
+
+
   close1(); // closes current screen; returns to drag point selection panel
+  console.log('onAccept');
   updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
   window.BACKEND.finishEditChoice();
@@ -823,7 +836,9 @@ function onLoadSims(dragPoint) {
   currentSim = 0;
   formerChoice = currentDragPoint.get('choice');
 
-  numOfChoices = BACKEND.getNumChoices(currentDragPoint.get("name")) - 1;
+  let choices = BACKEND.getChoices(currentDragPoint.get("name")); // string[][]
+
+  numOfChoices = choices.length - 1;
   // @BENCH
   if (numOfChoices+1 > BENCHDATA.maxModalities)
     BENCHDATA.maxModalities = numOfChoices+1;
@@ -892,6 +907,7 @@ function onOverlayClosed() {
 
 
   canvas.renderAll();
+  console.log('overlayClosed');
   updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
@@ -976,3 +992,21 @@ function endSession() {
     // do nothing
   // }
 }
+
+
+// ensure DP choices are still valid. if an object controlled by a DP is edited,
+// the DP's interaction needs to be invalidated.
+function checkDPs({target}) {
+  forEachDP((dp) => {
+    let affected = dp.get('affectedShapes');
+    console.log('affecteds:')
+    console.log(affected);
+    console.log(target);
+    if (target.name && affected.some(s => s == target.name)) {
+      console.log('conflict!');
+      dp.set('choice', 0); // reset the choice
+    }
+  });
+}
+
+canvas.on('object:modified', checkDPs);

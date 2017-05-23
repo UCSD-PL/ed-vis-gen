@@ -16,8 +16,11 @@ function invert(actionTag) {
     case Actions.DeleteObject:
       invertAct = Actions.CreateObject;
       break;
+    // for these three, the inverse is the same action
     case Actions.ModifyObject:
-      invertAct = Actions.ModifyObject;
+    case Actions.ToggleDP:
+    case Actions.ChangeDP:
+      invertAct = actionTag;
       break;
     default:
       console.log('unhandled action:');
@@ -244,7 +247,10 @@ canvas.on('object:scaling', function (object) {
 //     updatePhysics(true);
 //   });
 
+
+
 canvas.on('object:modified', function () {
+    console.log('object:modified');
     updateModifications(true);
     window.BACKEND.drawToPhysics(fabricJSON, physics);
   });

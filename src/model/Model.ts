@@ -1,6 +1,6 @@
-import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp} from './Shapes'
+import {Shape, DragPoint, Line, Arrow, Spring, Circle, Rectangle, Image, pp, collectVars} from './Shapes'
 // import U = require('../util/Util')
-import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map, map4Tup} from '../util/Util'
+import {assert, copy, add, filter, DEBUG, exists, Point, extend, union, flip, map, map4Tup, flatMap, subset} from '../util/Util'
 import {Variable, CassVar, Primitive, VType} from './Variable'
 import {Equation, Constraint, SimplexSolver, Expression, Strength, Inequality, GEQ} from 'cassowary'
 import {Timer} from '../util/Timer'
@@ -42,6 +42,7 @@ export class Program {
     newFrees.set(p, frees)
     return new Program(this.shapes, this.names, newFrees)
   }
+
 }
 
 // mutable state store
@@ -511,6 +512,27 @@ export class Model {
 
   public static empty(): Model {
     return new Model( State.empty(), new Map<DragPoint, Set<Variable>[]>())
+  }
+
+  // given a dragpoint, calculate all shapes connected to dp in the store.
+  public getConnectedShapes(dp: DragPoint): Set<Shape>[] {
+    assert(this.candidateFrees.has(dp), "dp not found in program:" + this.main.prog.printShapes())
+    let candFrees = this.candidateFrees.get(dp)
+
+    this.main.prog.printShapes()
+    console.log('frees:')
+    // console.log(candFrees)
+    // candFrees.forEach(vs => console.log([...map(vs, v => v.name)]))
+
+
+    let ret = candFrees.map(vs =>
+      new Set<Shape>(
+        filter(this.main.prog.shapes, s =>
+          exists(collectVars(s), v => vs.has(v))
+        )
+      )
+    )
+    return ret
   }
 
 }

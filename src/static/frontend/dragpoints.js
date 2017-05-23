@@ -85,6 +85,13 @@
     choice: 0,
 
     /**
+     * list of affected shapes in this DP's motion
+     * @type [string]
+     * @default []
+     */
+    affectedShapes: [],
+
+    /**
      * true when the drag point is on the canvas
      * @type Boolean
      * @default false

@@ -45,7 +45,8 @@ function addShape(shape) {
   // canvas.fire('object:modified', {target: shape});
   // shape.trigger('modified');
   canvas.trigger('object:modified', {target: shape});
-  updateModifications(true);
+  // console.log('addShape');
+  // updateModifications(true);
   return shape;
 }
 
@@ -209,6 +210,7 @@ function addMass(shapeArgs){
     // canvas.fire('object:moving', {target: velocity});
     // console.log(velocity.get('type'))
     canvas.renderAll();
+    console.log('mass updater');
     updateModifications(true);
   }
 
@@ -311,6 +313,7 @@ function addPendulum(shapeArgs){
     canvas.add(bob);
     // canvas.tr('object:modified', {target: bob});
     bob.trigger('modified');
+    console.log('pendulum');
     updateModifications(true);
     canvas.renderAll();
 
@@ -536,7 +539,7 @@ function deleteObject(obj) {
       SnapGlobals.POINTS.delete(o);
     });
   }
-
+  console.log('obj delete');
   updateModifications(true);
   window.BACKEND.drawToPhysics(fabricJSON, physics);
 }
@@ -560,10 +563,11 @@ function deleteObjects(){
 		    canvas.remove(object);
         candidateDragPoints.delete(object);
         SnapGlobals.POINTS.delete(object);
+        console.log('group delete');
+        updateModifications(true);
+        window.BACKEND.drawToPhysics(fabricJSON, physics);
 		});
 
-    updateModifications(true);
-    window.BACKEND.drawToPhysics(fabricJSON, physics);
   }
 }
 
