@@ -5,7 +5,7 @@ import {map2Tup, map3Tup, Tup, map, uniqify, assert, exists, filter, partSet} fr
 import {State, Program, Store} from '../Model'
 import {InteractionSynthesis} from '../Synthesis'
 import {Poset} from '../../util/Poset'
-import {TranslationFavored} from '../Ranking'
+import {TransSpringFavored} from '../Ranking'
 
 
 export function buildSpringGroup (s: Spring, state: State): SpringGroup {
@@ -58,9 +58,9 @@ export function buildSpringGroup (s: Spring, state: State): SpringGroup {
   // console.log(candYFrees)
   // rank the results
 
-  let rankedX = new Poset(map(candXFrees, frees => [frees, state.prog, state.store]), TranslationFavored,
+  let rankedX = new Poset(map(candXFrees, frees => [frees, state.prog, state.store]), TransSpringFavored,
 [new Set<Variable>(), state.prog, state.store])
-  let rankedY = new Poset(map(candYFrees, frees => [frees, state.prog, state.store]), TranslationFavored,
+  let rankedY = new Poset(map(candYFrees, frees => [frees, state.prog, state.store]), TransSpringFavored,
 [new Set<Variable>(), state.prog, state.store])
 
   let [xs] = rankedX.toArr()[0] as [Set<Variable>, Program, Store]

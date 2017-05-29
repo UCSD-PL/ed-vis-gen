@@ -676,6 +676,7 @@ fabric.Collection = {
           return;
         }
         var klass = fabric.util.getKlass(o.type, namespace);
+        if (!klass) console.log(o);
         if (klass.async) {
           klass.fromObject(o, function (obj, error) {
             if (!error) {

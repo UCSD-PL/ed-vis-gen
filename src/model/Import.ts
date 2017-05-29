@@ -5,10 +5,10 @@ import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow, Image} fro
 
 import {PhysicsGroup, Pendulum, SpringGroup, MassSystem} from './Physics'
 import {VType, Variable, CassVar} from './Variable'
-import {constrainAdjacent, InteractionSynthesis} from './Synthesis'
+import {constrainAdjacent, InteractionSynthesis, addPoints, ConstrainedDirManip} from './Synthesis'
 
 import {Poset} from '../util/Poset'
-import {Default} from './Ranking'
+import {Default, ConstrainedEditing} from './Ranking'
 import {ICanvas} from 'fabric'
 import {buildSpringGroup} from './import/Spring'
 
@@ -381,9 +381,7 @@ function buildGravity(state: State, masses: Iterable<Tup<Circle, Arrow>>): MassS
   return new MassSystem(g, c, density, velocityScale, bodies)
 }
 // given a json of shapes, build a model for the shapes
-export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
-
-  // console.log(model)
+function importModel(model: fabricJSONObj): [State, Map<string, number>, Set<PhysicsGroup>] {
   let retStore: State = State.empty()
   let objs = model.shapes
   // three passes: first, normalize to eddie's position conventions
@@ -443,7 +441,13 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     newPhysicsGroups.add(newGroup)
     //retStore.addPhysGroup(newGroup, renderer)
   })
+  return [retStore, dragChoices, newPhysicsGroups]
+}
+export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
+  // console.log(model)
+
+  let [retStore, dragChoices, physicsGroups] = importModel(model)
 
 
   // console.log('before synthesis:')
@@ -451,7 +455,9 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // console.log('shapes:')
   // console.log([...retStore.prog.shapes].map(s => pp(s)).join())
   // console.log('equations:')
-  let [xEqs, yEqs] = constrainAdjacent(retStore)
+  let [points, store] = addPoints(retStore)
+  // retStore.store = store
+  let [xEqs, yEqs] = constrainAdjacent(retStore, points, store)
   // console.log(eqs)
   let buildFVs = (seeds: Set<CassVar>) => [InteractionSynthesis.validFreeVariables(seeds, xEqs), InteractionSynthesis.validFreeVariables(seeds, yEqs)]
 
@@ -483,7 +489,8 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
     let candProgs = map(newFrees, (frees) => retStore.prog.addFrees(dp, frees))
 
     // rank the results
-    let ranked = new Poset(zip(candProgs, repeat(retStore.store)), Default, [retStore.prog, retStore.store] as Tup<Program, Store>)
+    let ranker = Default
+    let ranked = new Poset(zip(candProgs, repeat(retStore.store)), ranker, [retStore.prog, retStore.store] as Tup<Program, Store>)
 
     // // console.log(ranked.toArr())
     // let formatter = (progs: Set<[Program, Store]>) => {
@@ -513,7 +520,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // add in springs
   retStore.prog.shapes.forEach(s => {
     if (s instanceof Spring) {
-      newPhysicsGroups.add(buildSpringGroup(s, retStore))
+      physicsGroups.add(buildSpringGroup(s, retStore))
     }
   });
 
@@ -521,7 +528,7 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   // retStore.debug()
   // console.log(newPhysicsGroups)
   let groupCntr = 0
-  for (let grp of newPhysicsGroups) {
+  for (let grp of physicsGroups) {
 
     let grpVars = grp.frees()
     let remainingPoints = new Set(drags.keys())
@@ -553,5 +560,16 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
   let ret = new Model(retStore, possibleFrees)
   // console.log('model:')
   // console.log(ret)
+  return ret
+}
+
+
+export function buildManipModel(model: fabricJSONObj): Model {
+  let [state] = importModel(model)
+  console.log(state)
+  let retState = ConstrainedDirManip.elaborateDPs(state)
+  let frees = new Map<DragPoint, Set<Variable>[]>()
+
+  let ret = new Model(retState, frees)
   return ret
 }

@@ -88,7 +88,9 @@ function internalAdd(type, shapeArgs) {
 }
 
 function externalAdd(type, shapeArgs) {
-  saveToHistory(internalAdd(type, shapeArgs), Actions.CreateObject, shapeArgs);
+  let ret = internalAdd(type, shapeArgs);
+  saveToHistory(ret, Actions.CreateObject, shapeArgs);
+  return ret;
 }
 
 //Add line
@@ -519,7 +521,7 @@ function transfer() {
     });
     exported['physicsGroups']=physicsGroup;
     exported['shapes']=shapes;
-    console.log(exported);
+    // console.log(exported);
     return JSON.parse(JSON.stringify(exported));
   }
 

@@ -1,0 +1,243 @@
+<html>
+
+<title>
+  EDDIE Educational Diagram Toolkit
+</title>
+
+<head>
+    <img id='mouse' style='display:none;' src='https://3.bp.blogspot.com/-AjVCqXvl25E/U3XUGxQ4zmI/AAAAAAAAAds/MNDt3MLS-2w/s1600/curser.png' />
+    <!-- frontend script -->
+    <script src="../frontend/fabric.js"></script>
+    <script src="../frontend/fabricEX.js"></script>
+    <script src="../frontend/jquery.js"></script>
+    <!--stops the default right-click menu from opening-->
+    <script>
+      $(document).bind('contextmenu', function(e) {
+        e.preventDefault();
+      });
+    </script>
+
+    <!-- Style -->
+    <link rel="stylesheet" href="../frontend/mockup/app/css/normalize.css">
+    <link rel="stylesheet" href="../frontend/mockup/app/components/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="../frontend/mockup/app/css/main.css">
+
+    <!-- jQuery library -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> -->
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <style>
+      .carousel-control, .carousel-control.left, .carousel-control.right,
+      .carousel-control:focus, .carousel-control:hover {
+        background-image: none !important;
+        font-size: 30px;
+        color: royalblue;
+      }
+    </style>
+</head>
+
+<style>
+  h1{
+    float: right;
+    font-family: monospace;
+  }
+  .leftbuttons{
+    /*float: left;*/
+  }
+
+  .rightbuttons{
+    /*width: 100%;*/
+    text-align: right;
+    /*float: right;*/
+  }
+
+  .charts{
+    float: right;
+  }
+  body {
+    margin: 10;
+    font-family: 'Lato', sans-serif;
+    background-color: royalblue;
+  }
+  .canvas-container{
+    margin: 0 auto;
+  }
+  .overlay {
+      text-align: center;
+      height: 0%;
+      width: 50%;
+      position: fixed;
+      z-index: 1;
+      top: 25%;
+      left: 25%;
+      background-color: rgb(0,0,0);
+      background-color: #ffffff;
+      overflow-y: hidden;
+      transition: 0.5s;
+  }
+  .overlay-selection {
+      text-align: center;
+      position: relative;
+      height: 0%;
+      width: 100%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: rgb(0,0,0);
+      background-color: #ffffff;
+      overflow-y: hidden;
+      transition: 0.5s;
+  }
+  .overlay-content {
+      position: relative;
+      top: 10%;
+      width: 100%;
+      text-align: center;
+      margin-top: 30px;
+  }
+  .closebtn {
+      position: absolute;
+      top: 20px;
+      right: 45px;
+      font-size: 60px !important;
+  }
+  @media screen and (max-height: 450px) {
+    .overlay {overflow-y: auto;}
+    .closebtn {
+      font-size: 40px !important;
+      top: 15px;
+      right: 35px;
+    }
+}
+</style>
+
+<style>
+  .toggle-on { background-color: royalblue; }
+</style>
+
+<body>
+
+  <div class="container-fluid">
+    <nav class="navbar navbar-default navbar-static-top">
+      <a href="#" class="navbar-brand">EDDIE</a>
+      <ul class="nav navbar-nav pull-right">
+        <li>
+          <a href="http://goto.ucsd.edu/~john/EDDIE/faq1.html" target="_">FAQ</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Editor
+          </div>
+          <div class="panel-body">
+            <nav class="">
+              <div class="leftbuttons">
+
+                <button id='undoButton' class="btn btn-primary" onclick="undoOnClick();" disabled>Undo</button>
+
+                <button id='redoButton' class="btn btn-primary" onclick="redoOnClick();" disabled>Redo</button>
+              </div>
+
+
+            </nav>
+            <div id="draw">
+              <canvas id="canvas" width="600" height="500" style="border:1px solid silver"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            Preview
+          </div>
+          <div class="panel-body">
+            <div id="simulate">
+              <video width="500" height="500" autoplay="autoplay" loop="loop">
+              <source src="http://goto.ucsd.edu/~john/EDDIE/vids/test11.mp4" type="video/mp4"/>
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+    <!--more frontend scripts-->
+    <script src="../frontend/objects.js"></script>
+    <script src="../frontend/fabrication.js"></script>
+    <script src="../frontend/dragpoints.js"></script>
+    <script src="../frontend/spring.js"></script>
+    <script src="../frontend/snapping.js"></script>
+    <script src="../frontend/undo.js"></script>
+      <!-- backend script -->
+    <script src="../lib.js"></script>
+
+    <!-- scripts for toggle buttons -->
+
+
+
+
+
+      <script>
+
+      // JSON.stringify(canvas.toJSON(['shouldMove']))
+
+      let strDater = '{"objects":[{"name":"S0","type":"rect","physics":"none","item":"","originX":"left","originY":"top","left":56,"top":93,"width":30,"height":30,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":2.13,"scaleY":3.1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"rx":0,"ry":0},{"name":"S38","type":"rect","physics":"none","item":"","originX":"left","originY":"top","left":181,"top":93.75,"width":30,"height":30,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":2.2,"scaleY":3.05,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"rx":0,"ry":0},{"name":"S76","type":"circle","physics":"none","item":"","originX":"left","originY":"top","left":120,"top":109.5,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"shouldMove":true,"radius":30,"startAngle":0,"endAngle":6.283185307179586},{"name":"S89","type":"dragPoint","physics":"none","item":"","originX":"center","originY":"center","left":150,"top":139.5,"width":10,"height":10,"fill":"orange","stroke":"black","strokeWidth":1,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":true,"lockScalingY":true,"radius":5,"shape":{"name":"S76","type":"circle","physics":"none","item":"","originX":"left","originY":"top","left":120,"top":109.5,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"radius":30,"startAngle":0,"endAngle":6.283185307179586},"shapeName":"S76","X":120,"Y":109.5,"DX":0.5,"DY":0.5,"choice":4,"onCanvas":false,"startAngle":0,"endAngle":6.283185307179586}],"background":""}'
+      canvas.loadFromJSON(JSON.parse(strDater));
+
+      forEachDP(deleteObject);
+
+
+      canvas.forEachObject(obj => {
+        if (obj.shouldMove) {
+          // add dragpoint preimage to middle, add dragpoint to at +100, +100
+          let startDrag = new fabric.DragPoint({
+            name: allocSName(),
+            shape: obj,
+            shapeName: obj.get('name'),
+            DX: 0.5,
+            DY: 0.5,
+            fill: 'green',
+            radius: 5,
+            type: 'dragPoint'
+          });
+
+          startDrag.startDragPoint(obj, canvas);
+          canvas.add(startDrag);
+
+          let endDrag = new fabric.DragPoint({
+            name: allocSName(),
+            shape: obj,
+            shapeName: obj.get('name'),
+            DX: 1.5,
+            DY: 1.5,
+            fill: 'green',
+            radius: 5,
+            type: 'dragPoint',
+            selectable: 'false'
+          });
+
+          canvas.add(endDrag);
+        }
+      })
+
+      </script>
+
+</html>

@@ -1,4 +1,4 @@
-import {Variable, CassVar} from './Variable'
+import {Variable, CassVar, VType} from './Variable'
 import {Program, State} from './Model'
 import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
 import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup, union} from '../util/Util'
@@ -99,6 +99,7 @@ export class PointGeneration {
     } else if (s instanceof Rectangle || s instanceof Image) {
       ret = this.rectPoints(s)
     }  else {
+      console.log(s)
       console.log('unhandled shape for shapepoints: ' + s.toString())
       assert(false)
     }
@@ -184,16 +185,24 @@ export class PointGeneration {
   }
 }
 
-// given a state, add in equations enforcing adjacent shapes to the state's store.
-// modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
-export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<CassVar>>] {
-
+// add points to a state. returns the elaborated points and new store.
+export function addPoints(state: State): [Set<Tup<PExpr, PExpr>>, Map<Variable, number>] {
   let store = state.eval()
   let pointGen = new PointGeneration(store)
   let points = pointGen.makePoints(state.prog)
   // console.log('finished with points')
 
   let newStore = extendMap(store, pointGen.eval())
+
+  return [points, newStore]
+}
+// given a state, add in equations enforcing adjacent shapes to the state's store.
+// modifies the store in-place. returns a set encoding of equations -- X = Y + Z => {X, Y, Z}
+export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, pointStore: Map<Variable, number>): [Set<Set<CassVar>>, Set<Set<CassVar>>] {
+
+  // assumes points have already been added to the diagram
+  let store = extendMap(state.eval(), pointStore)
+
   // foreach contact point, there exists another (nonidentical) point with the same
   // coordinates, add the points to the state and add an equality between the points
 
@@ -202,9 +211,9 @@ export function constrainAdjacent(state: State): [Set<Set<CassVar>>, Set<Set<Cas
 
   let finder = ([[seedX], [seedY]]: Tup<PExpr, PExpr>) => (test: Tup<PExpr, PExpr>) => {
     let [[testX], [testY]] = test
-    assert(newStore.has(seedX) && newStore.has(seedY) && newStore.has(testX) && newStore.has(testY), 'point not found in pointgen map')
-    let lp = {x: newStore.get(seedX), y: newStore.get(seedY)}
-    let rp = {x: newStore.get(testX), y: newStore.get(testY)}
+    assert(store.has(seedX) && store.has(seedY) && store.has(testX) && store.has(testY), 'point not found in pointgen map')
+    let lp = {x: store.get(seedX), y: store.get(seedY)}
+    let rp = {x: store.get(testX), y: store.get(testY)}
 
     return seedX !== testX && seedY !== testY && overlap(lp, rp, 9) && !added.has(test)
   }
@@ -463,4 +472,38 @@ export namespace InteractionSynthesis {
 
     return uniqify(ret)
   }
+}
+
+// construction of constrained direct manipulation interface
+// step 0 -- collection of shapes
+// step one -- add in DPs and base equations (with empty free variable maps)
+// step two -- add in translation vars foreach shape in diagram
+// step three -- for DP,shape tuples that should stretch i.e. dragpoints that lie on shape edges, replace translation vars
+// with stretch vars
+export namespace ConstrainedDirManip {
+  // add in all DPS. modifies the state in-place to add drag points.
+  export function elaborateDPs(state: State) {
+    let [points, pstore] = addPoints(state)
+    // debugger
+    let [xEqs, yEqs] = constrainAdjacent(state, points, pstore)
+    // debugger
+
+    let prefix = "DP"
+    var suffix = 0
+
+    let radius = state.store.addVar(VType.Prim, "DPR", 5)
+    var ret: State = state
+    // debugger
+    for (let xy of points) {
+      // debugger
+      let [[x], [y]] = xy // assumes xy have already been added
+      let dp = new DragPoint(x, y, radius, 'blue')
+      ret = ret.addShape(prefix + suffix.toString(), dp, false)
+      suffix++
+      console.log('added:' + prefix + suffix.toString())
+    }
+
+    return ret
+  }
+
 }

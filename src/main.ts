@@ -8,7 +8,7 @@ import {DragController} from './controller/Controller'
 import Ex = require('./model/Export')
 import {PointGeneration, InteractionSynthesis} from './model/Synthesis'
 import {DISPLAY_ID, map2Tup, map3Tup, map4Tup, Tup3, Tup, Tup4, flip, assert, filter, map} from './util/Util'
-import {fabricJSONObj, buildModel} from './model/Import'
+import {fabricJSONObj, buildModel, buildManipModel} from './model/Import'
 import {Pendulum} from './model/Physics'
 import {Poset} from './util/Poset'
 import {ICanvas} from 'fabric'
@@ -48,6 +48,11 @@ export function refresh(cont: DragController, canv: ICanvas) {
 export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   // console.log(object)
   // console.trace();
+  let disabled = false
+  if (disabled)
+    return
+
+  //
   physCanv = canvas
   initModel = buildModel(object, () => refresh(physCont, canvas))
   if (physicsFirst) {
@@ -59,6 +64,32 @@ export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
   physicsState = initModel.main.eval()
   refresh(physCont, canvas)
 
+}
+
+export function loadModel(object: fabricJSONObj, canvas: ICanvas) {
+  initModel = buildModel(object, () => null)
+  // if (physicsFirst) {
+  //   physCont = new DragController(initModel, canvas, false)
+  //   canvas.on('after:render', () => refresh(physCont, canvas))
+  //   physicsFirst = false
+  // }
+  // dragCont.enableDrags()
+  physicsState = initModel.main.eval()
+  // initModel.main.debug()
+  //refresh(physCont, canvas)
+}
+
+export function drawManipModel(object: fabricJSONObj, canvas: ICanvas) {
+  physCanv = canvas
+  initModel = buildManipModel(object)
+  if (physicsFirst) {
+    physCont = new DragController(initModel, canvas, false)
+    // canvas.on('after:render', () => refresh(physCont, canvas))
+    physicsFirst = false
+  }
+  // dragCont.enableDrags()
+  physicsState = initModel.main.eval()
+  refresh(physCont, canvas)
 }
 
 export function drawToEdit(dpName: string, dpChoice: number, canvas: ICanvas) {
@@ -200,6 +231,7 @@ function printMain() {
 (window as any).BACKEND = {}
 export var backendExport: any = (window as any).BACKEND
 backendExport.drawToPhysics = drawToPhysics
+backendExport.drawManipModel = drawManipModel
 backendExport.drawToEdit = drawToEdit
 backendExport.startPhysics = () => initModel.main.start()
 backendExport.stopPhysics = () => initModel.main.stop()
@@ -211,3 +243,4 @@ backendExport.getChoices = getChoices
 backendExport.getConnections = getConnections
 backendExport.startSession = startSession
 backendExport.endSession = endSession
+backendExport.loadModel = loadModel

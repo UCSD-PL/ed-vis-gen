@@ -41,6 +41,15 @@ export function Default([p, s]: Tup<Program, Store>) {
   return ranker([p, s])
 }
 
+export function ConstrainedEditing([p, s]: Tup<Program, Store>) {
+  let weights = new Set<Tup<number, ProgRanker>>()
+  weights.add([1000, ShapeHeuristics])
+         .add([100, PointMotion])
+         .add([1, TranslationFavored])
+  let ranker = WeightedSum(weights)
+  return ranker([p, s])
+}
+
 
 // thesis: stationary shapes are ideal. foreach shape that changes as a function
 // of input, penalize the configuration.
@@ -306,7 +315,7 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 }
 
 // heuristic for spring simulation -- every motive that *isn't* a translation is a penalty
-export function TranslationPenalty([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
+export function TranslationSprings([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
   let emp = new Set<Variable>()
   let makeVars = (s: Shape) => {
     if (! (s instanceof Line || s instanceof Spring)) {
@@ -327,6 +336,40 @@ export function TranslationPenalty([freeVars, p, s]: [Set<Variable>, Program, St
   return fold(map(translationFrees, s => s.size), (sum, nxt) => sum + nxt, 0)
 }
 
-export function TranslationFavored([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
-  return Invert(TranslationPenalty)([freeVars, p, s])
+export function TransSpringFavored([freeVars, p, s]: [Set<Variable>, Program, Store] ): number {
+  return Invert(TranslationSprings)([freeVars, p, s])
+}
+
+export function TranslationPenalty([p, s]: [Program, Store] ): number {
+  let emp = new Set<Variable>()
+  let makeVars = (s: Shape) => {
+    if (! (s instanceof Line )) {
+      assert('x' in s && 'y' in s, 'expected x and y in shape: ' + s.toString())
+      return new Set<Variable>().add((s as any).x).add((s as any).y)
+    } else {
+      return emp
+    }
+  }
+
+  // foreach interaction in the program, penalize if it translates
+  let frees = p.allFrees
+  let shapeTranslationVars = map(p.shapes, makeVars)
+
+  let foo = flatMap(frees, ([dp, dpFrees]) => {
+    return uniqify(new Set<Set<Variable>>(map(shapeTranslationVars, vars => intersect(dpFrees, vars))))
+  })
+
+  return fold(map(foo, vs => vs.size), (sum, nxt) => sum + nxt, 0)
+
+
+
+  // let [drags, shapes] = partSet(p.shapes, shp => shp instanceof DragPoint)
+
+  // let translationFrees = uniqify(new Set<Set<Variable>>(map(map(p.shapes, makeVars), vars => intersect(vars, freeVars))))
+  //
+  // return fold(map(translationFrees, s => s.size), (sum, nxt) => sum + nxt, 0)
+}
+
+export function TranslationFavored([p, s]: [Program, Store] ): number {
+  return Invert(TranslationPenalty)([p, s])
 }

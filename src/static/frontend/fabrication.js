@@ -824,6 +824,11 @@ function onACCEPT() {
   window.BACKEND.finishEditChoice();
 }
 
+function addManipModel() {
+  updateModifications(true);
+  window.BACKEND.drawManipModel(fabricJSON, physics);
+}
+
 // loads a sim on the drag point
 function onLoadSims(dragPoint) {
   // console.log('loading sims for dp:');
