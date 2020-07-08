@@ -12,7 +12,7 @@ EDDIE is a JavaScript/TypeScript project and uses `npm`, `tsc`, `browserify` and
 To get other dependencies, run `npm run-script initialize`.
 
 # Building and Running
-To build the tool, run `npm run-script build`. The output is in `target/webapp/html/index.html` and you can open this in a web browser.
+To build the tool, run `npm run-script build`. The output is in `target/html/index.html` and you can open this in a web browser.
 
 [eddie-paper]: http://goto.ucsd.edu/~john/EDDIE/papers/eddie-chi17.pdf
 [eddie-demo]: http://goto.ucsd.edu/~john/eddie/tool/html/

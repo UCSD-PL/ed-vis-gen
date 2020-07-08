@@ -2,11 +2,8 @@ import {sendGet} from '../util/HTTP'
 
 
 export function startSession() {
-  // oooo boy
-  // super hackish but meh
   const id = prompt("Session ID?")
   const benchmark = prompt("Benchmark?")
-  // const trusted = prompt("Mika?")
   // send a session start request, set currentID to the response
   const handler = (response: string) => {
     // do nothing

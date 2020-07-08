@@ -1,8 +1,8 @@
 {
   "name": "EDDIE",
   "scripts": {
-    "initialize": "npm install && mkdir -p new/target && cd src/main/webapp/ && rm cassie eddie resources && ln -s ../../frontend/cassie && ln -s ../../frontend/eddie && ln -s ../../frontend/resources && cd ../../..",
-    "build": "tsc && browserify src/main.js -o new/target/lib.js && rsync -az src/static/html new/target/ && rsync -az src/resources new/target/ && rsync -az src/static/frontend new/target/ && rm -rf src/main/webapp/target/ && cp -r new/target src/main/webapp/target/",
+    "initialize": "npm install && mkdir -p target/ && cd src/main/webapp/ && rm cassie eddie resources && ln -s ../../frontend/cassie && ln -s ../../frontend/eddie && ln -s ../../frontend/resources && cd ../../..",
+    "build": "tsc && browserify src/main.js -o target/lib.js && rsync -az src/static/html target/ && rsync -az src/resources target/ && rsync -az src/static/frontend target/",
     "deploy": "npm run-script build && rsync -az new/target goto:~/ed-vis-gen/src/main/webapp/",
     "watch": "watchify src/main.js -o target/lib.js --debug --verbose",
     "test": "echo \"no tests yet\"",

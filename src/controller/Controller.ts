@@ -101,7 +101,6 @@ export class DragController {
     let p = this.convertEvent(e)
     if (p && this.m.main.dragging) {
       // suggest value for x and y
-      // gross...refactor or something idk
       let [x,y] = [this.m.main.draggedPoint.x, this.m.main.draggedPoint.y]
       let edits = (new Map<Var.Variable, number>()).set(x, p.x).set(y, p.y)
       // console.log('edits:')
@@ -117,7 +116,7 @@ export class DragController {
     // release!
     if (p && this.m.main.dragging) {
       // just state change
-      this.m.main.draggedPoint = null // TODO: option monad
+      this.m.main.draggedPoint = null
       this.m.main.dragging = false
 
       this.m.main.physicsEngine.reconfigure()
