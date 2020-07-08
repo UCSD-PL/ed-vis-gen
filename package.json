@@ -9,7 +9,7 @@
     "refresh-typings": "typings install --SG file:src/typings/cassowary.d.ts",
     "clean": "rm -rf new && rm -rf src/main/webapp/target"
   },
-  "description": "Educational Visualization DSL and Synthesis =============",
+  "description": "User-Guided Synthesis of Interactive Diagrams  =============",
   "version": "1.0.0",
   "main": "main.js",
   "directories": {
@@ -26,15 +26,12 @@
     "requirejs": "^2.1.22",
     "typescript-require": "^0.2.9"
   },
-  "devDependencies": {
-    "mocha": "^2.4.5"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/UCSD-PL/ed-vis-gen.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "John Sarracino",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/UCSD-PL/ed-vis-gen/issues"
