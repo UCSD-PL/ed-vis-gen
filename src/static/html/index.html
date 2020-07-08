@@ -341,6 +341,12 @@
         $('#mySelect').modal('hide');
       }
 
+      function exportManipModel() {
+
+        fabricJSON = transfer();
+        window.BACKEND.drawManipModel(fabricJSON, physics);
+      }
+
       </script>
 
 

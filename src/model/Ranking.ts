@@ -183,61 +183,83 @@ export function ShapeCoordination([p, s]: Tup<Program, Store>) {
   return ranker([p, s])
 }
 
-export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
-  let store = s.eval()
+export class PositionUtil {
+  private _vals: Map<Variable, number>
+  constructor(public store: Store) {
+    this._vals = store.eval()
+  }
 
-  let debug = (s: Shape) => console.log(store.get((s as any).x).toString() + ", " + store.get((s as any).y).toString())
+  public storeEq(v1: Variable, v2: Variable): boolean {
+    let store = this._vals
+    assert(store.has(v1) && store.has(v2), "pu store missing: " + v1.name + ", " + v2.name)
+    return this._vals.get(v1) == this._vals.get(v2)
+  }
 
-  let storeEq = (v1: Variable, v2: Variable) => store.get(v1) == store.get(v2)
-  let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
-
-  // helper function: determine if an equation mentions an ipoint and shape
-
-  // does dp lie on the corner of s?
-  let cornerEval = (dp: DragPoint, s: Shape): boolean => {
+  public lieOnCorner(dp: DragPoint, s: Shape): boolean {
+    let get = (v: Variable) => this._vals.get(v)
     if (s instanceof Arrow || s instanceof Spring) {
-      let base = storeEq(s.x, dp.x) && storeEq(s.y, dp.y)
-      let end = (store.get(s.x) + store.get(s.dx) == store.get(dp.x)) &&
-                (store.get(s.y) + store.get(s.dy) == store.get(dp.y))
+      let base = this.storeEq(s.x, dp.x) && this.storeEq(s.y, dp.y)
+      let end = (get(s.x) + get(s.dx) == get(dp.x)) &&
+                (get(s.y) + get(s.dy) == get(dp.y))
       return base || end
     } else if (s instanceof Rectangle || s instanceof Image) {
-      return !storeEq(s.x, dp.x) && !storeEq(s.y, dp.y) // offcenter in both dimensions
-    } else if (s instanceof Circle || s instanceof DragPoint) {
-      // console.log('s:')
-      // debug(s)
-      // console.log('dp:')
-      // debug(dp)
-      return !storeEq(s.x, dp.x) || !storeEq(s.y, dp.y) // offcenter in one dimension
+      // console.log("xs, dx:" + get(s.x) + ", " + get(dp.x) + ", " + get(s.dx))
+      // console.log("ys, dy:" + get(s.x) + ", " + get(dp.x) + ", " + get(s.dx))
+      // console.log('xdelta: ' + (Math.abs(get(dp.x) - get(s.x)) == get(s.dx)))
+
+      let onY = this.storeEq(s.x, dp.x) && (Math.abs(get(dp.y) - get(s.y)) == get(s.dy))
+      let onX = this.storeEq(s.y, dp.y) && (Math.abs(get(dp.x) - get(s.x)) == get(s.dx))
+      let corner = (Math.abs(get(dp.y) - get(s.y)) == get(s.dy)) && (Math.abs(get(dp.x) - get(s.x)) == get(s.dx))
+      // debugger
+      // console.log(dp.x.name)
+      // if (Math.abs(get(dp.y) - get(s.y)) == get(s.dy))
+      //   debugger
+      // console.log('corner? ' + onX || onY || corner)
+      return onX || onY || corner
+    } else if (s instanceof Circle) {
+      //  dp.y == s.y && dp.x == s.x +- s.r
+      let onY = this.storeEq(s.x, dp.x) && Math.abs(get(dp.y) - get(s.y)) == get(s.r)
+      let onX = this.storeEq(s.y, dp.y) && Math.abs(get(dp.x) - get(s.x)) == get(s.r)
+
+      return onX || onY
     } else {
       // lines, triangles TODO
       // console.log('???')
       // console.log(s)
       return false
     }
-
-
   }
 
-  // does dp lie on the center of s?
-  let centerEval = (dp: DragPoint, s: Shape): boolean => {
+  public lieOnCenter(dp: DragPoint, s: Shape): boolean {
     if (s instanceof Arrow || s instanceof Spring) {
-      let base = storeEq(s.x, dp.x) && storeEq(s.y, dp.y)
-      let end = (store.get(s.x) + store.get(s.dx) == store.get(dp.x)) &&
-                (store.get(s.y) + store.get(s.dy) == store.get(dp.y))
+      let base = this.storeEq(s.x, dp.x) && this.storeEq(s.y, dp.y)
+      let end = (this._vals.get(s.x) + this._vals.get(s.dx) == this._vals.get(dp.x)) &&
+                (this._vals.get(s.y) + this._vals.get(s.dy) == this._vals.get(dp.y))
       return !base && !end
     } else if (s instanceof Rectangle || s instanceof Image || s instanceof Circle || s instanceof DragPoint) {
-      return storeEq(s.x, dp.x) && storeEq(s.y, dp.y) // center in both dimensions
+      return this.storeEq(s.x, dp.x) && this.storeEq(s.y, dp.y) // center in both dimensions
     } else {
       // lines, triangles TODO
     }
 
     return false
   }
+}
+
+export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
+  let store = s.eval()
+  let pu = new PositionUtil(s)
+
+  let debug = (s: Shape) => console.log(store.get((s as any).x).toString() + ", " + store.get((s as any).y).toString())
+
+  let storeEq = (v1: Variable, v2: Variable) => store.get(v1) == store.get(v2)
+  let St = (v1: Variable, v2: Variable) => (new Set<Variable>()).add(v1).add(v2)
+
 
   // helper functions to select corner points, centered points
   let isCorner = (dp: DragPoint, shape: Shape) => {
     for (let eq of s.equations) {
-      if (eq.usesMotive(dp, shape) && cornerEval(dp, shape)) {
+      if (eq.usesMotive(dp, shape) && pu.lieOnCorner(dp, shape)) {
         return true
       }
     }
@@ -248,7 +270,7 @@ export function ShapeHeuristics([p, s]: Tup<Program, Store>): number {
 
   let isCenter = (dp: DragPoint, shape: Shape) => {
     for (let eq of s.equations) {
-      if (eq.usesMotive(dp, shape) && centerEval(dp, shape))
+      if (eq.usesMotive(dp, shape) && pu.lieOnCenter(dp, shape))
         return true
     }
     return false

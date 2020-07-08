@@ -177,6 +177,47 @@ export function collectVars(s: Shape): Set<Variable> {
   return ret
 }
 
+export function stretchVars(s: Shape): Set<Variable> {
+  let ret = new Set<Variable>()
+  if (s instanceof Line) {
+    s.points.forEach(([x, y]) => ret.add(x).add(y))
+  } else if (s instanceof Arrow || s instanceof Spring) {
+    ret.add(s.dx).add(s.dy)
+  } else if (s instanceof Circle || s instanceof DragPoint) {
+    ret.add(s.r)
+  } else if (s instanceof Rectangle || s instanceof Image) {
+    ret.add(s.dx).add(s.dy)
+  } else if (s instanceof Text) {
+    ret.add(s.x).add(s.y)
+  } else {
+    console.log('unhandled shape in stretchVars:')
+    console.log(s)
+    assert(false)
+  }
+
+  return ret
+}
+
+export function translationVars(s: Shape): Set<Variable> {
+  let ret = new Set<Variable>()
+  if (s instanceof Line) {
+    s.points.forEach(([x, y]) => ret.add(x).add(y))
+  } else if (s instanceof Arrow || s instanceof Spring) {
+    ret.add(s.x).add(s.y)
+  } else if (s instanceof Circle || s instanceof DragPoint) {
+    ret.add(s.x).add(s.y)
+  } else if (s instanceof Rectangle || s instanceof Image) {
+    ret.add(s.x).add(s.y)
+  } else if (s instanceof Text) {
+    ret.add(s.x).add(s.y)
+  } else {
+    console.log('unhandled shape in stretchVars:')
+    console.log(s)
+    assert(false)
+  }
+
+  return ret
+}
 
 // export type Shape =
 //   Line | Arrow | Spring | Text | Circle | Rectangle | Image | DragPoint

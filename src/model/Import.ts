@@ -1,6 +1,6 @@
 import {Model, State, Program, Store} from './Model'
 
-import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect} from '../util/Util'
+import {map2Tup, map3Tup, map4Tup, Tup, Tup3, assert, flatMap, fold, union, map, zip, repeat, toMap, flip, filter, exists, subset, find, intersect, mapValues} from '../util/Util'
 import {Circle, Rectangle, Shape, Line, DragPoint, pp, Spring, Arrow, Image} from './Shapes'
 
 import {PhysicsGroup, Pendulum, SpringGroup, MassSystem} from './Physics'
@@ -558,18 +558,23 @@ export function buildModel(model: fabricJSONObj, renderer: () => void): Model {
 
 
   let ret = new Model(retStore, possibleFrees)
+  // console.log(possibleFrees)
   // console.log('model:')
   // console.log(ret)
   return ret
 }
 
 
-export function buildManipModel(model: fabricJSONObj): Model {
+export function buildManipModel(model: fabricJSONObj, targetName: string): Model {
   let [state] = importModel(model)
-  console.log(state)
-  let retState = ConstrainedDirManip.elaborateDPs(state)
-  let frees = new Map<DragPoint, Set<Variable>[]>()
+  // console.log(state)
+  let [retState, parents] = ConstrainedDirManip.elaborateDPs(state, targetName)
+  let frees = ConstrainedDirManip.generateMotives(retState, parents)
+  for (let [dp, free] of frees) {
+    retState.prog = retState.prog.addFrees(dp, free)
+  }
+  let allFrees = mapValues(frees, vs => [vs])
 
-  let ret = new Model(retState, frees)
+  let ret = new Model(retState, allFrees)
   return ret
 }

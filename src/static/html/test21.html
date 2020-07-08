@@ -137,7 +137,7 @@
       <a href="#" class="navbar-brand">EDDIE</a>
       <ul class="nav navbar-nav pull-right">
         <li>
-          <a href="http://goto.ucsd.edu/~john/EDDIE/faq3.html" target="_">FAQ</a>
+          <a href="http://goto.ucsd.edu/~john/EDDIE/faq2.html" target="_">FAQ</a>
         </li>
       </ul>
     </nav>
@@ -148,26 +148,8 @@
             Editor
           </div>
           <div class="panel-body">
-            <div class="carousel slide" id="mySelect" tabindex="-1" aria-labelledby="mySelectLabel">
-              <div class="carousel-dialog" role="document">
-                <div class="carousel-content">
-                  <div class="carousel-body">
-                    <div class="overlay-content">
-                      <canvas id="sims" width="300" height="475"></canvas>
-                    </div>
+            <canvas id="sims" width="500" height="500"></canvas>
 
-                    <a class="left carousel-control" role="button" data-slide="prev" onclick="onLeft()" id="left">
-                      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                      <span class="sr-only">Previous</span>
-                    </a>
-                    <a class="right carousel-control" role="button" data-slide="next" onclick="onRight()" id="right">
-                      <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                      <span class="sr-only">Next</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -215,16 +197,25 @@
       let strDater = '{"objects":[{"name":"S0","type":"circle","physics":"none","shouldMove":true,"item":"","originX":"left","originY":"top","left":100,"top":100,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"radius":30,"startAngle":0,"endAngle":6.283185307179586},{"name":"S19","type":"circle","physics":"none","item":"","originX":"left","originY":"top","left":160,"top":99,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"radius":30,"startAngle":0,"endAngle":6.283185307179586},{"name":"S57","type":"circle","physics":"none","item":"","originX":"left","originY":"top","left":40,"top":99,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"radius":30,"startAngle":0,"endAngle":6.283185307179586},{"name":"S13","type":"dragPoint","physics":"none","item":"","originX":"center","originY":"center","left":130,"top":130,"width":10,"height":10,"fill":"orange","stroke":"black","strokeWidth":1,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":true,"lockScalingY":true,"radius":5,"shape":{"name":"S0","type":"circle","physics":"none","item":"","originX":"left","originY":"top","left":100,"top":100,"width":60,"height":60,"fill":"royalblue","stroke":null,"strokeWidth":0,"strokeDashArray":null,"strokeLineCap":"butt","strokeLineJoin":"miter","strokeMiterLimit":10,"scaleX":1,"scaleY":1,"angle":0,"flipX":false,"flipY":false,"opacity":1,"shadow":null,"visible":true,"clipTo":null,"backgroundColor":"","fillRule":"nonzero","globalCompositeOperation":"source-over","transformMatrix":null,"skewX":0,"skewY":0,"snap":true,"lockScalingX":false,"lockScalingY":false,"radius":30,"startAngle":0,"endAngle":6.283185307179586},"shapeName":"S0","X":100,"Y":100,"DX":0.5,"DY":0.5,"choice":0,"onCanvas":false,"startAngle":0,"endAngle":6.283185307179586}],"background":""}'
       canvas.loadFromJSON(JSON.parse(strDater));
       // canvas.forEachObject(console.log)
-      forEachDP(dp => {
-        dp.set('eddie:active', true);
+
+      forEachDP(deleteObject);
+
+      let nme = "";
+      canvas.forEachObject(o => {
+        if (o.shouldMove) {
+          nme = o.name;
+        }
       })
 
       fabricJSON = transfer();
+      window.BACKEND.drawManipModel(fabricJSON, sims, nme);
+
+      // fabricJSON = transfer();
       // console.log(fabricJSON);
 
-      window.BACKEND.loadModel(fabricJSON);
+      // window.BACKEND.loadModel(fabricJSON);
 
-      forEachDP(onLoadSims);
+      // forEachDP(onLoadSims);
 
       // load the model and start the sims
 

@@ -19,11 +19,6 @@ import {circularSim} from './model/Simulation'
 import {startSession, endSession} from './logging/Session'
 
 
-
-// let mainCanv = document.getElementById('mainCanvas') as HTMLCanvasElement
-// let mainCtx = mainCanv.getContext('2d')
-//
-
 export var initModel = Model.empty()
 
 // // build a circle, add to the model
@@ -37,8 +32,6 @@ let editCont: DragController
 let editInt: number = 0 // interval ID for drag simulation
 let editFirst = true // does the edit drag controller need to be initialized?
 
-// let buttonCont = new Cont.ButtonController()
-
 export function refresh(cont: DragController, canv: ICanvas) {
   cont.m = initModel
   cont.receiver = canv
@@ -46,9 +39,8 @@ export function refresh(cont: DragController, canv: ICanvas) {
 }
 
 export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
-  // console.log(object)
-  // console.trace();
-  let disabled = false
+  
+  let disabled = true
   if (disabled)
     return
 
@@ -66,7 +58,7 @@ export function drawToPhysics(object: fabricJSONObj, canvas: ICanvas) {
 
 }
 
-export function loadModel(object: fabricJSONObj, canvas: ICanvas) {
+export function loadModel(object: fabricJSONObj) {
   initModel = buildModel(object, () => null)
   // if (physicsFirst) {
   //   physCont = new DragController(initModel, canvas, false)
@@ -79,16 +71,18 @@ export function loadModel(object: fabricJSONObj, canvas: ICanvas) {
   //refresh(physCont, canvas)
 }
 
-export function drawManipModel(object: fabricJSONObj, canvas: ICanvas) {
+export function drawManipModel(object: fabricJSONObj, canvas: ICanvas, targetName: string) {
   physCanv = canvas
-  initModel = buildManipModel(object)
+  initModel = buildManipModel(object, targetName)
   if (physicsFirst) {
     physCont = new DragController(initModel, canvas, false)
-    // canvas.on('after:render', () => refresh(physCont, canvas))
+    canvas.on('after:render', () => refresh(physCont, canvas))
     physicsFirst = false
   }
   // dragCont.enableDrags()
   physicsState = initModel.main.eval()
+  initModel.main.debug()
+  // console.log(initModel.main.prog.allFrees)
   refresh(physCont, canvas)
 }
 

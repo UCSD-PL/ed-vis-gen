@@ -1,8 +1,10 @@
 import {Variable, CassVar, VType} from './Variable'
 import {Program, State} from './Model'
-import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp} from './Shapes'
-import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup, union} from '../util/Util'
+import {Shape, Line, Spring, Arrow, Circle, DragPoint, Rectangle, VecLike, RecLike, Image, pp, collectVars, stretchVars, translationVars} from './Shapes'
+import {uniqify, map, uniq, overlap, extendMap, copy, Point, Tup, exists, flatMap, assert, intersect, find, toMap, forall, filter, partMap, map2Tup, union, flip, partSet, diff} from '../util/Util'
 import {Expression, Equation, Constraint, Strength} from 'cassowary'
+
+import {PositionUtil} from './Ranking'
 
 import {Expr, Eq} from './Expr'
 
@@ -202,6 +204,8 @@ export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, 
 
   // assumes points have already been added to the diagram
   let store = extendMap(state.eval(), pointStore)
+  // console.log(points)
+  // console.log(store)
 
   // foreach contact point, there exists another (nonidentical) point with the same
   // coordinates, add the points to the state and add an equality between the points
@@ -220,10 +224,14 @@ export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, 
   let [retX, retY] = [new Set<Set<CassVar>>(), new Set<Set<CassVar>>()]
 
   for (let point of points) {
-    let overlapped = find(points, finder(point))
-    // typescript needs if-let -.-
-    if (overlapped) {
-
+    let oldLapped = find(points, finder(point))
+    let tookLoop = false
+    for (let overlapped of filter(points, finder(point))) {
+    // if (oldLapped) {
+      // let overlapped = oldLapped
+      tookLoop = true
+      // console.log('found:' + overlapped[0][1].toString() + ", " +  overlapped[1][1].toString())
+      // console.log(overlapped)
       // TODO: i don't use the LHS variables, rewrite
       let [[x1v, x1e, p1], [y1v, y1e]] = point
       let [[x2v, x2e, p2], [y2v, y2e]] = overlapped
@@ -233,10 +241,21 @@ export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, 
         continue
       }
 
-      let ex = new Eq(x1e, x2e)
-      let ey = new Eq(y1e, y2e)
-      state.store.addEq(ex, Strength.strong)
-      state.store.addEq(ey, Strength.strong)
+
+      if (x1e.isEqual(x2e)) {
+        // console.log('equal exprs: ' + x1e.toString() + ", " + x2e.toString() )
+      } else {
+        let ex = new Eq(x1e, x2e)
+        state.store.addEq(ex, Strength.strong)
+      }
+
+      if (y1e.isEqual(y2e)) {
+        // console.log('equal exprs: ' + y1e.toString() + ", " + y2e.toString() )
+      } else {
+        let ey = new Eq(y1e, y2e)
+        state.store.addEq(ey, Strength.strong)
+      }
+
 
       let newXs = union(x1e.vars(), x2e.vars())
       let newYs = union(y1e.vars(), y2e.vars())
@@ -245,6 +264,7 @@ export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, 
       retY.add(newYs)
 
       for (let newVar of union(newXs, newYs)) {
+        // console.log('adding:' + newVar.name)
         state.store.addCVar(newVar)
       }
 
@@ -252,14 +272,9 @@ export function constrainAdjacent(state: State, points: Set<Tup<PExpr, PExpr>>, 
       constrained.set(p1, p2)
       constrained.set(p2, p1)
     }
+
   }
 
-  // console.log('finished adding eqs, building rett from:' + ret.size.toString())
-  // let rett = uniqify(ret)
-  // console.log(rett)
-
-  // console.log('finished rett with: ' + rett.size.toString())
-  // console.log('finished with ' + (retX.size + retY.size).toString())
 
   return [retX, retY]
 }
@@ -351,14 +366,6 @@ export namespace InteractionSynthesis {
         let nextColorings: Set<Tup<Set<CassVar>, Full>> = new Set<Tup<Set<CassVar>, Full>>()
         for (let [vals, color] of nextSeed) {
           if (color instanceof Half) {
-            // let newColors = map(
-            //   filter(vals, v => v != color.src),
-            //   v => [vals, new Full(color.src, v)] as Tup<Set<CassVar>, Full>
-            // )
-            // for (let v of newColors) {
-            //   // if (nextColorings)
-            //   nextColorings.add(v)
-            // }
 
             for (let v of vals) {
               if (v != color.src) {
@@ -377,7 +384,6 @@ export namespace InteractionSynthesis {
         //          has one Source + Sink
 
         let newCands = filter(nextColorings, ([eq, color]) => {
-          // let otherEqs = partMap(nextSeed, ([e, _]) => e != eq)[0]
           // console.log('other eqs:')
           // console.log(otherEqs)
           return forall(nextSeed, ([otherEq, otherColor]) => {
@@ -403,7 +409,6 @@ export namespace InteractionSynthesis {
             //       ** color the candidate as a Sink in the other equations
 
         for (let [newEq, candColor] of newCands) {
-          // let newColoring = partMap(nextSeed, kv => true)[0] // copy the coloring
           // newColoring.set(newEq, candColor)
           let newColoring = new Map<Set<CassVar>, Color>()
           for (let [oldEq, oldColor] of nextSeed) {
@@ -418,23 +423,9 @@ export namespace InteractionSynthesis {
             }
           }
 
-          // newColoring.forEach((newColor, eqs) => {
-          //   if (eqs != newEq) {
-          //     if (newColor === Empty && eqs.has(candColor.snk)){
-          //       newColoring.set(eqs, new Half(candColor.snk))
-          //     } else {
-          //       // do nothing
-          //     }
-          //   }
-          // })
-          // if (! exists(candColorings, v => v == newColoring)) {
-            // console.log('adding coloring to worklist:')
-            // console.log(newColoring)
+
+
             candColorings.add(newColoring)
-          // } else {
-          //   duplicates++
-          // }
-          // total++
         }
 
       }
@@ -482,28 +473,241 @@ export namespace InteractionSynthesis {
 // with stretch vars
 export namespace ConstrainedDirManip {
   // add in all DPS. modifies the state in-place to add drag points.
-  export function elaborateDPs(state: State) {
+  export function elaborateDPs(state: State, targetName: string): [State, Map<DragPoint, Shape>] {
+    let origStore = state.eval()
+    let names = flip(state.prog.names)
     let [points, pstore] = addPoints(state)
-    // debugger
-    let [xEqs, yEqs] = constrainAdjacent(state, points, pstore)
-    // debugger
 
     let prefix = "DP"
     var suffix = 0
 
+    let get = (v: Variable) => pstore.get(v) || origStore.get(v)
+
+
     let radius = state.store.addVar(VType.Prim, "DPR", 5)
     var ret: State = state
-    // debugger
+    let parents = new Map<DragPoint, Shape>()
+    // update points with new parents
+    let newPoints:Set<[[CassVar, Expr, Shape],[CassVar, Expr, Shape]]> = new Set()
     for (let xy of points) {
-      // debugger
-      let [[x], [y]] = xy // assumes xy have already been added
+
+      let [[x, xe, xs], [y, ye, ys]] = xy // assumes xy have already been added
+
+      if (!origStore.has(x)) {
+        let eq = new Eq(Expr.fromVar(x), xe)
+        ret.store.addEq(eq, Strength.strong)
+      }
+      if (!origStore.has(y)) {
+        let eq = new Eq(Expr.fromVar(y), ye)
+        ret.store.addEq(eq, Strength.strong)
+      }
+
       let dp = new DragPoint(x, y, radius, 'blue')
+
+      // add in target points
+      if ( get(x) == get((xs as any).x) && get(y) == get((xs as any).y)) {
+        // console.log('centered, with names')
+        // console.log(names.get(xs) + ", " + targetName)
+        if (names.get(xs) == targetName) {
+          dp.stroke = 'green'
+          // also, add in a target
+
+          let tx = state.store.addVar(VType.Prim, "targX", get(x) + 50)
+          let ty = state.store.addVar(VType.Prim, "targY", get(y) + 50)
+          let targ = new Circle(tx, ty, radius, 'green', 'solid')
+          ret = ret.addShape('targetShape', targ, false)
+        }
+      }
+
+      parents.set(dp, ys)
       ret = ret.addShape(prefix + suffix.toString(), dp, false)
       suffix++
-      console.log('added:' + prefix + suffix.toString())
+      newPoints.add([[x, xe, dp], [y, ye, dp]])
+      // console.log('added:' + prefix + suffix.toString())
     }
 
+    // console.log(pstore)
+    // console.log(points)
+    // console.log(newPoints)
+    for (let newVar of pstore) {
+      if (newVar[0] instanceof CassVar)
+        ret.store.addCVar(newVar[0] as CassVar)
+    }
+
+    let [xEqs, yEqs] = constrainAdjacent(ret, newPoints, pstore)
+    // ret.debug()
+
+    return [ret, parents]
+  }
+
+  function generateMotive(state: State, dp: DragPoint, parent: Shape): Set<Variable> {
+    let ret: Set<Variable> = new Set()
+    let pu = new PositionUtil(state.store)
+
+    // for points on the edge of
+    let constrainX = false
+    let constrainY = false
+    if (pu.lieOnCorner(dp, parent)) {
+      constrainX = pu.storeEq(dp.x, (parent as any).x)
+      constrainY = pu.storeEq(dp.y, (parent as any).y)
+    }
+
+    // first, generate the parent motive
+    if (pu.lieOnCorner(dp, parent)) {
+      if (parent instanceof Rectangle) {
+
+        if (!constrainX)
+          ret.add(parent.dx)
+        if (!constrainY)
+          ret.add(parent.dy)
+
+      } else if (parent instanceof Circle) {
+        ret.add(parent.r)
+      } else {
+        assert(false, 'unhandled shape in motives')
+      }
+    } else {
+      // in the middle
+      ret.add((parent as any).x).add((parent as any).y)
+    }
+
+    // handle other shapes in extend-links pass
+
+    // finally, add in dragpoints of the same shape.
+
+    for (let sp of filter(state.prog.shapes, s => s instanceof DragPoint)) {
+      let otherDP = sp as DragPoint
+      let onSameShape = (pu.lieOnCorner(otherDP, parent) || pu.lieOnCenter(otherDP, parent))
+
+      if (!onSameShape) {
+
+        continue
+      }
+
+
+      if (parent instanceof Circle) {
+        // case: dp is in the middle of the circle.
+        // otherDP should translate -- cases: otherDP === dp, otherDP lies on circle, otherDP not on circle
+        if (pu.lieOnCenter(dp, parent)) {
+            ret.add(otherDP.x).add(otherDP.y)
+        } else if (pu.lieOnCorner(otherDP, parent)) {
+          // case: dp and otherDP are on the edge of the same circle. dp should
+          // have the dimension of otherDP that stretches with the circle's radius.
+          // cases:
+          if (pu.storeEq(otherDP.x, dp.x)) {
+
+            if (!constrainX)
+              ret.add(otherDP.x)
+            if (!constrainY)
+              ret.add(otherDP.y)
+
+          } else if (pu.storeEq(otherDP.x,parent.x)) {
+            ret.add(otherDP.y)
+          } else if (pu.storeEq(otherDP.y,parent.y)) {
+            ret.add(otherDP.x)
+          } else {
+            assert(false, "unreachable")
+          }
+
+        }
+        // case: otherDP is in the middle of the same circle, and dp is on the edge. no sharing.
+
+      } else if (parent instanceof Rectangle) {
+
+
+        // case: dp on corner, other in middle => other stays if they're in the same shape
+
+        // case: dp on corner, other on corner => other may or may not move.
+        if (pu.lieOnCorner(dp, parent)) {
+          if (pu.lieOnCenter(otherDP, parent)) {
+            // if it's in the center, it shouldnt translate
+          } else if (pu.lieOnCorner(otherDP, parent)) {
+            // hokay.
+            // if dp on far edge, other on far edge, add both
+            if (pu.storeEq(otherDP.x, parent.x) && !constrainY) {
+              ret.add(otherDP.y)
+            }
+            if (pu.storeEq(otherDP.y, parent.y) && !constrainX) {
+              ret.add(otherDP.x)
+            }
+          }
+
+          // case: dp in middle, other on corner => other moves
+          // case: dp in middle, other in middle => other moves
+        } else {
+          if (!constrainX)
+            ret.add(otherDP.x)
+          if (!constrainY)
+            ret.add(otherDP.y)
+        }
+      }
+    }
+
+    // console.log('adding: ')
+    // console.log(ret)
     return ret
   }
 
+  // limited ELA, specialized for only catching intermediaries.
+  // given a set of free variables, a set of equations, and a set of variables to ignore, extend along equations.
+  // if an extension is ambiguous, panic. pick variables from eqs until eqs less bads has {0, 2} of frees.
+  // return an extension of frees.
+
+  function determinELA(frees: Set<Variable>, eqs: Iterable<Set<Variable>>, bads: Set<Variable>): Set<Variable> {
+    let newFrees: Set<Variable> = union(frees, new Set()) // copy frees
+    let filtEqs = new Set(map(eqs, es => diff(es, diff(bads, newFrees))))
+    // debugger
+
+    // so long as there's a new variable, add to frees
+    let finder = () => {
+      for (let vs of filtEqs) {
+        let [fvs, unfs] = partSet(vs, v => newFrees.has(v))
+        if (fvs.size == 1 && unfs.size == 1) {
+          return [...unfs.keys()][0]
+        } else {
+          if (fvs.size == 0 || fvs.size == 2) {
+            continue
+          } else {
+            // console.log(frees)
+            // console.log(bads)
+            // console.log(fvs)
+            // console.log(unfs)
+            // debugger
+            assert(false, "undetermined equation in determinELA")
+          }
+        }
+        return null
+      }
+    }
+
+    let nxt = finder()
+    while (nxt) {
+      // console.log('adding ' + nxt.name)
+      newFrees.add(nxt)
+      nxt = finder()
+    }
+    return newFrees
+  }
+
+  export function generateMotives(state: State, parents: Map<DragPoint, Shape>): Map<DragPoint, Set<Variable>>{
+    // console.log('adding frees')
+    // console.log(state.prog.allFrees)
+    let pu = new PositionUtil(state.store)
+    let ret = new Map<DragPoint, Set<Variable>>()
+    for (let [dp] of state.prog.allFrees) {
+
+      let parent = parents.get(dp)
+
+      let frees = generateMotive(state, dp, parents.get(dp))
+      let eqs = map(state.store.equations, e => e.vars())
+
+      // aha. restricted variables are those of the parent shape, and also stretch variables of other shapes
+      // console.log(parents.get(dp))
+
+      let restricted = union(collectVars(parents.get(dp)), flatMap(state.prog.shapes, stretchVars))
+
+      ret.set(dp, determinELA(frees, eqs, restricted))
+    }
+    return ret
+  }
 }

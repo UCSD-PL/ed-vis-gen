@@ -71,6 +71,18 @@ export function intersect<T>(l: Set<T>, r: Set<T>): Set<T> {
   return ret
 }
 
+// return the difference -- remove each element of r from l
+export function diff<T>(l: Set<T>, r: Set<T>): Set<T> {
+  let ret = new Set<T>()
+  for (let t of l) {
+    if (!r.has(t)) {
+      ret.add(t)
+    }
+  }
+  return ret
+
+}
+
 // convert a set of tuples to a map
 export function toMap<K, V>(tups: Iterable<[K,V]>): Map<K, V> {
   let ret = new Map<K, V>()

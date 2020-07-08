@@ -3,7 +3,7 @@ import M = require('../model/Model')
 import Var = require('../model/Variable')
 import S = require('../model/Shapes')
 import {renderState} from '../view/View'
-import {Point, assert, filter} from '../util/Util'
+import {Point, assert, filter, map} from '../util/Util'
 import Main = require('../main')
 import {ICanvas, IEvent} from 'fabric'
 
@@ -82,8 +82,9 @@ export class DragController {
           // console.log("clicked:")
           // console.log(d)
           // this.m.main.prog.printShapes()
-          // console.log("drag frees:")
-          // console.log(this.m.main.prog.allFrees.get(d))
+          console.log("drag frees:")
+          let pretty = map(this.m.main.prog.allFrees.get(d), v => v.name)
+          console.log([...pretty].join(','))
           this.m.main.draggedPoint = d
           this.m.main.dragging = true
 
